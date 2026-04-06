@@ -1,0 +1,65 @@
+Make,Marca,"Equipment"
+Make,Marca,"Vehicle"
+Make,Marca
+Make Name,Nombre de Marca
+Class,Clase,"Equipment"
+Series,"Series","Equipment"
+Serial No,"Serial #","Equipment"
+Service Costs,"Costos de Servicio","Equipment"
+Labor Rate,"Mano de Obra","Equipment"
+Frequency PM,"Frecuencia PM","Equipment"
+Misc,Misc,"Equipment"
+Equipment Details,Detalles del Equipo
+Specifications,Especificaciones
+Customer Equipment,Equipo del Cliente
+Start Repair,Iniciar Reparación,
+Service Type,Tipo de Servicio
+Equipment,Equipo
+Service Cost,Costos de Servicio
+Is Non-Inventory Part,¿Es una Parte No Inventariada?
+Cost Price,Precio de Costo
+Sale Price,Precio de Venta
+Part Number,Número de Parte
+Vendor,Vendedor
+Released,Emitido,"Service Work Order"
+Partial Repair,Reparación Parcial
+Finish Repair,Finalizar Reparación
+PO Number,Numero de OC
+Purchase Order Number associated with this repair order.,Número de Orden de Compra asociada con esta orden de reparación.
+Repair Description,Descripción de Reparación
+Problem With Lift,Problema con el Montacargas
+Total Repair Time (hrs),Tiempo Total de Reparación (hrs)
+Hour Meter,Medidor de Horas
+Service Items,Productos del Servicio
+Duration (hours),Duración (horas)
+How long was this repair session?,¿Cuánto duró esta sesión de reparación?
+Reason / Description,Motivo / Descripción
+Why is the repair being paused?,¿Por qué se está pausando la reparación?
+Pause Repair,Pausar Reparación
+Resume Repair,Reanudar Reparación
+Order Details,Detalles de la Orden
+Repair Session,Sesión de Reparación
+Total duration of this repair session,Duración total de esta sesión de reparación
+Final Notes,Notas Finales
+Move to Staged,Pasar a Preparado
+Complete Work Order,Completar Orden de Trabajo
+Staged,Preparado
+Customer Signature,Firma del Cliente
+Schedule Next Service,Programar Próximo Servicio
+Programmed,Programado
+Service Work Order,Servicio de Orden de Trabajo
+Release Work Order,Emitir Orden de Trabajo
+Repairing,Reparando
+Create Invoice,Crear Factura
+"Select an existing Item for each row, or leave blank to create it automatically from the part number / description.","Seleccione un producto existente para cada fila, o deje en blanco para crearlo automáticamente a partir del número de parte / descripción."
+Invoiced,Facturado
+Service Management,Administración de Servicio
+Fill in the required fields. The Equipment ID will be generated automatically.,Complete los campos requeridos. El ID del Equipo se generará automáticamente.
+Customer Unit ID Number,Número de ID de Unidad del Cliente
+Covered Equipment,Equipo Cubierto
+Billable hours for service cost calculation,Horas facturables para el cálculo del costo de servicio
+Hours Worked,Horas Trabajadas
+Service Contract,Contrato de Servicio
+Equipment Number,No. Equipo
+Work Order Number,No. Orden de Trabajo
+Owner Type,Tipo de Propietario

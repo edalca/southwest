@@ -1,0 +1,133 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2026-04-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "customer",
+  "equipment",
+  "service_contract",
+  "status",
+  "assignment_column",
+  "valid_from",
+  "valid_to",
+  "rates_section",
+  "pm_frequency",
+  "pm_price_per_visit",
+  "equipment_labor_rate"
+ ],
+ "fields": [
+  {
+   "default": "SA-.YY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series",
+   "options": "SA-.YY.-.#####"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "equipment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Equipment",
+   "options": "Equipment",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_contract",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Service Contract",
+   "options": "Service Contract",
+   "read_only": 1
+  },
+  {
+   "default": "Active",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Active\nInactive",
+   "read_only": 1
+  },
+  {
+   "fieldname": "assignment_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "valid_from",
+   "fieldtype": "Date",
+   "label": "Valid From",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "valid_to",
+   "fieldtype": "Date",
+   "label": "Valid To",
+   "read_only": 1
+  },
+  {
+   "fieldname": "rates_section",
+   "fieldtype": "Section Break",
+   "label": "Specific Rates & Frequency"
+  },
+  {
+   "description": "Frequency in days",
+   "fieldname": "pm_frequency",
+   "fieldtype": "Int",
+   "label": "PM Frequency (days)",
+   "read_only": 1
+  },
+  {
+   "fieldname": "pm_price_per_visit",
+   "fieldtype": "Currency",
+   "label": "PM Price Per Visit",
+   "read_only": 1
+  },
+  {
+   "fieldname": "equipment_labor_rate",
+   "fieldtype": "Currency",
+   "label": "Equipment Labor Rate",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-04-02 00:09:22.667582",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Service Equipment Assignment",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "equipment",
+ "track_changes": 1
+}

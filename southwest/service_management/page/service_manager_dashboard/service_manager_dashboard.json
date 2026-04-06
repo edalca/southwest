@@ -1,0 +1,16 @@
+{
+ "creation": "2026-04-02 00:00:00.000000",
+ "doctype": "Page",
+ "modified": "2026-04-02 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "service-manager-dashboard",
+ "owner": "Administrator",
+ "page_name": "service-manager-dashboard",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ],
+ "title": "Service Manager Dashboard"
+}

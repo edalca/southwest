@@ -1,0 +1,77 @@
+import vue from '@vitejs/plugin-vue'
+import frappeui from 'frappe-ui/vite'
+import path from 'path'
+import { defineConfig, type Plugin } from 'vite'
+
+/**
+ * frappe-ui's TextEditor component uses ~icons/lucide/* (unplugin-icons).
+ * Since we don't use TextEditor, stub all icon imports with an empty component.
+ * The plugin must intercept both at Vite level AND inside esbuild's dep scanner.
+ */
+const ICON_STUB_CONTENTS = `import { defineComponent } from 'vue'
+export default defineComponent({ template: '<span />' })`
+
+function iconStubPlugin(): Plugin {
+  const STUB_ID = '\0~icon-stub'
+  return {
+    name: 'icon-stub',
+    enforce: 'pre',
+    resolveId(id) {
+      if (id.startsWith('~icons/')) return STUB_ID
+    },
+    load(id) {
+      if (id === STUB_ID) return ICON_STUB_CONTENTS
+    },
+  }
+}
+
+export default defineConfig({
+  server: {
+    host: '0.0.0.0',
+    port: 8100,
+    watch: {
+      usePolling: true,
+      interval: 500,
+    },
+    proxy: {
+      '^/(app|login|api|assets|files|private)': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        ws: true,
+        secure: false,
+      },
+    },
+    allowedHosts: true,
+  },
+  plugins: [
+    iconStubPlugin(),
+    // Disable frappeProxy (we have our own proxy + port)
+    frappeui({ frappeProxy: false }),
+    vue(),
+  ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+  optimizeDeps: {
+    include: ['frappe-ui > feather-icons', 'tailwind.config.js', 'debug'],
+    esbuildOptions: {
+      plugins: [
+        {
+          name: 'icon-stub',
+          setup(build) {
+            build.onResolve({ filter: /^~icons\// }, () => ({
+              path: 'icon-stub',
+              namespace: 'icon-stub',
+            }))
+            build.onLoad({ filter: /.*/, namespace: 'icon-stub' }, () => ({
+              contents: ICON_STUB_CONTENTS,
+              loader: 'js',
+            }))
+          },
+        },
+      ],
+    },
+  },
+})

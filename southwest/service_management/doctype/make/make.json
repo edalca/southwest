@@ -1,0 +1,46 @@
+{
+ "actions": [],
+ "autoname": "field:make_name",
+ "creation": "2026-03-31 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "make_name"
+ ],
+ "fields": [
+  {
+   "fieldname": "make_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Make Name",
+   "reqd": 1,
+   "unique": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-01 22:06:17.194578",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Make",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "quick_entry": 1,
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "make_name"
+}

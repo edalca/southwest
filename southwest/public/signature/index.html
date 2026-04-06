@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Work Order Signature</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f0f0f0;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      color: #111;
+      min-height: 100vh;
+    }
+
+    /* ── Loading / Error / States ── */
+    #state-screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+      color: #555;
+    }
+    #state-screen .icon { font-size: 3.5rem; margin-bottom: 1rem; display: block; }
+    #state-screen h2 { font-size: 1.2rem; margin-bottom: 0.5rem; color: #111; }
+    #state-screen p { font-size: 0.9rem; line-height: 1.5; max-width: 320px; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 4px solid #ddd;
+      border-top-color: #111;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Page ── */
+    #wo-page {
+      display: none;
+      max-width: 720px;
+      margin: 1.5rem auto 3rem;
+      background: #fff;
+      border: 1px solid #ccc;
+      padding: 1.5rem 1.5rem 2rem;
+    }
+    @media (max-width: 740px) {
+      #wo-page { margin: 0; border: none; border-radius: 0; padding: 1rem 1rem 2rem; }
+    }
+
+    /* ── Letterhead ── */
+    .lh {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 3px solid #111;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+    .lh img { height: 68px; width: auto; filter: grayscale(100%); }
+    .lh-text h1 { font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+    .lh-text p { font-size: 0.78rem; color: #555; line-height: 1.5; }
+
+    /* ── Order title ── */
+    .wo-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.9rem; }
+
+    /* ── Info grid ── */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 2rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; gap: 0.4rem; } }
+    .f label { display: block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #666; }
+    .f span { font-size: 0.9rem; }
+
+    /* ── Equipment ── */
+    .equip { margin-bottom: 1rem; }
+    .equip-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.4rem 1rem;
+      border-top: 1px solid #ddd;
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .equip-row:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+    @media (max-width: 480px) { .equip-row { grid-template-columns: 1fr 1fr; } }
+
+    /* ── Documentation ── */
+    .doc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+    @media (max-width: 480px) { .doc-grid { grid-template-columns: 1fr; } }
+    .doc-box { border: 1px solid #ccc; padding: 0.6rem 0.75rem; min-height: 56px; }
+    .doc-box h4 { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem; border-bottom: 1px solid #ddd; padding-bottom: 0.25rem; }
+    .doc-box p { font-size: 0.85rem; white-space: pre-wrap; color: #333; line-height: 1.4; }
+
+    /* ── Parts table ── */
+    .section-title { font-size: 0.95rem; font-weight: 700; border-bottom: 2px solid #111; padding-bottom: 0.25rem; margin: 1rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.03em; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 1rem; }
+    th { border-bottom: 2px solid #111; text-align: left; padding: 0.3rem 0.4rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    td { border-bottom: 1px solid #ddd; padding: 0.35rem 0.4rem; vertical-align: top; }
+    .qty { text-align: right; white-space: nowrap; }
+
+    /* ── Signature area ── */
+    .sig-area { margin-top: 1.5rem; border-top: 2px solid #111; padding-top: 1rem; }
+    .sig-area h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.6rem; }
+    .sig-hint { font-size: 0.78rem; color: #888; margin-bottom: 0.5rem; }
+    #sig-canvas {
+      width: 100%;
+      height: 180px;
+      border: 2px solid #bbb;
+      border-radius: 6px;
+      touch-action: none;
+      cursor: crosshair;
+      background: #fafafa;
+      display: block;
+    }
+    #sig-canvas.active { border-color: #111; background: #fff; }
+    .sig-controls { display: flex; gap: 0.75rem; margin-top: 0.6rem; }
+    .btn-clear {
+      background: none;
+      border: 1px solid #bbb;
+      border-radius: 6px;
+      padding: 0.5rem 1.2rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+      color: #444;
+    }
+    .btn-submit {
+      flex: 1;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn-submit:disabled { background: #999; cursor: not-allowed; }
+    .alert-error {
+      background: #fde;
+      border: 1px solid #f99;
+      border-radius: 6px;
+      padding: 0.6rem 0.75rem;
+      color: #700;
+      margin-top: 0.6rem;
+      display: none;
+      font-size: 0.85rem;
+    }
+
+    /* ── Footer ── */
+    .wo-footer {
+      margin-top: 1.5rem;
+      border-top: 1px solid #ccc;
+      padding-top: 0.5rem;
+      font-size: 0.72rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading / state screen -->
+<div id="state-screen">
+  <div class="spinner"></div>
+  <p>Loading work order...</p>
+</div>
+
+<!-- Main page (hidden until data loads) -->
+<div id="wo-page"></div>
+
+<script>
+(function () {
+  // ── Config ───────────────────────────────────────────────────────────────
+  const API_BASE = window.location.origin;
+  const DATA_METHOD   = "southwest.service_management.doctype.service_work_order.service_work_order.get_signature_page_data";
+  const CSRF_METHOD   = "southwest.service_management.doctype.service_work_order.service_work_order.get_guest_csrf_token";
+  const SUBMIT_METHOD = "southwest.service_management.doctype.service_work_order.service_work_order.submit_signature";
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function qs(selector) { return document.querySelector(selector); }
+
+  function showState(icon, title, message) {
+    qs("#state-screen").innerHTML =
+      `<span class="icon">${icon}</span><h2>${title}</h2><p>${message}</p>`;
+    qs("#state-screen").style.display = "flex";
+    qs("#wo-page").style.display = "none";
+  }
+
+  function esc(str) {
+    return String(str || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  function field(label, value) {
+    if (!value) return "";
+    return `<div class="f"><label>${esc(label)}</label><span>${esc(value)}</span></div>`;
+  }
+
+  // ── Get token from URL ────────────────────────────────────────────────────
+  const token = new URLSearchParams(window.location.search).get("token") || "";
+  if (!token) { showState("⚠️", "Invalid link", "No token found in the URL."); return; }
+
+  // ── Fetch data ────────────────────────────────────────────────────────────
+  fetch(`${API_BASE}/api/method/${DATA_METHOD}?token=${encodeURIComponent(token)}`, {
+    method: "GET",
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(res) {
+    const d = res.message;
+    if (!d) { showState("⚠️", "Error", "Could not load work order data."); return; }
+    if (d.expired)       { showState("🔒", "Link no longer valid", "This signature link has already been used and cannot be opened again."); return; }
+    if (d.already_signed){ showState("✅", "Already signed", `Work order <strong>${esc(d.work_order_number)}</strong> has already been signed.`); return; }
+    render(d);
+  })
+  .catch(function() { showState("⚠️", "Network error", "Could not connect. Please check your connection and try again."); });
+
+  // ── Render ────────────────────────────────────────────────────────────────
+  function render(d) {
+    // Letterhead
+    const logoHtml = d.company_logo
+      ? `<img src="${esc(d.company_logo)}" alt="${esc(d.company_name)}">`
+      : "";
+    const contactParts = [];
+    if (d.company_phone) contactParts.push(`M: ${esc(d.company_phone)}`);
+    if (d.company_email) contactParts.push(`E: ${esc(d.company_email)}`);
+    const lhAddressHtml = d.company_address
+      ? `<span>${d.company_address}</span><br>` : "";
+
+    // Info fields
+    const infoFields = [
+      field("Customer name", d.customer),
+      field("Service Type", d.service_type),
+      field("Customer address", d.customer_address),
+      field("PO #", d.customer_po_number),
+      field("Date", d.scheduled_date),
+      d.total_repair_time ? field("Labor Hours", parseFloat(d.total_repair_time).toFixed(2) + " hr(s)") : "",
+      field("Hour Meter", d.hour_meter),
+    ].join("");
+
+    // Equipment
+    const equipHtml = (d.equipment_rows || []).map(function(eq) {
+      return `<div class="equip-row">
+        ${field("Make", eq.make)}
+        ${field("Model", eq.model)}
+        ${field("Serial #", eq.serial_no)}
+        ${field("Unit #", eq.unit)}
+      </div>`;
+    }).join("");
+
+    // Documentation
+    const docHtml = (d.problem_with_lift || d.repair_description) ? `
+      <div class="doc-grid">
+        <div class="doc-box"><h4>Problem with Lift</h4><p>${esc(d.problem_with_lift || "—")}</p></div>
+        <div class="doc-box"><h4>Repair Description</h4><p>${esc(d.repair_description || "—")}</p></div>
+      </div>` : "";
+
+    // Parts
+    const rowsHtml = (d.service_items || []).map(function(item) {
+      const label = item.label ? `(${esc(item.label)}) ` : "";
+      return `<tr>
+        <td>${label}${esc(item.description)}</td>
+        <td class="qty">${parseFloat(item.qty).toFixed(2)} Units</td>
+      </tr>`;
+    }).join("");
+    const partsHtml = rowsHtml ? `
+      <div class="section-title">Parts</div>
+      <table>
+        <thead><tr><th>Description</th><th class="qty">Quantity</th></tr></thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>` : "";
+
+    const footerContact = contactParts.join(" | ");
+
+    qs("#wo-page").innerHTML = `
+      <div class="lh">
+        ${logoHtml}
+        <div class="lh-text">
+          <h1>${esc(d.company_name)}</h1>
+          <p>${lhAddressHtml}${esc(contactParts.join("  |  "))}</p>
+        </div>
+      </div>
+
+      <div class="wo-title">Repair Order # ${esc(d.work_order_number)}</div>
+
+      <div class="info-grid">${infoFields}</div>
+
+      ${equipHtml ? `<div class="equip">${equipHtml}</div>` : ""}
+
+      ${docHtml}
+
+      ${partsHtml}
+
+      <div class="sig-area">
+        <h3>Customer Signature</h3>
+        <p class="sig-hint">Sign in the box below using your finger or stylus.</p>
+        <canvas id="sig-canvas" width="640" height="180"></canvas>
+        <div class="sig-controls">
+          <button class="btn-clear" id="btn-clear" type="button">Clear</button>
+          <button class="btn-submit" id="btn-submit" type="button">Send Signature</button>
+        </div>
+        <div class="alert-error" id="alert-error"></div>
+      </div>
+
+      <div class="wo-footer">${esc(footerContact)}</div>
+    `;
+
+    qs("#state-screen").style.display = "none";
+    qs("#wo-page").style.display = "block";
+
+    initCanvas(token);
+  }
+
+  // ── Canvas & submit ────────────────────────────────────────────────────────
+  function initCanvas(tok) {
+    const canvas = qs("#sig-canvas");
+    const ctx = canvas.getContext("2d");
+    let drawing = false, hasStrokes = false;
+
+    // Scale for device pixel ratio
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.getBoundingClientRect().width || 640;
+    canvas.width = w * dpr;
+    canvas.height = 180 * dpr;
+    ctx.scale(dpr, dpr);
+    ctx.strokeStyle = "#111";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    function pos(e) {
+      const r = canvas.getBoundingClientRect();
+      const src = e.touches ? e.touches[0] : e;
+      return { x: (src.clientX - r.left), y: (src.clientY - r.top) };
+    }
+
+    function onStart(e) {
+      e.preventDefault();
+      drawing = true; hasStrokes = true;
+      canvas.classList.add("active");
+      const p = pos(e);
+      ctx.beginPath(); ctx.moveTo(p.x, p.y);
+    }
+    function onMove(e) {
+      e.preventDefault();
+      if (!drawing) return;
+      const p = pos(e);
+      ctx.lineTo(p.x, p.y); ctx.stroke();
+    }
+    function onEnd(e) { if(e) e.preventDefault(); drawing = false; }
+
+    canvas.addEventListener("mousedown",  onStart);
+    canvas.addEventListener("mousemove",  onMove);
+    canvas.addEventListener("mouseup",    onEnd);
+    canvas.addEventListener("mouseleave", onEnd);
+    canvas.addEventListener("touchstart", onStart, { passive: false });
+    canvas.addEventListener("touchmove",  onMove,  { passive: false });
+    canvas.addEventListener("touchend",   onEnd,   { passive: false });
+
+    qs("#btn-clear").addEventListener("click", function() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      hasStrokes = false;
+      canvas.classList.remove("active");
+    });
+
+    qs("#btn-submit").addEventListener("click", function() {
+      if (!hasStrokes) { alert("Please sign before submitting."); return; }
+      const btn = this;
+      const errEl = qs("#alert-error");
+      btn.disabled = true; btn.textContent = "Sending…"; errEl.style.display = "none";
+
+      // Fetch the CSRF token for the current guest session, then submit
+      fetch(`${API_BASE}/api/method/${CSRF_METHOD}`)
+      .then(function(r) { return r.json(); })
+      .then(function(csrf) {
+        const csrfToken = csrf.message || "fetch";
+        const fd = new FormData();
+        fd.append("token", tok);
+        fd.append("signature", canvas.toDataURL("image/png"));
+        return fetch(`${API_BASE}/api/method/${SUBMIT_METHOD}`, {
+          method: "POST",
+          headers: { "X-Frappe-CSRF-Token": csrfToken },
+          body: fd,
+        });
+      })
+      .then(function(r) {
+        return r.text().then(function(text) {
+          console.log("submit response status:", r.status);
+          console.log("submit response body:", text);
+          try { return JSON.parse(text); } catch(e) { return { _raw: text }; }
+        });
+      })
+      .then(function(data) {
+        if (data.message && data.message.success) {
+          showState("✅", "Thank you!", "Your signature has been received and the work order has been completed.");
+        } else {
+          const detail = data.exception || data._server_messages || data._raw || JSON.stringify(data);
+          errEl.textContent = detail;
+          errEl.style.display = "block";
+          btn.disabled = false; btn.textContent = "Send Signature";
+        }
+      })
+      .catch(function(err) {
+        console.error("submit fetch error:", err);
+        errEl.textContent = "Network error: " + err.message;
+        errEl.style.display = "block";
+        btn.disabled = false; btn.textContent = "Send Signature";
+      });
+    });
+  }
+
+})();
+</script>
+</body>
+</html>

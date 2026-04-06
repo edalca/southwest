@@ -1,0 +1,140 @@
+# Translations template for Southwest.
+# Copyright (C) 2026 Edwin Carrillo
+# This file is distributed under the same license as the Southwest project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Southwest VERSION\n"
+"Report-Msgid-Bugs-To: edwinalonso162@hotmail.com\n"
+"POT-Creation-Date: 2026-03-31 02:07+0000\n"
+"PO-Revision-Date: 2026-03-31 02:07+0000\n"
+"Last-Translator: edwinalonso162@hotmail.com\n"
+"Language-Team: edwinalonso162@hotmail.com\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+
+#. Label of the equipment_class (Data) field in DocType 'Customer Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Class"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:50
+msgid "Component"
+msgstr ""
+
+#. Label of the customer (Link) field in DocType 'Customer Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#: southwest/startup/custom_fields.py:42
+msgid "Customer"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:26
+msgid "Customer Code"
+msgstr ""
+
+#. Label of a Workspace Sidebar Item
+#: southwest/workspace_sidebar/service_management.json
+msgid "Customer Equipmen"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Customer Equipment"
+msgstr ""
+
+#. Label of the equipment_details_column (Column Break) field in DocType
+#. 'Customer Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Equipment Details"
+msgstr ""
+
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.js:4
+msgid "Fill in the required fields. The Equipment ID will be generated automatically."
+msgstr ""
+
+#. Label of the frequency_pm_cost (Currency) field in DocType 'Customer
+#. Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Frequency PM"
+msgstr ""
+
+#. Label of the labor_rate_cost (Currency) field in DocType 'Customer
+#. Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Labor Rate"
+msgstr ""
+
+#. Label of the make (Link) field in DocType 'Customer Equipment'
+#. Name of a DocType
+#. Label of a Workspace Sidebar Item
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#: southwest/service_management/doctype/make/make.json
+#: southwest/workspace_sidebar/service_management.json
+msgid "Make"
+msgstr ""
+
+#. Label of the make_name (Data) field in DocType 'Make'
+#: southwest/service_management/doctype/make/make.json
+msgid "Make Name"
+msgstr ""
+
+#. Label of the misc_cost (Currency) field in DocType 'Customer Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Misc"
+msgstr ""
+
+#. Label of the model (Data) field in DocType 'Customer Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Model"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:57
+msgid "Part Color"
+msgstr ""
+
+#. Label of the serial_no (Data) field in DocType 'Customer Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Serial No"
+msgstr ""
+
+#. Label of the series (Data) field in DocType 'Customer Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Series"
+msgstr ""
+
+#. Label of the service_costs_column (Column Break) field in DocType 'Customer
+#. Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Service Costs"
+msgstr ""
+
+#. Label of a Desktop Icon
+#. Title of a Workspace Sidebar
+#: southwest/desktop_icon/service_management.json
+#: southwest/workspace_sidebar/service_management.json
+msgid "Service Management"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:36
+msgid "Southwest"
+msgstr ""
+
+#. Label of the specifications_column (Column Break) field in DocType 'Customer
+#. Equipment'
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+msgid "Specifications"
+msgstr ""
+
+#. Name of a role
+#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#: southwest/service_management/doctype/make/make.json
+msgid "System Manager"
+msgstr ""
+
+#: southwest/public/js/overrides/item.js:24
+msgid "The selected Customer does not have a Customer Code defined."
+msgstr ""
+

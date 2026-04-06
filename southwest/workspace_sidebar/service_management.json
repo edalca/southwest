@@ -1,0 +1,132 @@
+{
+ "app": "southwest",
+ "creation": "2026-03-30 21:50:58.145387",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "blocks",
+ "idx": 0,
+ "items": [
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "dashboard",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Dashboard",
+   "link_to": "service-manager-dashboard",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 0,
+   "icon": "calendar-clock",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Work Order",
+   "link_to": "Service Work Order",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 0,
+   "icon": "book-check",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Service Contract",
+   "link_to": "Service Contract",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "database",
+   "indent": 1,
+   "keep_closed": 0,
+   "label": "Setup",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Customer",
+   "link_to": "Customer",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Equipment",
+   "link_to": "Equipment",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Make",
+   "link_to": "Make",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "file-text",
+   "indent": 1,
+   "keep_closed": 0,
+   "label": "Reports",
+   "show_arrow": 0,
+   "type": "Section Break"
+  },
+  {
+   "child": 1,
+   "collapsible": 0,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Service Work Orders",
+   "link_to": "Service Work Orders",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "wrench",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Setting",
+   "link_to": "Service Manager Settings",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-04-05 22:55:50.891651",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Service Management",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "Service Management"
+}

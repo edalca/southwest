@@ -1,0 +1,49 @@
+{
+ "actions": [],
+ "autoname": "prompt",
+ "creation": "2026-04-01 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "current",
+  "padding"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "current",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Current",
+   "non_negative": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "padding",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Padding",
+   "non_negative": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-02 00:20:10.522620",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Sequence",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

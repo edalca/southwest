@@ -1,0 +1,251 @@
+{
+ "actions": [],
+ "autoname": "WO-.YY.-.#######",
+ "creation": "2026-03-31 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "details_section",
+  "order_details_column",
+  "customer",
+  "company",
+  "equipment_selection",
+  "service_type",
+  "hours_worked",
+  "service_cost",
+  "work_order_number",
+  "status_column",
+  "status",
+  "scheduled_date",
+  "hour_meter",
+  "customer_po_number",
+  "service_items_section",
+  "service_items",
+  "documentation_section",
+  "repair_description_column",
+  "repair_description",
+  "problem_with_lift_column",
+  "problem_with_lift",
+  "time_tracking_section",
+  "time_logs",
+  "total_repair_time",
+  "signature_section",
+  "customer_signature",
+  "signature_date",
+  "signature_token",
+  "signature_link"
+ ],
+ "fields": [
+  {
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Order Details"
+  },
+  {
+   "fieldname": "order_details_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Customer",
+   "options": "Customer",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Company",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "equipment_selection",
+   "fieldtype": "Table MultiSelect",
+   "label": "Equipment",
+   "options": "Service Work Order Equipment",
+   "reqd": 1
+  },
+  {
+   "fieldname": "service_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Service Type",
+   "options": "PM Frequency\nMisc\nLabor Rate",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.hours_worked > 0",
+   "fieldname": "hours_worked",
+   "fieldtype": "Float",
+   "label": "Hours Worked",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "service_cost",
+   "fieldtype": "Currency",
+   "hidden": 1,
+   "label": "Service Cost",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "work_order_number",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Work Order Number",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "status_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "New",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Status",
+   "options": "New\nProgrammed\nReleased\nRepairing\nPartial Repair\nStaged\nCompleted\nInvoiced\nCancelled"
+  },
+  {
+   "default": "now",
+   "fieldname": "scheduled_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Scheduled Date"
+  },
+  {
+   "fieldname": "hour_meter",
+   "fieldtype": "Data",
+   "label": "Hour Meter"
+  },
+  {
+   "allow_on_submit": 1,
+   "description": "Purchase Order Number associated with this repair order.",
+   "fieldname": "customer_po_number",
+   "fieldtype": "Data",
+   "label": "PO Number"
+  },
+  {
+   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed','Invoiced'].includes(doc.status)",
+   "fieldname": "service_items_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "service_items",
+   "fieldtype": "Table",
+   "label": "Service Items",
+   "options": "Service Work Order Item"
+  },
+  {
+   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed','Invoiced'].includes(doc.status)",
+   "fieldname": "time_tracking_section",
+   "fieldtype": "Section Break",
+   "label": "Time Tracking"
+  },
+  {
+   "fieldname": "time_logs",
+   "fieldtype": "Table",
+   "label": "Time Logs",
+   "options": "Service Work Order Time Log",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_repair_time",
+   "fieldtype": "Float",
+   "label": "Total Repair Time (hrs)",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed','Invoiced'].includes(doc.status)",
+   "fieldname": "documentation_section",
+   "fieldtype": "Section Break",
+   "label": "Documentation"
+  },
+  {
+   "fieldname": "repair_description_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "repair_description",
+   "fieldtype": "Text",
+   "label": "Repair Description"
+  },
+  {
+   "fieldname": "problem_with_lift_column",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "problem_with_lift",
+   "fieldtype": "Text",
+   "label": "Problem With Lift"
+  },
+  {
+   "depends_on": "eval:['Completed', 'Invoiced'].includes(doc.status)",
+   "fieldname": "signature_section",
+   "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:['Completed', 'Invoiced'].includes(doc.status)",
+   "fieldname": "customer_signature",
+   "fieldtype": "Signature",
+   "label": "Customer Signature",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:['Completed', 'Invoiced'].includes(doc.status)",
+   "fieldname": "signature_date",
+   "fieldtype": "Datetime",
+   "label": "Signature Date",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "signature_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Signature Token",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "signature_link",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Signature Link",
+   "no_copy": 1,
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "modified": "2026-04-02 06:38:37.078463",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Service Work Order",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "work_order_number",
+ "track_changes": 1
+}

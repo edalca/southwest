@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "creation": "2026-04-02 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "labor_items_section",
+  "pm_labor_item",
+  "labor_rate_item",
+  "misc_labor_item",
+  "inventory_section",
+  "default_swo_stock_entry_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "labor_items_section",
+   "fieldtype": "Section Break",
+   "label": "Labor Items"
+  },
+  {
+   "fieldname": "pm_labor_item",
+   "fieldtype": "Link",
+   "label": "PM Labor Item",
+   "options": "Item",
+   "description": "Item used as the labor line on PM Frequency invoices"
+  },
+  {
+   "fieldname": "labor_rate_item",
+   "fieldtype": "Link",
+   "label": "Labor Rate Item",
+   "options": "Item",
+   "description": "Item used as the labor line on Labor Rate invoices (hourly billing)"
+  },
+  {
+   "fieldname": "misc_labor_item",
+   "fieldtype": "Link",
+   "label": "Misc Labor Item",
+   "options": "Item",
+   "description": "Item used as the labor line on Misc invoices"
+  },
+  {
+   "fieldname": "inventory_section",
+   "fieldtype": "Section Break",
+   "label": "Inventory"
+  },
+  {
+   "fieldname": "default_swo_stock_entry_type",
+   "fieldtype": "Link",
+   "label": "Default SWO Stock Entry Type",
+   "options": "Stock Entry Type",
+   "description": "Stock Entry Type used when creating inventory write-offs from Service Work Orders (typically Material Issue)"
+  }
+ ],
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-04-05 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Service Manager Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

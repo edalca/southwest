@@ -1,0 +1,262 @@
+{% set company = frappe.db.get_default('company') or '' %}
+{% set company_doc = frappe.get_doc('Company', company) if company else none %}
+
+<style>
+  /* Force Letter Head content to monochromatic */
+  .print-heading * { color: #111 !important; }
+  .print-heading hr { border-color: #111 !important; }
+
+  .swo-wrap {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #111;
+    padding: 4px;
+  }
+
+  /* ── Order title ── */
+  .swo-order-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  /* ── Info Grid ── */
+  .swo-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 24px;
+    margin-bottom: 12px;
+  }
+  .swo-field label {
+    display: block;
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #555;
+  }
+  .swo-field span {
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* ── Equipment rows ── */
+  .swo-equip-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px 16px;
+    border-top: 1px solid #ddd;
+    padding-top: 5px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+  }
+  .swo-equip-row:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
+  /* ── Section title ── */
+  .swo-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    border-bottom: 2px solid #111;
+    padding-bottom: 3px;
+    margin: 14px 0 7px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── Documentation ── */
+  .swo-doc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .swo-doc-box {
+    border: 1px solid #ccc;
+    padding: 7px 9px;
+    min-height: 60px;
+  }
+  .swo-doc-box h4 {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 5px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 3px;
+  }
+  .swo-doc-text {
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+
+  /* ── Parts table ── */
+  .swo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    margin-bottom: 14px;
+  }
+  .swo-table th {
+    border-bottom: 2px solid #111;
+    text-align: left;
+    padding: 4px 7px;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .swo-table td {
+    border-bottom: 1px solid #ddd;
+    padding: 4px 7px;
+    vertical-align: top;
+  }
+  .swo-table .text-right { text-align: right; }
+
+  /* ── Signature ── */
+  .swo-sig-section {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  .swo-sig-box { }
+  .swo-sig-line {
+    border-bottom: 1px solid #111;
+    margin-bottom: 4px;
+    height: 50px;
+  }
+  .swo-sig-img {
+    max-width: 220px;
+    max-height: 50px;
+    display: block;
+  }
+  .swo-sig-value {
+    height: 50px;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 4px;
+    font-size: 13px;
+  }
+  .swo-sig-label { font-size: 10px; color: #555; }
+
+  /* ── Footer ── */
+  .swo-footer {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 6px;
+    font-size: 10px;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+
+<div class="swo-wrap">
+
+  <!-- Letter Head selected at print time -->
+  {% if letter_head %}
+    {{ letter_head }}
+    <hr style="border:0; margin:8px 0 12px;">
+  {% endif %}
+
+  <!-- Order title -->
+  <div class="swo-order-title">Repair Order # {{ doc.work_order_number or doc.name }}</div>
+
+  <!-- Info grid -->
+  <div class="swo-info-grid">
+    <div class="swo-field"><label>Customer name</label><span>{{ doc.customer }}</span></div>
+    <div class="swo-field"><label>Service Type</label><span>{{ doc.service_type or '—' }}</span></div>
+    {% if doc.customer_po_number %}
+    <div class="swo-field"><label>PO #</label><span>{{ doc.customer_po_number }}</span></div>
+    {% endif %}
+    {% if doc.scheduled_date %}
+    <div class="swo-field"><label>Date</label><span>{{ frappe.format(doc.scheduled_date, {'fieldtype': 'Date'}) }}</span></div>
+    {% endif %}
+    <div class="swo-field"><label>Labor Hours</label><span>{{ "%.2f"|format(doc.total_repair_time or 0) }} hr(s)</span></div>
+    {% if doc.hour_meter %}
+    <div class="swo-field"><label>Hour Meter</label><span>{{ doc.hour_meter }}</span></div>
+    {% endif %}
+  </div>
+
+  <!-- Equipment -->
+  {% for sel in doc.equipment_selection %}
+    {% set equip = frappe.get_doc('Equipment', sel.equipment) if sel.equipment else none %}
+    {% if equip %}
+    <div class="swo-equip-row">
+      <div class="swo-field"><label>Make</label><span>{{ equip.make or '—' }}</span></div>
+      <div class="swo-field"><label>Model</label><span>{{ equip.model or '—' }}</span></div>
+      <div class="swo-field"><label>Serial #</label><span>{{ equip.serial_no or '—' }}</span></div>
+      <div class="swo-field"><label>Unit #</label><span>{{ equip.customer_unit_id_number or '—' }}</span></div>
+    </div>
+    {% endif %}
+  {% endfor %}
+
+  <!-- Documentation -->
+  {% if doc.repair_description or doc.problem_with_lift %}
+  <div class="swo-doc-grid">
+    <div class="swo-doc-box">
+      <h4>Problem with Lift</h4>
+      <div class="swo-doc-text">{{ doc.problem_with_lift or '—' }}</div>
+    </div>
+    <div class="swo-doc-box">
+      <h4>Repair Description</h4>
+      <div class="swo-doc-text">{{ doc.repair_description or '—' }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Parts -->
+  {% if doc.service_items %}
+  <div class="swo-section-title">Parts</div>
+  <table class="swo-table">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th class="text-right" style="width:80px">Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in doc.service_items %}
+      <tr>
+        <td>
+          {% if row.item_code %}({{ row.item_code }}) {% endif %}
+          {{ row.description or row.part_number or '—' }}
+        </td>
+        <td class="text-right">{{ "%.2f"|format(row.qty or 0) }} Units</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- Signature -->
+  <div class="swo-sig-section">
+    <div class="swo-sig-box">
+      {% if doc.customer_signature %}
+        <img class="swo-sig-img" src="{{ doc.customer_signature }}" alt="Customer Signature">
+      {% else %}
+        <div class="swo-sig-line"></div>
+      {% endif %}
+      <div class="swo-sig-label">Customer Signature</div>
+    </div>
+    <div class="swo-sig-box">
+      {% if doc.signature_date %}
+        <div class="swo-sig-value">{{ frappe.format(doc.signature_date, {'fieldtype': 'Datetime'}) }}</div>
+      {% else %}
+        <div class="swo-sig-line"></div>
+      {% endif %}
+      <div class="swo-sig-label">Date</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="swo-footer">
+    <span>
+      {% if company_doc and company_doc.phone_no %}M: {{ company_doc.phone_no }}{% endif %}
+      {% if company_doc and company_doc.phone_no and company_doc.email %} | {% endif %}
+      {% if company_doc and company_doc.email %}E: {{ company_doc.email }}{% endif %}
+    </span>
+    <span>Page 1 / 1</span>
+  </div>
+
+</div>

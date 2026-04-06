@@ -1,0 +1,57 @@
+{
+ "actions": [],
+ "creation": "2026-04-01 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "equipment",
+  "pm_frequency",
+  "pm_price_per_visit",
+  "equipment_labor_rate"
+ ],
+ "fields": [
+  {
+   "fieldname": "equipment",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Equipment",
+   "options": "Equipment",
+   "reqd": 1
+  },
+  {
+   "description": "Frequency in days, e.g., 90, 180",
+   "fieldname": "pm_frequency",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "PM Frequency (days)",
+   "reqd": 1
+  },
+  {
+   "fieldname": "pm_price_per_visit",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "PM Price Per Visit",
+   "reqd": 1
+  },
+  {
+   "description": "Overrides contract general labor rate if set",
+   "fieldname": "equipment_labor_rate",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Equipment Labor Rate"
+  }
+ ],
+ "istable": 1,
+ "links": [],
+ "modified": "2026-04-01 19:53:54.085187",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Service Contract Equipment",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,45 @@
+name: Push Translations to Hub
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "southwest/locale/main.pot"
+
+jobs:
+  push-translations:
+    name: Sync main.pot to frappe-translations-hub
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout southwest app
+        uses: actions/checkout@v4
+        with:
+          path: southwest
+
+      - name: Checkout frappe-translations-hub
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/frappe-translations-hub
+          token: ${{ secrets.TRANSLATIONS_HUB_PAT }}
+          path: frappe-translations-hub
+
+      - name: Ensure destination directory exists
+        run: mkdir -p frappe-translations-hub/southwest/locale
+
+      - name: Copy main.pot to hub
+        run: |
+          cp southwest/southwest/locale/main.pot \
+             frappe-translations-hub/southwest/locale/main.pot
+
+      - name: Commit and push to hub
+        working-directory: frappe-translations-hub
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add southwest/locale/main.pot
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "chore(southwest): sync main.pot from southwest@${{ github.sha }}"
+          git push
