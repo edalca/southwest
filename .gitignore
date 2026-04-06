@@ -64,3 +64,4 @@ frontend/package-lock.json
 frontend/capacitor.config.json
 frontend/public/
 frontend/tests/
+.cursorrules
