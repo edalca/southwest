@@ -22,7 +22,7 @@ wheels/
 *.egg
 tags
 MANIFEST
-
+.*
 # Environments
 .env
 .venv
@@ -53,3 +53,14 @@ jspm_packages/
 
 # Aider AI Chat
 .aider*
+
+# Ionic / Vue frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.ionic/
+frontend/cypress/videos/
+frontend/cypress/screenshots/
+frontend/package-lock.json
+frontend/capacitor.config.json
+frontend/public/
+frontend/tests/

@@ -1,9 +1,25 @@
 app_name = "southwest"
 app_title = "Southwest"
 app_publisher = "Edwin Carrillo"
-app_description = "Adaptacion Empresa southwest"
+app_description = "Custom adaptation for Southwest company built on top of ERPNext + HRMS"
 app_email = "edwinalonso162@hotmail.com"
 app_license = "mit"
+
+# Installation hooks
+after_install = "southwest.setup.after_install"
+before_uninstall = "southwest.setup.before_uninstall"
+
+# Global JS bundle loaded on every desk page
+app_include_js = [
+	"southwest.bundle.js",
+]
+
+# Client scripts injected into ERPNext doctypes
+doctype_js = {
+	"Item": "public/js/overrides/item.js",
+	"Sales Invoice": "public/js/overrides/sales_invoice.js",
+	"Stock Entry": "public/js/overrides/stock_entry.js",
+}
 
 # Apps
 # ------------------
@@ -132,13 +148,12 @@ app_license = "mit"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+    "Sales Invoice": {
+        "before_insert": "southwest.overrides.sales_invoice_events.before_insert",
+        "on_submit": "southwest.overrides.sales_invoice_events.on_submit",
+    },
+}
 
 # Scheduled Tasks
 # ---------------
