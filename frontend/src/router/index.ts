@@ -41,8 +41,12 @@ const routes: Array<RouteRecordRaw> = [
   },
 ]
 
+// In production the app is served at /southwest by Frappe's www.
+// In dev (Vite dev server) we keep the root.
+const base = import.meta.env.PROD ? '/southwest/' : '/'
+
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(base),
   routes,
 })
 

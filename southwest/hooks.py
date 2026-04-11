@@ -24,18 +24,22 @@ doctype_js = {
 # Apps
 # ------------------
 
-# required_apps = []
+required_apps = ["hrms"]
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "southwest",
-# 		"logo": "/assets/southwest/logo.png",
-# 		"title": "Southwest",
-# 		"route": "/southwest",
-# 		"has_permission": "southwest.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+	{
+		"name": "southwest",
+		"logo": "/assets/southwest/logo.png",
+		"title": "Southwest",
+		"route": "/southwest",
+	}
+]
+
+# Redirect all /southwest/* sub-routes to the SPA entry point
+website_route_rules = [
+	{"from_route": "/southwest/<path:app_path>", "to_route": "southwest"},
+]
 
 # Includes in <head>
 # ------------------

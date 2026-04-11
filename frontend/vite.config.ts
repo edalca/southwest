@@ -45,8 +45,14 @@ export default defineConfig({
   },
   plugins: [
     iconStubPlugin(),
-    // Disable frappeProxy (we have our own proxy + port)
-    frappeui({ frappeProxy: false }),
+    frappeui({
+      frappeProxy: false,
+      buildConfig: {
+        outDir: '../southwest/public/frontend',
+        baseUrl: '/assets/southwest/frontend/',
+        indexHtmlPath: '../southwest/www/southwest.html',
+      },
+    }),
     vue(),
   ],
   resolve: {

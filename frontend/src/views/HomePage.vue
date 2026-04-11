@@ -50,7 +50,7 @@
              <div>
                <h3 class="font-bold text-indigo-900">{{ __('Install Southwest App') }}</h3>
                <p class="text-xs font-medium text-indigo-700 mt-1 leading-snug">
-                 {{ __('¡Obtén la aplicación en tu dispositivo para un acceso fácil y una mejor experiencia!') }}
+                 {{ __('Get the app on your device for easy access and a better experience!') }}
                </p>
              </div>
            </div>

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Southwest VERSION\n"
 "Report-Msgid-Bugs-To: edwinalonso162@hotmail.com\n"
-"POT-Creation-Date: 2026-03-31 02:07+0000\n"
-"PO-Revision-Date: 2026-03-31 02:07+0000\n"
+"POT-Creation-Date: 2026-04-07 08:09+0000\n"
+"PO-Revision-Date: 2026-04-07 08:09+0000\n"
 "Last-Translator: edwinalonso162@hotmail.com\n"
 "Language-Team: edwinalonso162@hotmail.com\n"
 "MIME-Version: 1.0\n"
@@ -16,18 +16,226 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#. Label of the equipment_class (Data) field in DocType 'Customer Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#: frontend/src/views/HomePage.vue:72
+msgid "\"Add to Home Screen\""
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:69
+msgid "1. Tap"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:72
+msgid "2. Tap"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:477
+msgid "A Sales Invoice ({0}) already exists for this work order."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:396
+msgid "A Stock Entry ({0}) already exists for this work order."
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:656
+msgid "Action failed. Please try again."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:145
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:158
+msgid "Actions"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Equipment
+#. Assignment'
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Active"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:73
+#: frontend/src/views/SWODetailPage.vue:373
+msgid "Add"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:299
+msgid "Add Item"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:21
+msgid "Already Signed"
+msgstr ""
+
+#. Label of the amended_from (Link) field in DocType 'Equipment'
+#. Label of the amended_from (Link) field in DocType 'Service Contract'
+#: southwest/service_management/doctype/equipment/equipment.json
+#: southwest/service_management/doctype/service_contract/service_contract.json
+msgid "Amended From"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:167
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:191
+msgid "Assign Item"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:166
+msgid "Assign product to this part"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Part Assignment'
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+msgid "Assigned"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:257
+msgid "Assigned successfully"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:103
+msgid "Assignment ID"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:500
+msgid "At least one part or item must be added before finishing the repair."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:211
+msgid "Billable hours for service cost calculation"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:132
+msgid "By signing below, the customer acknowledges that the work described above has been completed to their satisfaction."
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:293
+#: frontend/src/views/SWODetailPage.vue:372
+msgid "Cancel"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Cancelled"
+msgstr ""
+
+#. Label of the equipment_class (Data) field in DocType 'Equipment'
+#: southwest/service_management/doctype/equipment/equipment.json
 msgid "Class"
 msgstr ""
 
+#: frontend/src/views/SignaturePage.vue:148
+msgid "Clear"
+msgstr ""
+
+#. Label of the company (Link) field in DocType 'Service Contract'
+#. Label of the company (Link) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Company"
+msgstr ""
+
 #: southwest/startup/custom_fields.py:50
+msgid "Company Sequence"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:300
+msgid "Complete"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:291
+msgid "Complete Work Order"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Completed"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:311
+msgid "Completing work order..."
+msgstr ""
+
+#: southwest/startup/custom_fields.py:150
 msgid "Component"
 msgstr ""
 
-#. Label of the customer (Link) field in DocType 'Customer Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
-#: southwest/startup/custom_fields.py:42
+#: frontend/src/views/SWODetailPage.vue:294
+msgid "Confirm"
+msgstr ""
+
+#. Label of the contract_number (Data) field in DocType 'Service Contract'
+#: southwest/service_management/doctype/service_contract/service_contract.json
+msgid "Contract Number"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:257
+msgid "Copy"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:133
+msgid "Copy Link"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:77
+#: frontend/src/views/CreateSWOPage.vue:120
+msgid "Could not load equipment — check connection and try again"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:458
+msgid "Could not load work order. Please try again."
+msgstr ""
+
+#. Label of the covered_equipment_section (Section Break) field in DocType
+#. 'Service Contract'
+#: southwest/service_management/doctype/service_contract/service_contract.json
+msgid "Covered Equipment"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:367
+msgid "Create"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:150
+msgid "Create Invoice"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:145
+msgid "Create Stock Entry"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:157
+msgid "Create Work Order"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:436
+msgid "Creating invoice..."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:347
+msgid "Creating programmed order..."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:407
+msgid "Creating stock entry..."
+msgstr ""
+
+#. Label of the current (Int) field in DocType 'Sequence'
+#: southwest/service_management/doctype/sequence/sequence.json
+msgid "Current"
+msgstr ""
+
+#. Label of the customer (Link) field in DocType 'Equipment'
+#. Label of the customer (Link) field in DocType 'Service Contract'
+#. Label of the customer (Link) field in DocType 'Service Equipment Assignment'
+#. Label of the customer (Link) field in DocType 'Service Work Order'
+#. Label of a Workspace Sidebar Item
+#: frontend/src/views/CreateSWOPage.vue:27
+#: frontend/src/views/SWODetailPage.vue:44
+#: frontend/src/views/SignaturePage.vue:61
+#: southwest/service_management/doctype/equipment/equipment.json
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/report/service_work_orders/service_work_orders.js:24
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:26
+#: southwest/workspace_sidebar/service_management.json
 msgid "Customer"
 msgstr ""
 
@@ -35,42 +243,374 @@ msgstr ""
 msgid "Customer Code"
 msgstr ""
 
+#. Name of a DocType
+#: southwest/service_management/doctype/customer_item_exception/customer_item_exception.json
+msgid "Customer Item Exception"
+msgstr ""
+
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:63
+msgid "Customer PO Number"
+msgstr ""
+
+#. Label of the customer_signature (Signature) field in DocType 'Service Work
+#. Order'
+#: frontend/src/views/SignaturePage.vue:130
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:294
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Customer Signature"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:18
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:285
+msgid "Customer Signature is required to complete the work order."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:303
+msgid "Customer Signature is required."
+msgstr ""
+
+#. Label of the customer_unit_id_number (Data) field in DocType 'Equipment'
+#: southwest/service_management/doctype/equipment/equipment.json
+msgid "Customer Unit ID Number"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:292
+msgid "Customer is required."
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:141
+msgid "Customer purchase order"
+msgstr ""
+
 #. Label of a Workspace Sidebar Item
 #: southwest/workspace_sidebar/service_management.json
-msgid "Customer Equipmen"
+msgid "Dashboard"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:65
+msgid "Date"
+msgstr ""
+
+#. Label of the default_swo_stock_entry_type (Link) field in DocType 'Service
+#. Manager Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Default SWO Stock Entry Type"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:109
+msgid "Describe the reported problem..."
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:118
+msgid "Describe the work performed..."
+msgstr ""
+
+#. Label of the description (Small Text) field in DocType 'Service Part
+#. Assignment'
+#. Label of the description (Small Text) field in DocType 'Service Work Order
+#. Item'
+#: frontend/src/views/SWODetailPage.vue:347
+#: frontend/src/views/SignaturePage.vue:115
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+#: southwest/service_management/doctype/service_work_order_item/service_work_order_item.json
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:106
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:223
+msgid "Description"
+msgstr ""
+
+#. Label of the documentation_section (Section Break) field in DocType 'Service
+#. Work Order'
+#: frontend/src/views/SWODetailPage.vue:104
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Documentation"
+msgstr ""
+
+#. Label of the duration_in_hours (Float) field in DocType 'Service Work Order
+#. Time Log'
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "Duration (hrs)"
+msgstr ""
+
+#. Label of the end_time (Datetime) field in DocType 'Service Work Order Time
+#. Log'
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "End Time"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:280
+msgid "Enter the total hours worked for this service."
 msgstr ""
 
 #. Name of a DocType
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
-msgid "Customer Equipment"
+#. Label of the equipment (Link) field in DocType 'Service Contract Equipment'
+#. Label of the equipment (Link) field in DocType 'Service Equipment
+#. Assignment'
+#. Label of the equipment_selection (Table MultiSelect) field in DocType
+#. 'Service Work Order'
+#. Label of the equipment (Link) field in DocType 'Service Work Order
+#. Equipment'
+#. Label of a Workspace Sidebar Item
+#: frontend/src/views/CreateSWOPage.vue:65
+#: frontend/src/views/SWODetailPage.vue:53
+#: southwest/service_management/doctype/equipment/equipment.json
+#: southwest/service_management/doctype/service_contract_equipment/service_contract_equipment.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/doctype/service_work_order_equipment/service_work_order_equipment.json
+#: southwest/workspace_sidebar/service_management.json
+msgid "Equipment"
 msgstr ""
 
-#. Label of the equipment_details_column (Column Break) field in DocType
-#. 'Customer Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#. Label of the equipment_details (Table) field in DocType 'Service Contract'
+#: southwest/service_management/doctype/service_contract/service_contract.json
 msgid "Equipment Details"
 msgstr ""
 
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.js:4
+#. Label of the equipment_labor_rate (Currency) field in DocType 'Service
+#. Contract Equipment'
+#. Label of the equipment_labor_rate (Currency) field in DocType 'Service
+#. Equipment Assignment'
+#: southwest/service_management/doctype/service_contract_equipment/service_contract_equipment.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Equipment Labor Rate"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:295
+msgid "Equipment is required."
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:317
+msgid "Failed to create the work order. Please try again."
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:267
+msgid "Failed to submit. Please try again."
+msgstr ""
+
+#: southwest/service_management/doctype/equipment/equipment.js:4
 msgid "Fill in the required fields. The Equipment ID will be generated automatically."
 msgstr ""
 
-#. Label of the frequency_pm_cost (Currency) field in DocType 'Customer
-#. Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
-msgid "Frequency PM"
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:216
+msgid "Final Notes"
 msgstr ""
 
-#. Label of the labor_rate_cost (Currency) field in DocType 'Customer
-#. Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#: frontend/src/views/SWODetailPage.vue:220
+msgid "Finish"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:277
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:114
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:222
+msgid "Finish Repair"
+msgstr ""
+
+#. Description of the 'PM Frequency (days)' (Int) field in DocType 'Service
+#. Equipment Assignment'
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Frequency in days"
+msgstr ""
+
+#. Description of the 'PM Frequency (days)' (Int) field in DocType 'Service
+#. Contract Equipment'
+#: southwest/service_management/doctype/service_contract_equipment/service_contract_equipment.json
+msgid "Frequency in days, e.g., 90, 180"
+msgstr ""
+
+#: southwest/service_management/report/service_work_orders/service_work_orders.js:5
+msgid "From Date"
+msgstr ""
+
+#. Label of the general_rates_section (Section Break) field in DocType 'Service
+#. Contract'
+#: southwest/service_management/doctype/service_contract/service_contract.json
+msgid "General Rates"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:119
+msgid "Generate Code"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:237
+msgid "Generate Link"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:126
+msgid "Generate Signature Link"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:539
+msgid "Generated from Service Work Order {0}"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:276
+msgid "Generating signature link..."
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:57
+msgid "Go to Reset Password page"
+msgstr ""
+
+#. Label of the hour_meter (Data) field in DocType 'Service Work Order'
+#: frontend/src/views/CreateSWOPage.vue:131
+#: frontend/src/views/SWODetailPage.vue:47
+#: frontend/src/views/SignaturePage.vue:77
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:45
+msgid "Hour Meter"
+msgstr ""
+
+#. Label of the hours_worked (Float) field in DocType 'Service Work Order'
+#: frontend/src/views/SWODetailPage.vue:284
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:207
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Hours Worked"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Equipment
+#. Assignment'
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Inactive"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:153
+msgid "Incorrect username or password."
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:59 frontend/src/views/HomePage.vue:64
+msgid "Install App"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:51
+msgid "Install Southwest App"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:160
+msgid "Invalid token."
+msgstr ""
+
+#. Label of the inventory_section (Section Break) field in DocType 'Service
+#. Manager Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Inventory"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Invoiced"
+msgstr ""
+
+#. Label of the is_non_inventory_part (Check) field in DocType 'Service Work
+#. Order Item'
+#: southwest/service_management/doctype/service_work_order_item/service_work_order_item.json
+msgid "Is Non-Inventory Part"
+msgstr ""
+
+#. Label of the item_code (Link) field in DocType 'Customer Item Exception'
+#. Label of the item_code (Link) field in DocType 'Service Part Assignment'
+#. Label of the item_code (Link) field in DocType 'Service Work Order Item'
+#: frontend/src/views/SWODetailPage.vue:314
+#: southwest/service_management/doctype/customer_item_exception/customer_item_exception.json
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+#: southwest/service_management/doctype/service_work_order_item/service_work_order_item.json
+msgid "Item Code"
+msgstr ""
+
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.py:11
+msgid "Item Code is required to mark this assignment as Assigned."
+msgstr ""
+
+#. Label of the item_name (Data) field in DocType 'Customer Item Exception'
+#: southwest/service_management/doctype/customer_item_exception/customer_item_exception.json
+msgid "Item Name"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:622
+msgid "Item code is required."
+msgstr ""
+
+#. Description of the 'Labor Rate Item' (Link) field in DocType 'Service
+#. Manager Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Item used as the labor line on Labor Rate invoices (hourly billing)"
+msgstr ""
+
+#. Description of the 'Misc Labor Item' (Link) field in DocType 'Service
+#. Manager Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Item used as the labor line on Misc invoices"
+msgstr ""
+
+#. Description of the 'PM Labor Item' (Link) field in DocType 'Service Manager
+#. Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Item used as the labor line on PM Frequency invoices"
+msgstr ""
+
+#. Label of the labor_items_section (Section Break) field in DocType 'Service
+#. Manager Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Labor Items"
+msgstr ""
+
+#. Label of the labor_rate (Check) field in DocType 'Customer Item Exception'
+#. Label of the labor_rate (Currency) field in DocType 'Service Contract'
+#. Option for the 'Service Type' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/customer_item_exception/customer_item_exception.json
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
 msgid "Labor Rate"
 msgstr ""
 
-#. Label of the make (Link) field in DocType 'Customer Equipment'
+#. Label of the labor_rate_item (Link) field in DocType 'Service Manager
+#. Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Labor Rate Item"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:573
+msgid "Labor — {0}"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:14
+msgid "Link Expired"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:74
+#: frontend/src/views/CreateSWOPage.vue:117
+msgid "Loading equipment..."
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:8
+msgid "Loading..."
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:280
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:284
+msgid "Loading…"
+msgstr ""
+
+#: frontend/src/views/SWOPage.vue:8
+msgid "Log out"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:36
+msgid "Login"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:155
+msgid "Login failed."
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:10
+msgid "Login to Southwest"
+msgstr ""
+
+#. Label of the make (Link) field in DocType 'Equipment'
 #. Name of a DocType
 #. Label of a Workspace Sidebar Item
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#: frontend/src/views/SignaturePage.vue:86
+#: southwest/service_management/doctype/equipment/equipment.json
 #: southwest/service_management/doctype/make/make.json
 #: southwest/workspace_sidebar/service_management.json
 msgid "Make"
@@ -81,34 +621,502 @@ msgstr ""
 msgid "Make Name"
 msgstr ""
 
-#. Label of the misc_cost (Currency) field in DocType 'Customer Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#. Label of the misc (Check) field in DocType 'Customer Item Exception'
+#. Option for the 'Service Type' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/customer_item_exception/customer_item_exception.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
 msgid "Misc"
 msgstr ""
 
-#. Label of the model (Data) field in DocType 'Customer Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#. Label of the misc_labor_item (Link) field in DocType 'Service Manager
+#. Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Misc Labor Item"
+msgstr ""
+
+#. Label of the misc_rate (Currency) field in DocType 'Service Contract'
+#: southwest/service_management/doctype/service_contract/service_contract.json
+msgid "Misc Rate"
+msgstr ""
+
+#. Label of the model (Data) field in DocType 'Equipment'
+#: frontend/src/views/SignaturePage.vue:87
+#: southwest/service_management/doctype/equipment/equipment.json
 msgid "Model"
 msgstr ""
 
-#: southwest/startup/custom_fields.py:57
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:224
+msgid "Move to Staged"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "New"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:10 frontend/src/views/SWOPage.vue:76
+msgid "New Work Order"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:335
+msgid "Next Scheduled Date"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:352
+msgid "Next service order created: {0}"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:83
+#: frontend/src/views/CreateSWOPage.vue:123
+msgid "No active equipment found for this customer on the selected date"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:298
+msgid "No company configured in the system."
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:78
+msgid "No items added yet."
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:90
+msgid "No pending part assignments — all items are assigned."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:403
+msgid "No service exception items are configured for this customer and service type."
+msgstr ""
+
+#: frontend/src/views/SWOPage.vue:40
+msgid "No work orders assigned to you."
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:305
+msgid "Non-inventory part"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:414
+msgid "None of the items in this work order match the customer's service exceptions."
+msgstr ""
+
+#. Label of the description (Small Text) field in DocType 'Service Work Order
+#. Time Log'
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "Notes / Reason"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:73
+msgid "OTP Code"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:64
+msgid "OTP Verification"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:46
+msgid "Only one equipment is allowed for PM Frequency and Labor Rate orders."
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:248
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:130
+msgid "Open Link"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:364
+msgid "Optional"
+msgstr ""
+
+#. Label of the details_section (Section Break) field in DocType 'Service Work
+#. Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Order Details"
+msgstr ""
+
+#. Description of the 'Equipment Labor Rate' (Currency) field in DocType
+#. 'Service Contract Equipment'
+#: southwest/service_management/doctype/service_contract_equipment/service_contract_equipment.json
+msgid "Overrides contract general labor rate if set"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:142
+msgid "Owner"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:133
+msgid "Owner Type"
+msgstr ""
+
+#. Label of the pm_frequency (Check) field in DocType 'Customer Item Exception'
+#. Option for the 'Service Type' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/customer_item_exception/customer_item_exception.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "PM Frequency"
+msgstr ""
+
+#. Label of the pm_frequency (Int) field in DocType 'Service Contract
+#. Equipment'
+#. Label of the pm_frequency (Int) field in DocType 'Service Equipment
+#. Assignment'
+#: southwest/service_management/doctype/service_contract_equipment/service_contract_equipment.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "PM Frequency (days)"
+msgstr ""
+
+#. Label of the pm_labor_item (Link) field in DocType 'Service Manager
+#. Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "PM Labor Item"
+msgstr ""
+
+#. Label of the pm_price_per_visit (Currency) field in DocType 'Service
+#. Contract Equipment'
+#. Label of the pm_price_per_visit (Currency) field in DocType 'Service
+#. Equipment Assignment'
+#: southwest/service_management/doctype/service_contract_equipment/service_contract_equipment.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "PM Price Per Visit"
+msgstr ""
+
+#. Label of the customer_po_number (Data) field in DocType 'Service Work Order'
+#: frontend/src/views/CreateSWOPage.vue:140
+#: frontend/src/views/SWODetailPage.vue:48
+#: frontend/src/views/SignaturePage.vue:73
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:376
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "PO Number"
+msgstr ""
+
+#. Label of the padding (Int) field in DocType 'Sequence'
+#: southwest/service_management/doctype/sequence/sequence.json
+msgid "Padding"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:157
 msgid "Part Color"
 msgstr ""
 
-#. Label of the serial_no (Data) field in DocType 'Customer Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#. Label of the details_section (Section Break) field in DocType 'Service Part
+#. Assignment'
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+msgid "Part Details"
+msgstr ""
+
+#. Label of the part_number (Data) field in DocType 'Service Part Assignment'
+#. Label of the part_number (Data) field in DocType 'Service Work Order Item'
+#: frontend/src/views/SWODetailPage.vue:340
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+#: southwest/service_management/doctype/service_work_order_item/service_work_order_item.json
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:105
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:216
+msgid "Part Number"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:348
+msgid "Part description"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:626
+msgid "Part number or description is required."
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#. Option for the 'Type' (Select) field in DocType 'Service Work Order Time
+#. Log'
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:113
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:180
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "Partial Repair"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:111
+msgid "Parts"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:70
+msgid "Parts / Items"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:24
+msgid "Password"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:198
+msgid "Pause"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:190
+msgid "Pause Repair"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Part Assignment'
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+msgid "Pending"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:52
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:295
+msgid "Pending Part Assignments"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:541
+msgid "Please enter a valid number of hours."
+msgstr ""
+
+#: southwest/public/js/overrides/item.js:74
+msgid "Please select an Owner Type and Owner before generating the code."
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:260
+msgid "Please sign before submitting."
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:98
+msgid "Problem Reported"
+msgstr ""
+
+#. Label of the problem_with_lift (Text) field in DocType 'Service Work Order'
+#: frontend/src/views/SWODetailPage.vue:106
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Problem With Lift"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:504
+msgid "Problem with Equipment is required before finishing the repair."
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:237
+msgid "Product (Item)"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Programmed"
+msgstr ""
+
+#. Description of the 'PO Number' (Data) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Purchase Order Number associated with this repair order."
+msgstr ""
+
+#. Label of the qty (Float) field in DocType 'Service Part Assignment'
+#. Label of the qty (Float) field in DocType 'Service Work Order Item'
+#: frontend/src/views/SWODetailPage.vue:93
+#: frontend/src/views/SWODetailPage.vue:354
+#: frontend/src/views/SignaturePage.vue:116
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+#: southwest/service_management/doctype/service_work_order_item/service_work_order_item.json
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:107
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:230
+msgid "Qty"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:631
+msgid "Qty must be greater than 0."
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:268
+msgid "Re-gen"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:54
+msgid "Ready to Invoice"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:183
+msgid "Reason / Description"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:15
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:13
+msgid "Refresh"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:142
+msgid "Release"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:101
+msgid "Release Work Order"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Released"
+msgstr ""
+
+#. Label of the repair_description (Text) field in DocType 'Service Work Order'
+#: frontend/src/views/SWODetailPage.vue:115
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Repair Description"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:508
+msgid "Repair Description is required before finishing the repair."
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:54
+msgid "Repair Order"
+msgstr ""
+
+#. Option for the 'Type' (Select) field in DocType 'Service Work Order Time
+#. Log'
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "Repair Session"
+msgstr ""
+
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Repairing"
+msgstr ""
+
+#. Label of a Workspace Sidebar Item
+#: southwest/workspace_sidebar/service_management.json
+msgid "Reports"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:44
+msgid "Reset Password"
+msgstr ""
+
+#: southwest/service_management/report/service_work_orders/service_work_orders.js:36
+msgid "Responsible"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:209
+msgid "Resume"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:119
+msgid "Resume Repair"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:32 frontend/src/views/SWOPage.vue:34
+msgid "Retry"
+msgstr ""
+
+#. Label of the swo_row_name (Data) field in DocType 'Service Part Assignment'
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+msgid "SWO Row Name"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:186
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:391
+msgid "Save"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:242
+msgid "Save & Assign"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:366
+msgid "Schedule Next Service"
+msgstr ""
+
+#. Label of the scheduled_date (Date) field in DocType 'Service Work Order'
+#: frontend/src/views/CreateSWOPage.vue:40
+#: frontend/src/views/SWODetailPage.vue:46
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:196
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:39
+msgid "Scheduled Date"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:293
+msgid "Scheduled date is required."
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:80
+#: frontend/src/views/CreateSWOPage.vue:114
+msgid "Select a customer first"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:80
+#: frontend/src/views/CreateSWOPage.vue:111
+msgid "Select a service type first"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:31
+msgid "Select customer"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:44
+msgid "Select date"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:219
+msgid "Select equipment"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:219
+msgid "Select one or more units"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:56
+msgid "Select type"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/sequence/sequence.json
+msgid "Sequence"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:88
+msgid "Serial"
+msgstr ""
+
+#. Label of the serial_no (Data) field in DocType 'Equipment'
+#: southwest/service_management/doctype/equipment/equipment.json
 msgid "Serial No"
 msgstr ""
 
-#. Label of the series (Data) field in DocType 'Customer Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#. Label of the series (Data) field in DocType 'Equipment'
+#. Label of the naming_series (Select) field in DocType 'Service Contract'
+#. Label of the naming_series (Select) field in DocType 'Service Equipment
+#. Assignment'
+#: southwest/service_management/doctype/equipment/equipment.json
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
 msgid "Series"
 msgstr ""
 
-#. Label of the service_costs_column (Column Break) field in DocType 'Customer
-#. Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
-msgid "Service Costs"
+#. Name of a DocType
+#. Label of the service_contract (Link) field in DocType 'Service Equipment
+#. Assignment'
+#. Label of a Workspace Sidebar Item
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+#: southwest/workspace_sidebar/service_management.json
+msgid "Service Contract"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/service_contract_equipment/service_contract_equipment.json
+msgid "Service Contract Equipment"
+msgstr ""
+
+#. Label of the service_cost (Currency) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:57
+msgid "Service Cost"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Service Equipment Assignment"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:35
+msgid "Service Exceptions"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:41
+msgid "Service Item Exceptions"
+msgstr ""
+
+#. Label of the service_items (Table) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Service Items"
 msgstr ""
 
 #. Label of a Desktop Icon
@@ -118,23 +1126,373 @@ msgstr ""
 msgid "Service Management"
 msgstr ""
 
-#: southwest/startup/custom_fields.py:36
+#: frontend/src/views/HomePage.vue:21
+msgid "Service Management Portal"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:4
+msgid "Service Manager Dashboard"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Service Manager Settings"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+msgid "Service Part Assignment"
+msgstr ""
+
+#. Label of the service_type (Select) field in DocType 'Service Work Order'
+#: frontend/src/views/CreateSWOPage.vue:52
+#: frontend/src/views/SWODetailPage.vue:45
+#: frontend/src/views/SignaturePage.vue:69
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/report/service_work_orders/service_work_orders.js:30
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:33
+msgid "Service Type"
+msgstr ""
+
+#. Label of the service_work_order (Link) field in DocType 'Service Part
+#. Assignment'
+#. Name of a DocType
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Service Work Order"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/service_work_order_equipment/service_work_order_equipment.json
+msgid "Service Work Order Equipment"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/service_work_order_item/service_work_order_item.json
+msgid "Service Work Order Item"
+msgstr ""
+
+#. Name of a DocType
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "Service Work Order Time Log"
+msgstr ""
+
+#. Name of a report
+#. Label of a Workspace Sidebar Item
+#: southwest/service_management/report/service_work_orders/service_work_orders.json
+#: southwest/workspace_sidebar/service_management.json
+msgid "Service Work Orders"
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:294
+msgid "Service type is required."
+msgstr ""
+
+#. Label of a Workspace Sidebar Item
+#: southwest/workspace_sidebar/service_management.json
+msgid "Setting"
+msgstr ""
+
+#. Label of a Workspace Sidebar Item
+#: southwest/workspace_sidebar/service_management.json
+msgid "Setup"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:69
+msgid "Share"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:144
+msgid "Sign here"
+msgstr ""
+
+#. Label of the signature_date (Datetime) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Signature Date"
+msgstr ""
+
+#. Label of the signature_link (Data) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Signature Link"
+msgstr ""
+
+#. Label of the signature_token (Data) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Signature Token"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:136
+msgid "Signature link copied to clipboard."
+msgstr ""
+
+#: southwest/startup/custom_fields.py:68 southwest/startup/custom_fields.py:98
+msgid "Source Document"
+msgstr ""
+
+#: southwest/startup/custom_fields.py:58 southwest/startup/custom_fields.py:89
+msgid "Source Document Type"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:5
 msgid "Southwest"
 msgstr ""
 
-#. Label of the specifications_column (Column Break) field in DocType 'Customer
-#. Equipment'
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#. Label of the rates_section (Section Break) field in DocType 'Service
+#. Equipment Assignment'
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Specific Rates & Frequency"
+msgstr ""
+
+#. Label of the specifications_section (Section Break) field in DocType
+#. 'Equipment'
+#: southwest/service_management/doctype/equipment/equipment.json
 msgid "Specifications"
 msgstr ""
 
+#. Option for the 'Status' (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Staged"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:152
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:108
+msgid "Start Repair"
+msgstr ""
+
+#. Label of the start_time (Datetime) field in DocType 'Service Work Order Time
+#. Log'
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "Start Time"
+msgstr ""
+
+#. Label of the status (Select) field in DocType 'Service Equipment Assignment'
+#. Label of the status (Select) field in DocType 'Service Part Assignment'
+#. Label of the status (Select) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/report/service_work_orders/service_work_orders.js:17
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:20
+msgid "Status"
+msgstr ""
+
+#. Description of the 'Default SWO Stock Entry Type' (Link) field in DocType
+#. 'Service Manager Settings'
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+msgid "Stock Entry Type used when creating inventory write-offs from Service Work Orders (typically Material Issue)"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:412
+msgid "Stock Entry created: {0}"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:155
+msgid "Submit Signature"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:154
+msgid "Submitting..."
+msgstr ""
+
 #. Name of a role
-#: southwest/service_management/doctype/customer_equipment/customer_equipment.json
+#: southwest/service_management/doctype/equipment/equipment.json
 #: southwest/service_management/doctype/make/make.json
+#: southwest/service_management/doctype/sequence/sequence.json
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+#: southwest/service_management/doctype/service_manager_settings/service_manager_settings.json
+#: southwest/service_management/doctype/service_part_assignment/service_part_assignment.json
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
 msgid "System Manager"
 msgstr ""
 
-#: southwest/public/js/overrides/item.js:24
+#: frontend/src/views/SignaturePage.vue:28
+msgid "Thank You!"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:489
+msgid "The following parts still need an Item assigned before invoicing: {0}"
+msgstr ""
+
+#: southwest/public/js/overrides/item.js:89
+msgid "The selected Company does not have an abbreviation defined."
+msgstr ""
+
+#: southwest/public/js/overrides/item.js:81
 msgid "The selected Customer does not have a Customer Code defined."
+msgstr ""
+
+#: southwest/api.py:88
+msgid "This method is only available in developer mode."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:251
+msgid "This signature link is invalid or has already been used."
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:15
+msgid "This signature link is no longer valid."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:399
+msgid "This will create a draft Stock Entry (Material Issue) for items covered by the customer's service exceptions. Continue?"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:22
+msgid "This work order has already been signed. Thank you!"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:164
+msgid "This work order is locked for editing."
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:255
+msgid "This work order is no longer awaiting a signature."
+msgstr ""
+
+#. Label of the time_logs (Table) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Time Logs"
+msgstr ""
+
+#. Label of the time_tracking_section (Section Break) field in DocType 'Service
+#. Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+msgid "Time Tracking"
+msgstr ""
+
+#: southwest/service_management/report/service_work_orders/service_work_orders.js:11
+msgid "To Date"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:67
+msgid "To install on iPhone:"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.py:247
+msgid "Token and signature are required."
+msgstr ""
+
+#. Label of the total_repair_time (Float) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:51
+msgid "Total Repair Time (hrs)"
+msgstr ""
+
+#. Label of the type (Select) field in DocType 'Service Work Order Time Log'
+#: southwest/service_management/doctype/service_work_order_time_log/service_work_order_time_log.json
+msgid "Type"
+msgstr ""
+
+#: frontend/src/views/SWODetailPage.vue:315
+msgid "Type to search..."
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:89
+msgid "Unit"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:158
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:390
+msgid "Update PO Number"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:17
+msgid "Username"
+msgstr ""
+
+#. Label of the valid_from (Date) field in DocType 'Service Contract'
+#. Label of the valid_from (Date) field in DocType 'Service Equipment
+#. Assignment'
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Valid From"
+msgstr ""
+
+#. Label of the valid_to (Date) field in DocType 'Service Contract'
+#. Label of the valid_to (Date) field in DocType 'Service Equipment Assignment'
+#: southwest/service_management/doctype/service_contract/service_contract.json
+#: southwest/service_management/doctype/service_equipment_assignment/service_equipment_assignment.json
+msgid "Valid To"
+msgstr ""
+
+#. Label of the vendor (Data) field in DocType 'Service Work Order Item'
+#: frontend/src/views/SWODetailPage.vue:363
+#: southwest/service_management/doctype/service_work_order_item/service_work_order_item.json
+msgid "Vendor"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:85
+msgid "Verify"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:37
+msgid "View and manage your service tickets"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:53
+msgid "Waiting for Signature"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:20
+msgid "Welcome back!"
+msgstr ""
+
+#: southwest/service_management/doctype/service_work_order/service_work_order.js:187
+msgid "Why is the repair being paused?"
+msgstr ""
+
+#. Label of a Workspace Sidebar Item
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:104
+#: southwest/service_management/report/service_work_orders/service_work_orders.py:13
+#: southwest/workspace_sidebar/service_management.json
+msgid "Work Order"
+msgstr ""
+
+#. Label of the work_order_number (Data) field in DocType 'Service Work Order'
+#: southwest/service_management/doctype/service_work_order/service_work_order.json
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:203
+#: southwest/startup/custom_fields.py:78 southwest/startup/custom_fields.py:107
+msgid "Work Order Number"
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:36 frontend/src/views/SWOPage.vue:7
+msgid "Work Orders"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:102
+msgid "Work Performed"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:48
+msgid "Your password has expired. Please reset your password to continue"
+msgstr ""
+
+#: frontend/src/views/SignaturePage.vue:29
+msgid "Your signature has been recorded successfully."
+msgstr ""
+
+#: frontend/src/views/CreateSWOPage.vue:132
+msgid "e.g. 1234"
+msgstr ""
+
+#: southwest/service_management/page/service_manager_dashboard/service_manager_dashboard.js:110
+msgid "pending"
+msgstr ""
+
+#: frontend/src/views/LoginPage.vue:18
+msgid "your username"
+msgstr ""
+
+#: southwest/service_management/doctype/service_contract/service_contract.py:43
+msgid "{0} equipment assignment(s) created."
+msgstr ""
+
+#: southwest/service_management/doctype/service_contract/service_contract.py:64
+msgid "{0} equipment assignment(s) set to Inactive."
+msgstr ""
+
+#: frontend/src/views/HomePage.vue:53
+msgid "¡Obtén la aplicación en tu dispositivo para un acceso fácil y una mejor experiencia!"
 msgstr ""
 
