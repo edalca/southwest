@@ -18,7 +18,7 @@
   "status",
   "scheduled_date",
   "hour_meter",
-  "customer_po_number",
+  "po_number",
   "service_items_section",
   "service_items",
   "documentation_section",
@@ -52,6 +52,13 @@
    "label": "Customer",
    "options": "Customer",
    "reqd": 1
+  },
+  {
+   "description": "Purchase Order Number associated with this repair order.",
+   "fieldname": "po_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "PO Number"
   },
   {
    "fieldname": "company",
@@ -122,13 +129,6 @@
    "fieldname": "hour_meter",
    "fieldtype": "Data",
    "label": "Hour Meter"
-  },
-  {
-   "allow_on_submit": 1,
-   "description": "Purchase Order Number associated with this repair order.",
-   "fieldname": "customer_po_number",
-   "fieldtype": "Data",
-   "label": "PO Number"
   },
   {
    "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed','Invoiced'].includes(doc.status)",
@@ -214,7 +214,7 @@
   },
   {
    "fieldname": "signature_link",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "hidden": 1,
    "label": "Signature Link",
    "no_copy": 1,
@@ -222,7 +222,7 @@
   }
  ],
  "links": [],
- "modified": "2026-04-02 06:38:37.078463",
+ "modified": "2026-04-13 01:08:31.152160",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Work Order",

@@ -238,7 +238,7 @@
       field("Customer name", d.customer),
       field("Service Type", d.service_type),
       field("Customer address", d.customer_address),
-      field("PO #", d.customer_po_number),
+      field("PO #", d.po_number),
       field("Date", d.scheduled_date),
       d.total_repair_time ? field("Labor Hours", parseFloat(d.total_repair_time).toFixed(2) + " hr(s)") : "",
       field("Hour Meter", d.hour_meter),

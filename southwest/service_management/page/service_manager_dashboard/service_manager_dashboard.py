@@ -34,6 +34,43 @@ def get_dashboard_data():
 			)
 		else:
 			row["scheduled_date"] = None
+			
+	ready_to_invoice_rows = frappe.db.get_all(
+		"Service Work Order",
+		filters={"status": "Completed"},
+		fields=["name", "work_order_number", "customer", "scheduled_date", "po_number"],
+		order_by="scheduled_date asc"
+	)
+
+	waiting_signature_rows = frappe.db.get_all(
+		"Service Work Order",
+		filters={"status": "Staged"},
+		fields=["name", "work_order_number", "customer", "scheduled_date", "signature_link"],
+		order_by="scheduled_date asc"
+	)
+
+	# Calendar Events — last 2 months and next 2 months
+	start_date = frappe.utils.add_months(frappe.utils.today(), -2)
+	end_date = frappe.utils.add_months(frappe.utils.today(), 2)
+	
+	calendar_rows = frappe.db.get_all(
+		"Service Work Order",
+		filters={
+			"scheduled_date": ["between", [start_date, end_date]],
+			"status": ["not in", ["Cancelled"]]
+		},
+		fields=["name", "work_order_number", "customer", "scheduled_date", "status"]
+	)
+
+	calendar_events = []
+	for r in calendar_rows:
+		title = f"{r.work_order_number or r.name} - {r.customer}"
+		calendar_events.append({
+			"id": r.name,
+			"title": title,
+			"start": str(r.scheduled_date),
+			"status": r.status
+		})
 
 	return {
 		"kpis": {
@@ -42,4 +79,7 @@ def get_dashboard_data():
 			"ready_to_invoice": ready_to_invoice,
 		},
 		"pending_rows": pending_rows,
+		"ready_to_invoice_rows": ready_to_invoice_rows,
+		"waiting_signature_rows": waiting_signature_rows,
+		"calendar_events": calendar_events,
 	}

@@ -166,8 +166,8 @@
   <div class="swo-info-grid">
     <div class="swo-field"><label>Customer name</label><span>{{ doc.customer }}</span></div>
     <div class="swo-field"><label>Service Type</label><span>{{ doc.service_type or '—' }}</span></div>
-    {% if doc.customer_po_number %}
-    <div class="swo-field"><label>PO #</label><span>{{ doc.customer_po_number }}</span></div>
+    {% if doc.po_number %}
+    <div class="swo-field"><label>PO #</label><span>{{ doc.po_number }}</span></div>
     {% endif %}
     {% if doc.scheduled_date %}
     <div class="swo-field"><label>Date</label><span>{{ frappe.format(doc.scheduled_date, {'fieldtype': 'Date'}) }}</span></div>

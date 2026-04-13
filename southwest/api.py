@@ -1,4 +1,5 @@
 import frappe
+from southwest.service_management.doctype.service_work_order.service_work_order import generate_signature_link
 
 
 @frappe.whitelist()
@@ -119,7 +120,7 @@ def get_context_for_dev():
 	}
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_app_translations():
 	"""
 	Return the Frappe translation dict for the system language.
@@ -130,3 +131,185 @@ def get_app_translations():
 		return {}
 	from frappe.translate import get_all_translations
 	return get_all_translations(lang)
+
+
+@frappe.whitelist()
+def get_attendance_status():
+	"""
+	Return the attendance status for the current user's linked employee.
+	Finds the employee by user_id field and returns the last check-in log type for today.
+	"""
+	employee = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+	if not employee:
+		return {"employee": None, "last_log_type": None, "checked_in": False}
+
+	today = frappe.utils.today()
+	last_log = frappe.db.get_value(
+		"Employee Checkin",
+		{"employee": employee, "time": [">=", today]},
+		["log_type", "time"],
+		order_by="time desc",
+		as_dict=True,
+	)
+
+	return {
+		"employee": employee,
+		"last_log_type": last_log.log_type if last_log else None,
+		"checked_in": last_log.log_type == "IN" if last_log else False,
+	}
+
+
+@frappe.whitelist()
+def get_active_customer_po(customer):
+	"""
+	Return the most recent active PO Number for a given customer.
+	Only considers records where valid_from is today or earlier.
+	"""
+	if not customer:
+		return None
+
+	po_assignment = frappe.db.get_value(
+		"Customer PO Assignment",
+		{
+			"customer": customer,
+			"is_active": 1,
+			"valid_from": ["<=", frappe.utils.today()]
+		},
+		"po_number",
+		order_by="valid_from desc"
+	)
+
+	return po_assignment
+
+
+@frappe.whitelist()
+def regenerate_swo_signature_link(swo_name):
+	"""
+	Refreshes the signature link and token for a given Service Work Order.
+	Returns the new link.
+	"""
+	if not swo_name:
+		frappe.throw("Service Work Order name is required.")
+	
+	# Status check — only allowed for Staged documents
+	status = frappe.db.get_value("Service Work Order", swo_name, "status")
+	if status != "Staged":
+		frappe.throw(f"Cannot regenerate link for work order in '{status}' status.")
+
+	return generate_signature_link(swo_name)
+
+
+
+@frappe.whitelist()
+def process_billing_and_stock(swo_name):
+	from southwest.service_management.doctype.service_work_order.service_work_order import _get_exception_item_codes
+	
+	doc = frappe.get_doc("Service Work Order", swo_name)
+	
+	# Guard: check pending parts
+	pending = frappe.db.get_all(
+		"Service Part Assignment",
+		filters={"service_work_order": swo_name, "status": "Pending"},
+		fields=["name", "part_number", "description"],
+	)
+	if pending:
+		names = ", ".join(p.part_number or p.description or p.name for p in pending)
+		frappe.throw(f"The following parts still need an Item assigned before processing: {names}")
+		
+	# Resolve exception items
+	exception_codes = _get_exception_item_codes(doc.customer, doc.service_type)
+	
+	# Collect raw items
+	inventory_rows = [
+		r for r in (doc.service_items or [])
+		if not r.is_non_inventory_part and r.item_code
+	]
+	part_assignments = frappe.get_all(
+		"Service Part Assignment",
+		filters={"service_work_order": swo_name, "status": "Assigned"},
+		fields=["item_code", "qty", "description", "part_number", "swo_row_name"]
+	)
+	
+	items_to_write_off = []
+	invoice_lines = []
+	
+	def push_item(item_code, qty, desc):
+		if item_code in exception_codes:
+			items_to_write_off.append({"item_code": item_code, "qty": qty})
+		else:
+			sale_price = frappe.db.get_value("Item Price", {"item_code": item_code, "selling": 1}, "price_list_rate") or 0
+			invoice_lines.append({"item_code": item_code, "qty": qty, "rate": sale_price, "description": desc})
+			
+	for r in inventory_rows:
+		push_item(r.item_code, r.qty or 1, r.description or "")
+		
+	for pa in part_assignments:
+		if pa.item_code:
+			push_item(pa.item_code, pa.qty or 1, pa.description or pa.part_number or "")
+			
+	created = {"stock_entry": None, "sales_invoice": None}
+	
+	# Create Stock Entry
+	if items_to_write_off:
+		existing_se = frappe.db.get_value("Stock Entry", {"custom_source_doctype": "Service Work Order", "custom_source_document": swo_name, "docstatus": ["<", 2]}, "name")
+		if not existing_se:
+			settings = frappe.get_single("Service Manager Settings")
+			entry_type = settings.default_swo_stock_entry_type or "Material Issue"
+			default_warehouse = frappe.db.get_value("Company", doc.company, "default_inventory_account") or frappe.db.get_default("default_warehouse") or ""
+			
+			se = frappe.get_doc({
+				"doctype": "Stock Entry",
+				"stock_entry_type": entry_type,
+				"company": doc.company,
+				"custom_source_doctype": "Service Work Order",
+				"custom_source_document": swo_name,
+				"custom_work_order_number": doc.work_order_number or swo_name,
+				"items": [{"item_code": i["item_code"], "qty": i["qty"], "s_warehouse": default_warehouse} for i in items_to_write_off]
+			})
+			se.insert(ignore_permissions=True)
+			created["stock_entry"] = se.name
+			
+	# Process Labor & Invoice lines
+	if doc.service_cost:
+		settings = frappe.get_single("Service Manager Settings")
+		labor_item_map = {
+			"PM Frequency": settings.pm_labor_item,
+			"Labor Rate": settings.labor_rate_item,
+			"Misc": settings.misc_labor_item,
+		}
+		labor_item = labor_item_map.get(doc.service_type)
+		if labor_item:
+			hours = doc.hours_worked or 0
+			if doc.service_type in ("Labor Rate", "Misc") and hours > 0:
+				labor_qty = hours
+				labor_rate = round(doc.service_cost / hours, 4)
+			else:
+				labor_qty = 1
+				labor_rate = doc.service_cost
+			invoice_lines.append({"item_code": labor_item, "qty": labor_qty, "rate": labor_rate, "description": f"Labor — {doc.service_type}"})
+
+	if invoice_lines:
+		existing_si = frappe.db.get_value("Sales Invoice", {"custom_source_doctype": "Service Work Order", "custom_source_document": swo_name, "docstatus": ["<", 2]}, "name")
+		if not existing_si:
+			sinv = frappe.new_doc("Sales Invoice")
+			sinv.customer = doc.customer
+			sinv.company = doc.company
+			sinv.posting_date = frappe.utils.today()
+			if hasattr(doc, 'po_number') and doc.po_number:
+				sinv.po_no = doc.po_number
+			sinv.remarks = f"Generated automatically from SWO {doc.name}"
+			sinv.custom_source_doctype = "Service Work Order"
+			sinv.custom_source_document = swo_name
+			sinv.custom_work_order_number = doc.work_order_number or swo_name
+			for line in invoice_lines:
+				sinv.append("items", line)
+			sinv.insert(ignore_permissions=True)
+			created["sales_invoice"] = sinv.name
+			
+	# Push status forward
+	if created["stock_entry"] or created["sales_invoice"] or not (items_to_write_off or invoice_lines):
+		doc.status = "Invoiced"
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+	return created

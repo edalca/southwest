@@ -1,0 +1,1 @@
+.app-tab-bar{--background: #ffffff;--border: 1px solid #e5e7eb;--color: #9ca3af;--color-selected: #111827;height:60px;padding-bottom:env(safe-area-inset-bottom,0px)}.app-tab-btn{--ripple-color: transparent;--color: #9ca3af;--color-selected: #111827}.app-tab-btn::part(native):after{display:none}.tab-label{font-size:10px;font-weight:600;letter-spacing:.02em;line-height:1}

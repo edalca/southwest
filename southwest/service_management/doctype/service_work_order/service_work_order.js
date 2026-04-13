@@ -34,6 +34,17 @@ frappe.ui.form.on("Service Work Order", {
 
 	customer(frm) {
 		frm.set_value("equipment_selection", []);
+		if (frm.doc.customer) {
+			frappe.call({
+				method: "southwest.api.get_active_customer_po",
+				args: { customer: frm.doc.customer },
+				callback: function (r) {
+					if (r.message) {
+						frm.set_value("po_number", r.message);
+					}
+				},
+			});
+		}
 	},
 
 	equipment_selection(frm) {
@@ -77,7 +88,7 @@ const DETAIL_FIELDS = [
 	"service_type",
 	"scheduled_date",
 	"hour_meter",
-	"customer_po_number",
+	"po_number",
 ];
 
 function set_form_state(frm) {
@@ -128,10 +139,10 @@ function set_status_buttons(frm) {
 			).addClass("btn-primary");
 		} else {
 			frm.add_custom_button(__("Open Link"), () => {
-				window.open(frm.doc.signature_link, "_blank");
+				window.open(normalize_signature_link(frm.doc.signature_link), "_blank");
 			}).addClass("btn-primary");
 			frm.add_custom_button(__("Copy Link"), () => {
-				frappe.utils.copy_to_clipboard(frm.doc.signature_link);
+				frappe.utils.copy_to_clipboard(normalize_signature_link(frm.doc.signature_link));
 				frappe.show_alert(
 					{ message: __("Signature link copied to clipboard."), indicator: "green" },
 					3
@@ -376,11 +387,11 @@ function update_po_number(frm) {
 			label: __("PO Number"),
 			fieldname: "po_number",
 			fieldtype: "Data",
-			default: frm.doc.customer_po_number || "",
+			default: frm.doc.po_number || "",
 		},
 		function (values) {
 			frappe.call({
-				method: "southwest.service_management.doctype.service_work_order.service_work_order.update_customer_po_number",
+				method: "southwest.service_management.doctype.service_work_order.service_work_order.update_po_number",
 				args: { doc_name: frm.doc.name, po_number: values.po_number },
 				callback() {
 					frm.reload_doc();
@@ -440,4 +451,11 @@ function create_invoice(frm) {
 			}
 		},
 	});
+}
+
+// Ensure legacy signature links (generated before the /southwest prefix was added)
+// still open correctly.
+function normalize_signature_link(link) {
+	if (!link) return link;
+	return link.replace(/\/signature\?/, "/southwest/signature?");
 }

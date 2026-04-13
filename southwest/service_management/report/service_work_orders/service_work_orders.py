@@ -60,8 +60,8 @@ def get_columns():
             "width": 120,
         },
         {
-            "label": _("Customer PO Number"),
-            "fieldname": "customer_po_number",
+            "label": _("PO Number"),
+            "fieldname": "po_number",
             "fieldtype": "Data",
             "width": 140,
         },
@@ -82,7 +82,7 @@ def get_data(filters):
             hour_meter,
             total_repair_time,
             service_cost,
-            customer_po_number
+            po_number
         FROM
             `tabService Work Order`
         WHERE

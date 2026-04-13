@@ -29,6 +29,13 @@ def get_custom_fields():
 				"reqd": 1,
 				"in_list_view": 1,
 			},
+			{
+				"fieldname": "custom_current_active_po",
+				"label": _("Current Active PO"),
+				"fieldtype": "Data",
+				"insert_after": "custom_customer_code",
+				"read_only": 1,
+			},
 			# Tab grouping service exception items per customer
 			{
 				"fieldname": "custom_service_exceptions_tab",

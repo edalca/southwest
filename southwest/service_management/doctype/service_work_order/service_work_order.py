@@ -132,8 +132,30 @@ def generate_signature_link(doc_name, frontend_base_url=None):
 	import os
 
 	token = hashlib.sha256(os.urandom(32)).hexdigest()
-	base = (frontend_base_url or frappe.utils.get_url()).rstrip("/")
-	link = f"{base}/signature?token={token}"
+
+	if frontend_base_url:
+		# Dev: caller passes the Vite dev server origin, router runs at "/"
+		base = frontend_base_url.rstrip("/")
+		path = "/signature"
+	else:
+		# Production: derive origin from the incoming request so reverse proxies
+		# (ngrok, nginx) are respected instead of using the internal site URL.
+		try:
+			proto = (
+				frappe.local.request.headers.get("X-Forwarded-Proto")
+				or frappe.local.request.scheme
+				or "https"
+			)
+			host = (
+				frappe.local.request.headers.get("X-Forwarded-Host")
+				or frappe.local.request.host
+			)
+			base = f"{proto}://{host}"
+		except Exception:
+			base = frappe.utils.get_url().rstrip("/")
+		path = "/southwest/signature"
+
+	link = f"{base}{path}?token={token}"
 
 	frappe.db.set_value(
 		"Service Work Order",
@@ -226,7 +248,7 @@ def get_signature_page_data(token):
 		"customer_address": customer_address,
 		"service_type": doc.service_type or "",
 		"scheduled_date": str(doc.scheduled_date or ""),
-		"customer_po_number": doc.customer_po_number or "",
+		"po_number": getattr(doc, "po_number", "") or "",
 		"hour_meter": doc.hour_meter or "",
 		"total_repair_time": doc.total_repair_time or 0,
 		"problem_with_lift": doc.problem_with_lift or "",
@@ -268,9 +290,9 @@ def submit_signature(token, signature):
 
 
 @frappe.whitelist()
-def update_customer_po_number(doc_name, po_number):
+def update_po_number(doc_name, po_number):
 	"""Updates the PO Number on any saved or submitted work order."""
-	frappe.db.set_value("Service Work Order", doc_name, "customer_po_number", po_number)
+	frappe.db.set_value("Service Work Order", doc_name, "po_number", po_number)
 	frappe.db.commit()
 
 
@@ -534,8 +556,8 @@ def resolve_and_create_invoice(doc_name):
 	sinv.customer = doc.customer
 	sinv.company = doc.company
 	sinv.posting_date = frappe.utils.today()
-	if doc.customer_po_number:
-		sinv.po_no = doc.customer_po_number
+	if getattr(doc, "po_number", None):
+		sinv.po_no = doc.po_number
 	sinv.remarks = _("Generated from Service Work Order {0}").format(doc.name)
 	sinv.custom_source_doctype = "Service Work Order"
 	sinv.custom_source_document = doc_name
