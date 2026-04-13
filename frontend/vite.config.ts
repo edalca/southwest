@@ -1,7 +1,9 @@
 import vue from '@vitejs/plugin-vue'
 import frappeui from 'frappe-ui/vite'
 import path from 'path'
+import fs from 'fs'
 import { defineConfig, type Plugin } from 'vite'
+import { VitePWA } from 'vite-plugin-pwa'
 
 /**
  * frappe-ui's TextEditor component uses ~icons/lucide/* (unplugin-icons).
@@ -51,6 +53,47 @@ export default defineConfig({
         outDir: '../southwest/public/frontend',
         baseUrl: '/assets/southwest/frontend/',
         indexHtmlPath: '../southwest/www/southwest.html',
+      },
+    }),
+    VitePWA({
+      registerType: 'autoUpdate',
+      injectRegister: null,
+      base: '/assets/southwest/frontend/',
+      workbox: {
+        globPatterns: ['**/*.{js,css,ico,png,svg}'],
+        navigateFallback: null,
+        modifyURLPrefix: {
+          '': 'assets/southwest/frontend/'
+        },
+        manifestTransforms: [
+          async (manifestEntries) => {
+            const manifest = manifestEntries.filter((entry) => !entry.url.includes('manifest.webmanifest'))
+            return { manifest, warnings: [] }
+          }
+        ]
+      },
+      manifest: {
+        id: '/southwest',
+        start_url: '/southwest',
+        scope: '/southwest/',
+        name: 'Southwest',
+        short_name: 'Southwest',
+        theme_color: '#0f172a', /* Navy Blue */
+        background_color: '#f8fafc', /* Slate 50 */
+        display: 'standalone',
+        icons: [
+          {
+            src: '/assets/southwest/manifest/manifest-icon.maskable.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: '/assets/southwest/manifest/manifest-icon.maskable.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
       },
     }),
     vue(),

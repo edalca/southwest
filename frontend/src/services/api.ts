@@ -111,7 +111,7 @@ export interface NewSWOPayload {
   scheduled_date: string
   equipment_selection: { equipment: string }[]
   hour_meter?: string
-  customer_po_number?: string
+  po_number?: string
 }
 
 export async function createSWO(data: NewSWOPayload): Promise<string> {
@@ -131,7 +131,7 @@ export interface SWOItem {
 
 export interface ServiceWorkOrderDetail extends ServiceWorkOrder {
   hour_meter: string
-  customer_po_number: string
+  po_number: string
   hours_worked: number
   service_cost: number
   problem_with_lift: string
@@ -177,7 +177,7 @@ export interface SignaturePageData {
   customer?: string
   service_type?: string
   scheduled_date?: string
-  customer_po_number?: string
+  po_number?: string
   hour_meter?: string
   problem_with_lift?: string
   repair_description?: string
@@ -214,7 +214,6 @@ export async function submitSignature(token: string, signature: string, csrfToke
 export async function generateSignatureLink(docName: string): Promise<string> {
   return getMethod<string>(`${SWO_WHITELIST}.generate_signature_link`, {
     doc_name: docName,
-    frontend_base_url: window.location.origin,
   }) ?? ''
 }
 
@@ -222,13 +221,18 @@ export async function generateSignatureLink(docName: string): Promise<string> {
 // Item search
 // ---------------------------------------------------------------------------
 
-export interface ItemResult { name: string; item_name: string; custom_component: string }
+export interface ItemResult {
+  name: string
+  item_name: string
+  custom_component: string
+  description: string
+}
 
 export async function searchItems(query: string): Promise<ItemResult[]> {
   if (!query || query.length < 2) return []
   return resource<ItemResult[]>('GET', 'Item', {
     params: {
-      fields: JSON.stringify(['name', 'item_name', 'custom_component']),
+      fields: JSON.stringify(['name', 'item_name', 'custom_component', 'description']),
       filters: JSON.stringify([
         ['is_stock_item', '=', 1],
         ['disabled', '=', 0],

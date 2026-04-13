@@ -69,3 +69,4 @@ frontend/.browserslistrc
 frontend/.eslintignore
 frontend/.eslintrc.cjs
 frontend/.gitignore
+.docs/

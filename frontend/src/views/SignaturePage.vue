@@ -69,9 +69,9 @@
               <span class="doc-info-label">{{ __('Service Type') }}</span>
               <span class="doc-info-value">{{ __(data.service_type ?? '') }}</span>
             </div>
-            <div class="doc-info-cell" v-if="data.customer_po_number">
+            <div class="doc-info-cell" v-if="data.po_number">
               <span class="doc-info-label">{{ __('PO Number') }}</span>
-              <span class="doc-info-value">{{ data.customer_po_number }}</span>
+              <span class="doc-info-value">{{ data.po_number }}</span>
             </div>
             <div class="doc-info-cell" v-if="data.hour_meter">
               <span class="doc-info-label">{{ __('Hour Meter') }}</span>
