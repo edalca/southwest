@@ -225,7 +225,7 @@ import { ref, computed, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonHeader, IonContent } from '@ionic/vue'
 import {
-  getCustomers, getCompanies, getCustomerEquipment, createSWO,
+  getCustomers, getCompanies, getCustomerEquipment, createSWO, getActiveCustomerPO,
   type Customer, type Equipment, type Company,
 } from '@/services/api'
 
@@ -294,7 +294,17 @@ async function onCustomerChange() {
   singleEquipment.value = ''
   equipment.value = []
   equipmentError.value = false
-  if (form.value.customer) await fetchEquipment()
+
+  if (form.value.customer) {
+    // Parallel fetch: Equipment + Active PO
+    await Promise.all([
+      fetchEquipment(),
+      (async () => {
+        const po = await getActiveCustomerPO(form.value.customer)
+        if (po) form.value.po_number = po
+      })()
+    ])
+  }
 }
 
 async function onDateChange() {

@@ -4,6 +4,7 @@
  "creation": "2026-03-31 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
+ "is_submittable": 1,
  "field_order": [
   "details_section",
   "order_details_column",
@@ -19,6 +20,7 @@
   "scheduled_date",
   "hour_meter",
   "po_number",
+  "responsible_user",
   "service_items_section",
   "service_items",
   "documentation_section",
@@ -32,8 +34,12 @@
   "signature_section",
   "customer_signature",
   "signature_date",
+  "signature_skipped",
+  "paper_signature_attachment",
   "signature_token",
-  "signature_link"
+  "signature_link",
+  "next_pm_generated",
+  "amended_from"
  ],
  "fields": [
   {
@@ -116,7 +122,7 @@
    "fieldtype": "Select",
    "hidden": 1,
    "label": "Status",
-   "options": "New\nProgrammed\nReleased\nRepairing\nPartial Repair\nStaged\nCompleted\nInvoiced\nCancelled"
+   "options": "New\nProgrammed\nRepairing\nPartial Repair\nStaged\nCompleted\nBilled\nIssued\nClosed\nCancelled"
   },
   {
    "default": "now",
@@ -131,7 +137,16 @@
    "label": "Hour Meter"
   },
   {
-   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed','Invoiced'].includes(doc.status)",
+   "description": "The technician responsible for this work order. Determines visibility in the mobile app.",
+   "fieldname": "responsible_user",
+   "fieldtype": "Link",
+   "label": "Responsible User",
+   "no_copy": 1,
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed', 'Billed', 'Issued', 'Closed'].includes(doc.status)",
    "fieldname": "service_items_section",
    "fieldtype": "Section Break"
   },
@@ -142,7 +157,7 @@
    "options": "Service Work Order Item"
   },
   {
-   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed','Invoiced'].includes(doc.status)",
+   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed', 'Billed', 'Issued', 'Closed'].includes(doc.status)",
    "fieldname": "time_tracking_section",
    "fieldtype": "Section Break",
    "label": "Time Tracking"
@@ -161,7 +176,7 @@
    "read_only": 1
   },
   {
-   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed','Invoiced'].includes(doc.status)",
+   "depends_on": "eval:['Repairing', 'Partial Repair', 'Staged', 'Completed', 'Billed', 'Issued', 'Closed'].includes(doc.status)",
    "fieldname": "documentation_section",
    "fieldtype": "Section Break",
    "label": "Documentation"
@@ -185,24 +200,43 @@
    "label": "Problem With Lift"
   },
   {
-   "depends_on": "eval:['Completed', 'Invoiced'].includes(doc.status)",
+   "depends_on": "eval:['Completed', 'Billed', 'Issued', 'Closed'].includes(doc.status)",
    "fieldname": "signature_section",
    "fieldtype": "Section Break"
   },
   {
-   "depends_on": "eval:['Completed', 'Invoiced'].includes(doc.status)",
+   "depends_on": "eval:['Completed', 'Billed', 'Issued', 'Closed'].includes(doc.status)",
    "fieldname": "customer_signature",
    "fieldtype": "Signature",
    "label": "Customer Signature",
    "read_only": 1
   },
   {
-   "depends_on": "eval:['Completed', 'Invoiced'].includes(doc.status)",
+   "depends_on": "eval:['Completed', 'Billed', 'Issued', 'Closed'].includes(doc.status)",
    "fieldname": "signature_date",
    "fieldtype": "Datetime",
    "label": "Signature Date",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "signature_skipped",
+   "fieldtype": "Check",
+   "hidden": 0,
+   "label": "Signature Skipped",
+   "no_copy": 1,
+   "read_only": 1,
+   "description": "If enabled, the technician chose to complete the order without a digital signature."
+  },
+  {
+   "depends_on": "eval:doc.signature_skipped == 1",
+   "fieldname": "paper_signature_attachment",
+   "fieldtype": "Attach Image",
+   "label": "Paper Signature Attachment (Optional)",
+   "no_copy": 1,
+   "read_only": 1,
+   "description": "Optional photo or document of the physical signature."
   },
   {
    "fieldname": "signature_token",
@@ -219,10 +253,28 @@
    "label": "Signature Link",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "next_pm_generated",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Next PM Generated",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Service Work Order",
+   "print_hide": 1,
+   "read_only": 1
   }
  ],
  "links": [],
- "modified": "2026-04-13 01:08:31.152160",
+ "modified": "2026-04-15 15:22:54.722932",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Work Order",

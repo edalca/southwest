@@ -6,7 +6,8 @@ frappe.ui.form.on("Service Work Order Item", {
 		frappe.db.get_value("Item", row.item_code, ["item_name", "custom_component"], (r) => {
 			if (!r) return;
 			if (r.item_name) frappe.model.set_value(cdt, cdn, "description", r.item_name);
-			if (r.custom_component) frappe.model.set_value(cdt, cdn, "part_number", r.custom_component);
+			if (r.custom_component)
+				frappe.model.set_value(cdt, cdn, "part_number", r.custom_component);
 		});
 	},
 });
@@ -54,7 +55,7 @@ frappe.ui.form.on("Service Work Order", {
 			frm.doc.equipment_selection = rows.slice(0, 1);
 			frm.refresh_field("equipment_selection");
 			frappe.msgprint(
-				__("Only one equipment is allowed for PM Frequency and Labor Rate orders.")
+				__("Only one equipment is allowed for PM Frequency and Labor Rate orders."),
 			);
 		}
 	},
@@ -65,12 +66,13 @@ frappe.ui.form.on("Service Work Order", {
 const STATUS_COLORS = {
 	New: "gray",
 	Programmed: "blue",
-	Released: "blue",
 	Repairing: "orange",
 	"Partial Repair": "yellow",
 	Staged: "purple",
 	Completed: "green",
-	Invoiced: "green",
+	Billed: "green",
+	Issued: "green",
+	Closed: "green",
 	Cancelled: "red",
 };
 
@@ -94,7 +96,7 @@ const DETAIL_FIELDS = [
 function set_form_state(frm) {
 	const status = frm.doc.status;
 	// Once Staged, the work order is locked — no further edits except via action buttons.
-	if (["Staged", "Completed", "Invoiced"].includes(status)) {
+	if (["Staged", "Completed", "Billed", "Issued", "Closed"].includes(status)) {
 		frm.disable_form();
 	} else if (["Repairing", "Partial Repair"].includes(status)) {
 		// Lock only order details — items/docs remain editable.
@@ -107,35 +109,31 @@ function set_form_state(frm) {
 function set_status_buttons(frm) {
 	const status = frm.doc.status;
 
-	// New / Programmed → Released (only when already saved in DB)
+	// New / Programmed → Repairing
 	if (["New", "Programmed"].includes(status) && !frm.is_new()) {
-		frm.add_custom_button(__("Release Work Order"), () => release_work_order(frm)).addClass(
-			"btn-primary"
-		);
-	}
-
-	// Released → Repairing
-	if (status === "Released") {
 		frm.add_custom_button(__("Start Repair"), () => start_repair(frm)).addClass("btn-primary");
 	}
 
 	// Repairing → Partial Repair or Staged
 	if (status === "Repairing") {
 		frm.add_custom_button(__("Partial Repair"), () => partial_repair(frm));
-		frm.add_custom_button(__("Finish Repair"), () => finish_repair(frm)).addClass("btn-success");
+		frm.add_custom_button(__("Finish Repair"), () => finish_repair(frm)).addClass(
+			"btn-success",
+		);
 	}
 
 	// Partial Repair → Repairing (resume)
 	if (status === "Partial Repair") {
-		frm.add_custom_button(__("Resume Repair"), () => start_repair(frm)).addClass("btn-primary");
+		frm.add_custom_button(__("Resume Repair"), () => start_repair(frm)).addClass(
+			"btn-primary",
+		);
 	}
 
 	// Staged → signature link flow
 	if (status === "Staged") {
 		if (!frm.doc.signature_link) {
-			frm.add_custom_button(
-				__("Generate Signature Link"),
-				() => generate_signature_link(frm)
+			frm.add_custom_button(__("Generate Signature Link"), () =>
+				generate_signature_link(frm),
 			).addClass("btn-primary");
 		} else {
 			frm.add_custom_button(__("Open Link"), () => {
@@ -145,37 +143,73 @@ function set_status_buttons(frm) {
 				frappe.utils.copy_to_clipboard(normalize_signature_link(frm.doc.signature_link));
 				frappe.show_alert(
 					{ message: __("Signature link copied to clipboard."), indicator: "green" },
-					3
+					3,
 				);
 			});
+			frm.add_custom_button(
+				__("Regenerate link"),
+				() => generate_signature_link(frm),
+				__("Actions"),
+			);
 		}
 	}
-
+	// Skip Signature — if staged
+	if (status === "Staged" && !frm.doc.signature_skipped) {
+		frm.add_custom_button(__("Skip Signature"), () => skip_signature(frm)).addClass(
+			"btn-danger",
+		);
+	}
 	// Staged / Completed → Create Stock Entry (for exception items)
 	if (["Staged", "Completed"].includes(status)) {
-		frm.add_custom_button(__("Create Stock Entry"), () => create_stock_entry(frm), __("Actions"));
+		frm.add_custom_button(
+			__("Create Stock Entry"),
+			() => create_stock_entry(frm),
+			__("Actions"),
+		);
 	}
 
 	// Completed → Create Invoice
 	if (status === "Completed") {
 		frm.add_custom_button(__("Create Invoice"), () => create_invoice(frm)).addClass(
-			"btn-primary"
+			"btn-primary",
 		);
 	}
 
 	// PO Number action — available once repair has started
-	const po_states = ["Repairing", "Partial Repair", "Staged", "Completed"];
+	const po_states = [
+		"Repairing",
+		"Partial Repair",
+		"Staged",
+		"Completed",
+		"Billed",
+		"Issued",
+		"Closed",
+	];
 	if (po_states.includes(status)) {
 		frm.add_custom_button(__("Update PO Number"), () => update_po_number(frm), __("Actions"));
+	}
+
+	// Return to Signature — if signature was skipped
+	if (frm.doc.signature_skipped) {
+		frm.add_custom_button(
+			__("Return to Signature"),
+			() => return_to_signature(frm),
+			__("Actions"),
+		);
+	}
+
+	// Change Responsible — only available if order is not finalized
+	const finalized_states = ["Completed", "Billed", "Issued", "Closed", "Cancelled"];
+	if (!frm.is_new() && !finalized_states.includes(status)) {
+		frm.add_custom_button(
+			__("Change Responsible"),
+			() => change_responsible_user(frm),
+			__("Actions"),
+		);
 	}
 }
 
 // ─── Actions ─────────────────────────────────────────────────────────────────
-
-function release_work_order(frm) {
-	frm.set_value("status", "Released");
-	frm.save();
-}
 
 function start_repair(frm) {
 	frm.set_value("status", "Repairing");
@@ -253,12 +287,15 @@ function close_last_time_log(frm, description, type) {
 	const end_time = frappe.datetime.now_datetime();
 
 	// Calculate duration: both strings from Frappe server, parse with moment to avoid timezone issues
-	const duration_hours = Math.round(
-		(moment(end_time, "YYYY-MM-DD HH:mm:ss").diff(
-			moment(open_log.start_time, "YYYY-MM-DD HH:mm:ss"),
-			"seconds"
-		) / 3600) * 100
-	) / 100;
+	const duration_hours =
+		Math.round(
+			(moment(end_time, "YYYY-MM-DD HH:mm:ss").diff(
+				moment(open_log.start_time, "YYYY-MM-DD HH:mm:ss"),
+				"seconds",
+			) /
+				3600) *
+				100,
+		) / 100;
 
 	frappe.model.set_value(open_log.doctype, open_log.name, "end_time", end_time);
 	frappe.model.set_value(open_log.doctype, open_log.name, "duration_in_hours", duration_hours);
@@ -271,7 +308,7 @@ function close_last_time_log(frm, description, type) {
 
 	const total = (frm.doc.time_logs || []).reduce(
 		(sum, r) => sum + (r.name === open_log.name ? duration_hours : r.duration_in_hours || 0),
-		0
+		0,
 	);
 	frm.set_value("total_repair_time", Math.round(total * 100) / 100);
 	frm.refresh_field("time_logs");
@@ -360,23 +397,78 @@ function prompt_next_service(frm) {
 					if (r.message) {
 						frappe.show_alert(
 							{
-								message: __(
-									"Next service order created: {0}",
-									[
-										`<a href="/app/service-work-order/${r.message}">${r.message}</a>`,
-									]
-								),
+								message: __("Next service order created: {0}", [
+									`<a href="/app/service-work-order/${r.message}">${r.message}</a>`,
+								]),
 								indicator: "green",
 							},
-							7
+							7,
 						);
 					}
 				},
 			});
 		},
 		__("Schedule Next Service"),
-		__("Create")
+		__("Create"),
 	);
+}
+
+// ─── Change Responsible User ──────────────────────────────────────────────────
+
+function change_responsible_user(frm) {
+	const current = frm.doc.responsible_user || "";
+	const dialog = new frappe.ui.Dialog({
+		title: __("Change Responsible"),
+		fields: [
+			{
+				label: __("Current Responsible"),
+				fieldname: "current_user",
+				fieldtype: "Data",
+				read_only: 1,
+				default: current,
+			},
+			{
+				label: __("New Responsible User"),
+				fieldname: "new_user",
+				fieldtype: "Link",
+				options: "User",
+				reqd: 1,
+				get_query: function () {
+					return { filters: { enabled: 1, user_type: "System User" } };
+				},
+			},
+		],
+		primary_action_label: __("Update"),
+		primary_action(values) {
+			if (!values.new_user) {
+				frappe.msgprint(__("Please select a user."));
+				return;
+			}
+			frappe.call({
+				method: "southwest.service_management.doctype.service_work_order.service_work_order.change_responsible_user",
+				args: {
+					doc_name: frm.doc.name,
+					new_user: values.new_user,
+				},
+				freeze: true,
+				freeze_message: __("Updating responsible user…"),
+				callback(r) {
+					if (!r.exc) {
+						frappe.show_alert(
+							{
+								message: __("Responsible user updated to {0}.", [values.new_user]),
+								indicator: "green",
+							},
+							5,
+						);
+						dialog.hide();
+						frm.reload_doc();
+					}
+				},
+			});
+		},
+	});
+	dialog.show();
 }
 
 // ─── Update PO Number ─────────────────────────────────────────────────────────
@@ -399,7 +491,54 @@ function update_po_number(frm) {
 			});
 		},
 		__("Update PO Number"),
-		__("Save")
+		__("Save"),
+	);
+}
+
+// ─── Return to Signature ──────────────────────────────────────────────────────
+
+function return_to_signature(frm) {
+	frappe.confirm(
+		__(
+			"This will clear the skipped signature status and paper attachment, and move the status back to Staged. Continue?",
+		),
+		() => {
+			frappe.call({
+				method: "southwest.service_management.doctype.service_work_order.service_work_order.reset_signature",
+				args: { doc_name: frm.doc.name },
+				freeze: true,
+				freeze_message: __("Resetting signature status..."),
+				callback(r) {
+					if (r.message) {
+						frm.reload_doc();
+					}
+				},
+			});
+		},
+	);
+}
+
+// ─── Skip Signature ───────────────────────────────────────────────────────────
+
+function skip_signature(frm) {
+	frappe.confirm(
+		__("Are you sure you want to complete this work order without a customer signature?"),
+		() => {
+			frappe.call({
+				method: "southwest.service_management.doctype.service_work_order.service_work_order.desk_skip_signature",
+				args: {
+					doc_name: frm.doc.name,
+					paper_signature: "",
+				},
+				freeze: true,
+				freeze_message: __("Skipping signature..."),
+				callback(r) {
+					if (r.message) {
+						frm.reload_doc();
+					}
+				},
+			});
+		},
 	);
 }
 
@@ -408,7 +547,7 @@ function update_po_number(frm) {
 function create_stock_entry(frm) {
 	frappe.confirm(
 		__(
-			"This will create a draft Stock Entry (Material Issue) for items covered by the customer's service exceptions. Continue?"
+			"This will create a draft Stock Entry (Material Issue) for items covered by the customer's service exceptions. Continue?",
 		),
 		() => {
 			frappe.call({
@@ -420,20 +559,17 @@ function create_stock_entry(frm) {
 					if (r.message) {
 						frappe.show_alert(
 							{
-								message: __(
-									"Stock Entry created: {0}",
-									[
-										`<a href="/app/stock-entry/${r.message}">${r.message}</a>`,
-									]
-								),
+								message: __("Stock Entry created: {0}", [
+									`<a href="/app/stock-entry/${r.message}">${r.message}</a>`,
+								]),
 								indicator: "green",
 							},
-							7
+							7,
 						);
 					}
 				},
 			});
-		}
+		},
 	);
 }
 
@@ -457,5 +593,5 @@ function create_invoice(frm) {
 // still open correctly.
 function normalize_signature_link(link) {
 	if (!link) return link;
-	return link.replace(/\/signature\?/, "/southwest/signature?");
+	return link.replace(/\/signature\?/, "/signature?");
 }

@@ -98,10 +98,18 @@ export interface ServiceWorkOrder {
   customer: string
   scheduled_date: string
   service_type: string
+  /** The technician currently responsible for this order (controls mobile app visibility). */
+  responsible_user: string
+  /** Server-calculated time since last modification in minutes. */
+  time_ago_minutes: number
+  /** ISO timestamp of last modification. */
+  modified: string
 }
 
-export async function getSWOs(): Promise<ServiceWorkOrder[]> {
-  return getMethod<ServiceWorkOrder[]>('southwest.api.get_technician_swos') ?? []
+export async function getSWOs(hoursLimit?: number): Promise<ServiceWorkOrder[]> {
+  const params: Record<string, string> = {}
+  if (hoursLimit !== undefined) params.hours_limit = String(hoursLimit)
+  return getMethod<ServiceWorkOrder[]>('southwest.api.get_technician_swos', params) ?? []
 }
 
 export interface NewSWOPayload {
@@ -160,6 +168,24 @@ export async function updateSWO(name: string, data: Record<string, unknown>): Pr
   await resource<unknown>('PUT', `Service Work Order/${encodeURIComponent(name)}`, { body: data })
 }
 
+/**
+ * Fetches the current `responsible_user` from the server and checks whether
+ * it still matches the given `currentUser`. Returns `true` if the user is
+ * still responsible; `false` if the order has been reassigned.
+ *
+ * Call this before any critical write action in the mobile app so technicians
+ * cannot act on orders that a manager has reassigned from the Desk.
+ */
+export async function checkResponsibleUser(
+  name: string,
+  currentUser: string,
+): Promise<boolean> {
+  const doc = await resource<{ responsible_user: string }>('GET', `Service Work Order/${encodeURIComponent(name)}`, {
+    params: { fields: JSON.stringify(['responsible_user']) },
+  })
+  return doc.responsible_user === currentUser
+}
+
 // ---------------------------------------------------------------------------
 // Signature flow
 // ---------------------------------------------------------------------------
@@ -183,6 +209,7 @@ export interface SignaturePageData {
   repair_description?: string
   equipment_rows?: SignatureEquipmentRow[]
   service_items?: SignatureItem[]
+  allow_skip_signature?: number
 }
 
 const SWO_WHITELIST = 'southwest.service_management.doctype.service_work_order.service_work_order'
@@ -195,7 +222,13 @@ export async function getGuestCsrfToken(): Promise<string> {
   return getMethod<string>(`${SWO_WHITELIST}.get_guest_csrf_token`) ?? ''
 }
 
-export async function submitSignature(token: string, signature: string, csrfToken: string): Promise<void> {
+export async function submitSignature(
+  token: string,
+  signature: string | null,
+  csrfToken: string,
+  skipped = 0,
+  paperSignature?: string,
+): Promise<void> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -206,7 +239,7 @@ export async function submitSignature(token: string, signature: string, csrfToke
     method: 'POST',
     headers,
     credentials: 'include',
-    body: JSON.stringify({ token, signature }),
+    body: JSON.stringify({ token, signature, skipped, paper_signature: paperSignature }),
   })
   if (!res.ok) throw await buildError(res)
 }
@@ -215,6 +248,13 @@ export async function generateSignatureLink(docName: string): Promise<string> {
   return getMethod<string>(`${SWO_WHITELIST}.generate_signature_link`, {
     doc_name: docName,
   }) ?? ''
+}
+
+export async function skipSignatureMobile(docName: string, paperSignature: string): Promise<void> {
+  await getMethod(`${SWO_WHITELIST}.desk_skip_signature`, {
+    doc_name: docName,
+    paper_signature: paperSignature,
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -258,6 +298,15 @@ export async function getCustomers(): Promise<Customer[]> {
       limit_page_length: '500',
     },
   }) ?? []
+}
+
+export async function getActiveCustomerPO(customer: string): Promise<string | null> {
+  if (!customer) return null
+  try {
+    return await getMethod<string>('southwest.api.get_active_customer_po', { customer })
+  } catch {
+    return null
+  }
 }
 
 export interface Equipment { name: string; customer_unit_id_number: string; make: string; model: string; serial_no: string }

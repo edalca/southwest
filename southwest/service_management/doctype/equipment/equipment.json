@@ -45,22 +45,19 @@
   {
    "fieldname": "series",
    "fieldtype": "Data",
-   "label": "Series",
-   "reqd": 1
+   "label": "Series"
   },
   {
    "fieldname": "serial_no",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Serial No",
-   "reqd": 1
+   "label": "Serial No"
   },
   {
    "fieldname": "model",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Model",
-   "reqd": 1
+   "label": "Model"
   },
   {
    "fieldname": "details_section",
@@ -99,7 +96,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-06 03:05:23.414713",
+ "modified": "2026-04-14 01:18:34.193805",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Equipment",

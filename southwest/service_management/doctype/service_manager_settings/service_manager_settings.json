@@ -3,19 +3,27 @@
  "creation": "2026-04-02 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
- "field_order": [
-  "labor_items_section",
+  "field_order": [
+  "operational_tab",
   "pm_labor_item",
   "labor_rate_item",
   "misc_labor_item",
-  "inventory_section",
-  "default_swo_stock_entry_type"
+  "inventory_column",
+  "default_swo_stock_entry_type",
+  "system_automation_tab",
+  "next_pm_generation_trigger",
+  "dashboard_column",
+  "calendar_months_before",
+  "calendar_months_after",
+  "app_settings_tab",
+  "recent_orders_hours",
+  "allow_skip_signature"
  ],
  "fields": [
   {
-   "fieldname": "labor_items_section",
-   "fieldtype": "Section Break",
-   "label": "Labor Items"
+   "fieldname": "operational_tab",
+   "fieldtype": "Tab Break",
+   "label": "Operational Settings"
   },
   {
    "fieldname": "pm_labor_item",
@@ -39,8 +47,8 @@
    "description": "Item used as the labor line on Misc invoices"
   },
   {
-   "fieldname": "inventory_section",
-   "fieldtype": "Section Break",
+   "fieldname": "inventory_column",
+   "fieldtype": "Column Break",
    "label": "Inventory"
   },
   {
@@ -49,6 +57,57 @@
    "label": "Default SWO Stock Entry Type",
    "options": "Stock Entry Type",
    "description": "Stock Entry Type used when creating inventory write-offs from Service Work Orders (typically Material Issue)"
+  },
+  {
+   "fieldname": "system_automation_tab",
+   "fieldtype": "Tab Break",
+   "label": "System & Automation"
+  },
+  {
+   "fieldname": "next_pm_generation_trigger",
+   "fieldtype": "Select",
+   "label": "Next PM Generation Trigger",
+   "options": "On Start Repair\nOn Finish Repair",
+   "description": "Determines when the next programmed PM work order is automatically created for PM Frequency orders.",
+   "default": "On Start Repair"
+  },
+  {
+   "fieldname": "dashboard_column",
+   "fieldtype": "Column Break",
+   "label": "Dashboard Configuration"
+  },
+  {
+   "fieldname": "calendar_months_before",
+   "fieldtype": "Int",
+   "label": "Calendar Months Before",
+   "description": "Number of past months to load work orders from for the dashboard calendar.",
+   "default": "2"
+  },
+  {
+   "fieldname": "calendar_months_after",
+   "fieldtype": "Int",
+   "label": "Calendar Months After",
+   "description": "Number of future months to load work orders for in the dashboard calendar.",
+   "default": "2"
+  },
+  {
+   "fieldname": "app_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "App Settings"
+  },
+  {
+   "fieldname": "recent_orders_hours",
+   "fieldtype": "Int",
+   "label": "Recent Orders Hours Limit",
+   "default": "24",
+   "description": "Hours to look back for recent activity on the mobile home page."
+  },
+  {
+   "default": "0",
+   "fieldname": "allow_skip_signature",
+   "fieldtype": "Check",
+   "label": "Allow Skip Signature",
+   "description": "If enabled, technicians can skip digital signatures in the mobile app by attaching a physical document instead."
   }
  ],
  "issingle": 1,

@@ -157,6 +157,9 @@ doc_events = {
         "before_insert": "southwest.overrides.sales_invoice_events.before_insert",
         "on_submit": "southwest.overrides.sales_invoice_events.on_submit",
     },
+    "Stock Entry": {
+        "on_submit": "southwest.overrides.stock_entry_events.on_submit",
+    },
 }
 
 # Scheduled Tasks

@@ -3,14 +3,24 @@ from southwest.service_management.doctype.service_work_order.service_work_order 
 
 
 @frappe.whitelist()
-def get_technician_swos():
+def get_technician_swos(hours_limit=None):
 	"""
-	Return Service Work Orders owned by the current session user.
-	Used by the mobile frontend to show only the technician's own work orders.
+	Return Service Work Orders where the current session user is the responsible_user.
+	Used by the mobile frontend to show only the technician's own assigned work orders.
+	Supports optional hours_limit for recent activity filtering.
 	"""
-	return frappe.get_list(
+	import frappe
+	from frappe.utils import add_to_date, now_datetime, time_diff_in_seconds
+
+	filters = {"responsible_user": frappe.session.user, "status": ["!=", "Invoiced"]}
+
+	if hours_limit:
+		since = add_to_date(now_datetime(), hours=-int(hours_limit))
+		filters["modified"] = [">=", since]
+
+	swos = frappe.get_list(
 		"Service Work Order",
-		filters={"owner": frappe.session.user, "status": ["!=", "Invoiced"]},
+		filters=filters,
 		fields=[
 			"name",
 			"work_order_number",
@@ -18,10 +28,20 @@ def get_technician_swos():
 			"customer",
 			"scheduled_date",
 			"service_type",
+			"responsible_user",
+			"modified",
 		],
-		order_by="scheduled_date desc",
+		order_by="modified desc",
 		limit=50,
 	)
+
+	now = now_datetime()
+	for swo in swos:
+		# diff_seconds is positive if now > swo.modified
+		diff_seconds = time_diff_in_seconds(now, swo.modified)
+		swo["time_ago_minutes"] = int(max(0, diff_seconds / 60))
+
+	return swos
 
 
 @frappe.whitelist()

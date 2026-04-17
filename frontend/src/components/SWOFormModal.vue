@@ -4,7 +4,7 @@
     :is-open="isOpen"
     :can-dismiss="canDismissHandler"
     @did-dismiss="onDismissed"
-    style="--border-radius: 0;"
+    style="--width: 100%; --height: 100%; --max-width: 100%; --max-height: 100%; --border-radius: 0;"
   >
     <!-- ── Header ────────────────────────────────────────────────────────── -->
     <ion-header class="ion-no-border">
@@ -44,7 +44,7 @@
 
       <!-- Loading overlay -->
       <div v-if="loading" class="flex min-h-[50vh] items-center justify-center">
-        <span class="w-8 h-8 border-2 border-slate-200 border-t-blue-950 rounded-full animate-spin block" />
+        <ion-spinner name="crescent" />
       </div>
 
       <div v-else class="px-4 py-5 pb-10 space-y-5 max-w-lg mx-auto">
@@ -55,67 +55,47 @@
         <template v-if="!isEditMode">
 
           <!-- Customer -->
-          <div>
-            <label class="block mb-1.5 text-sm text-slate-600">
-              {{ __('Customer') }} <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select
-                v-model="createForm.customer"
-                @change="onCustomerChange"
-                class="w-full bg-transparent text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 pr-8 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm appearance-none cursor-pointer"
-                :class="!createForm.customer ? 'text-slate-400' : ''"
-              >
-                <option value="" disabled>{{ __('Select customer') }}</option>
-                <option v-for="c in customers" :key="c.name" :value="c.name">
-                  {{ c.customer_name }}
-                </option>
-              </select>
-              <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"
-                   width="14" height="14" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </div>
-          </div>
+          <ion-item>
+            <ion-select
+              :label="__('Customer') + ' *'"
+              label-placement="stacked"
+              v-model="createForm.customer"
+              @ionChange="onCustomerChange"
+              :placeholder="__('Select customer')"
+              interface="action-sheet"
+            >
+              <ion-select-option v-for="c in customers" :key="c.name" :value="c.name">
+                {{ c.customer_name }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
 
           <!-- Scheduled Date -->
-          <div>
-            <label class="block mb-1.5 text-sm text-slate-600">
-              {{ __('Scheduled Date') }} <span class="text-red-500">*</span>
-            </label>
-            <input
-              v-model="createForm.scheduled_date"
-              @change="onDateChange"
+          <ion-item class="custom-ion-item">
+            <ion-input
               type="date"
-              class="w-full bg-transparent text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm"
+              :label="__('Scheduled Date') + ' *'"
+              label-placement="stacked"
+              v-model="createForm.scheduled_date"
+              @ionChange="onDateChange"
             />
-          </div>
+          </ion-item>
 
           <!-- Service Type -->
-          <div>
-            <label class="block mb-1.5 text-sm text-slate-600">
-              {{ __('Service Type') }} <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select
-                v-model="createForm.service_type"
-                @change="onServiceTypeChange"
-                class="w-full bg-transparent text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 pr-8 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm appearance-none cursor-pointer"
-                :class="!createForm.service_type ? 'text-slate-400' : ''"
-              >
-                <option value="" disabled>{{ __('Select type') }}</option>
-                <option v-for="t in serviceTypeOptions" :key="t.value" :value="t.value">
-                  {{ t.label }}
-                </option>
-              </select>
-              <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"
-                   width="14" height="14" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 12 15 18 9"/>
-              </svg>
-            </div>
-          </div>
+          <ion-item class="custom-ion-item">
+            <ion-select
+              :label="__('Service Type') + ' *'"
+              label-placement="stacked"
+              v-model="createForm.service_type"
+              @ionChange="onServiceTypeChange"
+              :placeholder="__('Select type')"
+              interface="action-sheet"
+            >
+              <ion-select-option v-for="t in serviceTypeOptions" :key="t.value" :value="t.value">
+                {{ t.label }}
+              </ion-select-option>
+            </ion-select>
+          </ion-item>
 
           <!-- Equipment -->
           <div>
@@ -126,7 +106,7 @@
             <!-- Misc: checkbox list -->
             <template v-if="isMisc">
               <div v-if="loadingEquipment" class="flex items-center gap-2 text-sm text-slate-400 py-2">
-                <span class="w-4 h-4 border-2 border-slate-200 border-t-blue-950 rounded-full animate-spin block" />
+                <ion-spinner name="crescent" class="spinner-small" />
                 {{ __('Loading...') }}
               </div>
               <p v-else-if="!createForm.customer || !createForm.service_type" class="text-sm text-slate-400">
@@ -136,70 +116,62 @@
                 {{ __('No active equipment found for this customer on the selected date') }}
               </p>
               <div v-else class="space-y-1 border border-slate-200 rounded-md p-3 bg-white shadow-sm">
-                <label
+                <ion-item
                   v-for="e in equipment" :key="e.name"
-                  class="flex items-center gap-3 py-1.5 cursor-pointer rounded px-1 hover:bg-slate-50"
+                  class="equipment-item"
                 >
-                  <input
-                    type="checkbox"
-                    :value="e.name"
-                    v-model="createForm.equipment_selection"
-                    class="w-4 h-4 rounded border-slate-300 accent-blue-950"
+                  <ion-checkbox
+                    slot="start"
+                    :checked="createForm.equipment_selection.includes(e.name)"
+                    @ionChange="(ev: any) => toggleEquipment(e.name, ev.detail.checked)"
                   />
-                  <div>
+                  <ion-label>
                     <p class="text-sm font-semibold text-slate-700">{{ e.customer_unit_id_number }}</p>
                     <p class="text-xs text-slate-400">{{ e.name }}</p>
-                  </div>
-                </label>
+                  </ion-label>
+                </ion-item>
               </div>
             </template>
 
             <!-- Single select -->
             <template v-else>
-              <div class="relative">
-                <select
+              <ion-item class="custom-ion-item">
+                <ion-select
+                  :label="__('Equipment') + ' *'"
+                  label-placement="stacked"
                   v-model="singleEquipment"
                   :disabled="equipmentDisabled"
-                  class="w-full bg-transparent text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 pr-8 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  :placeholder="equipmentPlaceholder"
+                  interface="action-sheet"
                 >
-                  <option value="">{{ equipmentPlaceholder }}</option>
-                  <option v-for="e in equipment" :key="e.name" :value="e.name">
+                  <ion-select-option v-for="e in equipment" :key="e.name" :value="e.name">
                     {{ e.customer_unit_id_number }} — {{ e.name }}
-                  </option>
-                </select>
-                <svg class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400"
-                     width="14" height="14" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
-              </div>
-              <p v-if="loadingEquipment" class="mt-1 text-xs text-slate-400">{{ __('Loading equipment...') }}</p>
-              <p v-else-if="equipmentError" class="mt-1 text-xs text-red-500">{{ __('Could not load equipment') }}</p>
+                  </ion-select-option>
+                </ion-select>
+              </ion-item>
+              <p v-if="loadingEquipment" class="mt-1 text-xs text-slate-400 px-4">{{ __('Loading equipment...') }}</p>
+              <p v-else-if="equipmentError" class="mt-1 text-xs text-red-500 px-4">{{ __('Could not load equipment') }}</p>
             </template>
           </div>
 
-          <!-- Hour Meter -->
-          <div>
-            <label class="block mb-1.5 text-sm text-slate-600">{{ __('Hour Meter') }}</label>
-            <input
+            <ion-input
+              :label="__('Hour Meter')"
+              label-placement="stacked"
               v-model="createForm.hour_meter"
               type="text"
               inputmode="numeric"
               :placeholder="__('e.g. 1234')"
-              class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm"
             />
-          </div>
 
           <!-- PO Number -->
-          <div>
-            <label class="block mb-1.5 text-sm text-slate-600">{{ __('PO Number') }}</label>
-            <input
+            <ion-input
+              :label="__('PO Number')"
+              label-placement="stacked"
               v-model="createForm.po_number"
               type="text"
               :placeholder="__('Customer purchase order')"
-              class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm"
             />
-          </div>
+
 
         </template>
 
@@ -238,70 +210,75 @@
           </div>
 
           <!-- Hour Meter (editable) -->
-          <div>
-            <label class="block mb-1.5 text-sm text-slate-600">{{ __('Hour Meter') }}</label>
-            <input
+          <ion-item class="custom-ion-item">
+            <ion-input
+              :label="__('Hour Meter')"
+              label-placement="stacked"
               v-model="editForm.hour_meter"
               type="text"
               inputmode="numeric"
               :placeholder="__('e.g. 1234')"
               :readonly="isLocked"
-              class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm read-only:opacity-60 read-only:cursor-default"
             />
-          </div>
+          </ion-item>
 
           <!-- PO Number (editable) -->
-          <div>
-            <label class="block mb-1.5 text-sm text-slate-600">{{ __('PO Number') }}</label>
-            <input
+          <ion-item class="custom-ion-item">
+            <ion-input
+              :label="__('PO Number')"
+              label-placement="stacked"
               v-model="editForm.po_number"
               type="text"
               :placeholder="__('Customer purchase order')"
               :readonly="isLocked"
-              class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm read-only:opacity-60 read-only:cursor-default"
             />
-          </div>
+          </ion-item>
 
           <!-- Documentation -->
           <template v-if="showDocumentation">
-            <div>
-              <label class="block mb-1.5 text-sm text-slate-600">{{ __('Problem With Equipment') }}</label>
-              <textarea
+            <ion-item class="custom-ion-item">
+              <ion-textarea
+                :label="__('Problem With Equipment')"
+                label-placement="stacked"
                 v-model="editForm.problem_with_lift"
-                rows="3"
+                :rows="3"
                 :placeholder="isEditable ? __('Describe the reported problem...') : ''"
                 :readonly="isLocked"
-                class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm resize-none read-only:opacity-60 read-only:cursor-default"
+                auto-grow
               />
-            </div>
-            <div>
-              <label class="block mb-1.5 text-sm text-slate-600">{{ __('Repair Description') }}</label>
-              <textarea
+            </ion-item>
+            <ion-item class="custom-ion-item">
+              <ion-textarea
+                :label="__('Repair Description')"
+                label-placement="stacked"
                 v-model="editForm.repair_description"
-                rows="4"
+                :rows="4"
                 :placeholder="isEditable ? __('Describe the work performed...') : ''"
                 :readonly="isLocked"
-                class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm resize-none read-only:opacity-60 read-only:cursor-default"
+                auto-grow
               />
-            </div>
+            </ion-item>
           </template>
 
           <!-- Parts / Items (Repairing, Partial Repair, and read-only for locked) -->
           <div v-if="showDocumentation" class="space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-sm font-semibold text-slate-700">{{ __('Parts / Items') }}</span>
-              <button
+              <ion-button
                 v-if="isEditable"
-                type="button"
+                fill="clear"
+                size="small"
+                style="--color: #172554; margin: 0; font-weight: 600;"
                 @click="openPartSheet"
-                class="flex items-center gap-1 text-xs font-semibold text-blue-950 py-1 px-2.5 rounded-md hover:bg-blue-50 active:bg-blue-100 transition-colors"
               >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                {{ __('Add') }}
-              </button>
+                <div class="flex items-center gap-1">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  {{ __('Add') }}
+                </div>
+              </ion-button>
             </div>
 
             <!-- Item list -->
@@ -321,19 +298,21 @@
                     <span v-if="item.vendor"> · {{ item.vendor }}</span>
                   </p>
                 </div>
-                <button
+                <ion-button
                   v-if="isEditable"
-                  type="button"
+                  fill="clear"
+                  color="danger"
+                  size="small"
+                  class="remove-btn"
                   @click="removeItem(idx)"
-                  class="flex-shrink-0 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                     <path d="M10 11v6"/><path d="M14 11v6"/>
                     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                   </svg>
-                </button>
+                </ion-button>
               </div>
             </div>
             <p v-else-if="isEditable" class="text-sm text-slate-400 text-center py-1">
@@ -342,68 +321,88 @@
 
           </div>
 
-          <!-- Hours input (inline, for Finish Repair on Labor Rate / Misc) -->
-          <div v-if="showHoursInput" class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+          <div v-if="showHoursInput" class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-4 shadow-sm">
             <p class="text-sm font-semibold text-amber-800">{{ __('Enter hours worked to finish the repair') }}</p>
-            <div>
-              <label class="block mb-1.5 text-sm text-slate-600">{{ __('Hours Worked') }} *</label>
-              <input
+            <ion-item class="custom-ion-item" style="--background: transparent; --border-color: #fde68a;">
+              <ion-input
+                :label="__('Hours Worked') + ' *'"
+                label-placement="stacked"
                 v-model="hoursInput"
                 type="number"
                 step="0.1"
-                min="0.1"
                 placeholder="e.g. 2.5"
-                class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-amber-200 rounded-md px-3 py-2 focus:outline-none focus:border-amber-400 shadow-sm transition duration-300"
+                class="hour-input"
               />
-              <p v-if="hoursError" class="mt-1 text-xs text-red-500">{{ hoursError }}</p>
-            </div>
+            </ion-item>
+            <p v-if="hoursError" class="mt-1 text-xs text-red-500 font-medium px-2">{{ hoursError }}</p>
             <div class="flex gap-2">
-              <button
-                type="button"
+              <ion-button
+                fill="outline"
+                color="medium"
+                class="flex-1"
                 @click="showHoursInput = false; hoursInput = ''; hoursError = ''"
-                class="flex-1 rounded-lg border border-slate-200 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 {{ __('Cancel') }}
-              </button>
-              <button
-                type="button"
-                @click="confirmFinishRepair"
+              </ion-button>
+              <ion-button
+                color="success"
+                class="flex-1"
                 :disabled="acting"
-                class="flex-1 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                @click="confirmFinishRepair"
               >
-                <span v-if="acting" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                <ion-spinner v-if="acting" name="crescent" />
                 <span v-else>{{ __('Confirm') }}</span>
-              </button>
+              </ion-button>
             </div>
           </div>
 
           <!-- Signature section (Staged) -->
-          <div v-if="swo.status === 'Staged'" class="bg-white rounded-xl shadow-sm p-4 space-y-3">
+          <div v-if="swo.status === 'Staged'" class="bg-white rounded-xl shadow-sm p-4 space-y-4">
             <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">{{ __('Customer Signature') }}</p>
 
             <template v-if="!swo.signature_link">
-              <button
-                type="button"
-                @click="onGenerateLink"
-                :disabled="acting"
-                class="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-950 py-3 text-sm font-semibold text-white hover:bg-blue-900 disabled:opacity-50 transition-colors shadow-md"
-              >
-                <span v-if="acting" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                <template v-else>
+              <div class="space-y-2">
+                <ion-button
+                  expand="block"
+                  class="action-btn"
+                  style="--background: #172554; --color: #fff; margin: 0; font-weight: 700;"
+                  :disabled="acting"
+                  @click="onGenerateLink"
+                >
+                  <ion-spinner v-if="acting && lastAction === 'generate'" name="crescent" />
+                  <template v-else>
+                    <div class="flex items-center gap-2">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                      </svg>
+                      <span>{{ __('Generate Signature Link') }}</span>
+                    </div>
+                  </template>
+                </ion-button>
+
+                <!-- Conditional Skip Signature (direct action) -->
+                <button
+                  v-if="allowSkipSignature"
+                  type="button"
+                  @click="onSkipSignature"
+                  :disabled="acting"
+                  class="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold transition-colors border-2 border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    <path d="M18 6L6 18M6 6l12 12"/>
                   </svg>
-                  {{ __('Generate Signature Link') }}
-                </template>
-              </button>
+                  {{ __('Skip Signature') }}
+                </button>
+              </div>
             </template>
 
             <template v-else>
               <button
                 type="button"
                 @click="openSignatureLink"
-                class="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-950 py-3 text-sm font-semibold text-white hover:bg-blue-900 transition-colors shadow-md"
+                class="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold transition-colors shadow-md"
+                style="background: #172554; color: #ffffff;"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -437,6 +436,20 @@
                   {{ __('Regenerate') }}
                 </button>
               </div>
+
+              <!-- Conditional Skip Signature (visible even if link exists) -->
+              <button
+                v-if="allowSkipSignature"
+                type="button"
+                @click="onSkipSignature"
+                :disabled="acting"
+                class="w-full flex items-center justify-center gap-2 rounded-lg py-3 text-sm font-semibold transition-colors border-2 border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 mt-2"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+                {{ __('Skip Signature') }}
+              </button>
             </template>
           </div>
 
@@ -480,21 +493,9 @@
         <!-- EDIT MODE -->
         <template v-else-if="swo && !showHoursInput">
 
-          <!-- New / Programmed → Release (Navy Blue) -->
+          <!-- New / Programmed → Start Repair (Amber) -->
           <button
             v-if="['New', 'Programmed'].includes(swo.status)"
-            style="width:100%; background:#172554; color:#fff; border-radius:8px; padding:14px; font-size:14px; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:opacity .15s;"
-            :style="acting ? 'opacity:.5;cursor:not-allowed;' : ''"
-            :disabled="acting"
-            @click="act('Released')"
-          >
-            <span v-if="acting" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            <span v-else>{{ __('Release') }}</span>
-          </button>
-
-          <!-- Released → Start Repair (Amber) -->
-          <button
-            v-else-if="swo.status === 'Released'"
             style="width:100%; background:#f59e0b; color:#fff; border-radius:8px; padding:14px; font-size:14px; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.2); transition:opacity .15s;"
             :style="acting ? 'opacity:.5;cursor:not-allowed;' : ''"
             :disabled="acting"
@@ -763,16 +764,22 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, inject, nextTick } from 'vue'
+import { createResource } from 'frappe-ui'
 import {
   IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
-  IonContent, alertController,
+  IonContent, IonFooter, IonList, IonItem, IonLabel,
+  IonSelect, IonSelectOption, IonInput, IonTextarea, IonToggle, IonSpinner, IonCheckbox,
+  alertController,
 } from '@ionic/vue'
 import {
   getCustomers, getCompanies, getCustomerEquipment, createSWO, getSWO,
   updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
+  skipSignatureMobile,
+  checkResponsibleUser, getActiveCustomerPO,
   type Customer, type Equipment, type Company,
   type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
 } from '@/services/api'
+import { session } from '@/data/session'
 import { formatDate } from '@/utils/date'
 
 // ── Props / Emits ──────────────────────────────────────────────────────────────
@@ -784,6 +791,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:isOpen', value: boolean): void
   (e: 'saved'): void
+  (e: 'status-updated'): void
 }>()
 
 const __ = inject<(t: string) => string>('$translate', (t) => t)
@@ -805,6 +813,18 @@ const saving      = ref(false)
 const acting      = ref(false)
 const lastAction  = ref('')
 const actionError = ref('')
+
+// ── App Settings ──────────────────────────────────────────────────────────────
+const serviceManagerSettings = createResource({
+  url: 'frappe.client.get_value',
+  params: {
+    doctype: 'Service Manager Settings',
+    fieldname: 'allow_skip_signature',
+  },
+  auto: true,
+})
+
+const allowSkipSignature = computed(() => serviceManagerSettings.data?.allow_skip_signature === 1)
 
 // ──────────────────────────────────────────────────────────────────────────────
 // CREATE MODE STATE
@@ -886,9 +906,9 @@ let _finishPayload: Record<string, unknown> = {}
 // Derived status flags
 const status           = computed(() => swo.value?.status ?? '')
 const isEditable       = computed(() => ['Repairing', 'Partial Repair'].includes(status.value))
-const isLocked         = computed(() => ['Staged', 'Completed', 'Invoiced', 'Cancelled'].includes(status.value))
+const isLocked         = computed(() => ['Staged', 'Completed', 'Billed', 'Issued', 'Closed', 'Cancelled'].includes(status.value))
 const showDocumentation = computed(() =>
-  ['Repairing', 'Partial Repair', 'Staged', 'Completed', 'Invoiced'].includes(status.value)
+  ['Repairing', 'Partial Repair', 'Staged', 'Completed', 'Billed', 'Issued', 'Closed'].includes(status.value)
 )
 
 // Populate edit form when SWO loads
@@ -1019,7 +1039,17 @@ async function onCustomerChange() {
   singleEquipment.value = ''
   equipment.value       = []
   equipmentError.value  = false
-  if (createForm.value.customer) await fetchEquipment()
+
+  if (createForm.value.customer) {
+    // Parallel fetch: Equipment + Active PO
+    await Promise.all([
+      fetchEquipment(),
+      (async () => {
+        const po = await getActiveCustomerPO(createForm.value.customer)
+        if (po) createForm.value.po_number = po
+      })()
+    ])
+  }
 }
 
 async function onDateChange() {
@@ -1093,6 +1123,12 @@ async function handleSaveAndClose() {
   actionError.value = ''
   saving.value      = true
   try {
+    // Security: verify the current user is still the responsible technician
+    const isStillResponsible = await checkResponsibleUser(props.swoName, session.user ?? '')
+    if (!isStillResponsible) {
+      actionError.value = __('This order has been reassigned. Please reload your list before acting.')
+      return
+    }
     await updateSWO(props.swoName, {
       hour_meter:         editForm.value.hour_meter,
       po_number: editForm.value.po_number,
@@ -1101,6 +1137,7 @@ async function handleSaveAndClose() {
       service_items:      localItems.value,
     })
     isDirty.value = false
+    emit('status-updated')
     emit('saved')
     emit('update:isOpen', false)
   } catch (err: unknown) {
@@ -1116,17 +1153,52 @@ async function act(newStatus: string) {
   acting.value      = true
   lastAction.value  = newStatus
   try {
+    // Security: verify the current user is still the responsible technician
+    const isStillResponsible = await checkResponsibleUser(props.swoName, session.user ?? '')
+    if (!isStillResponsible) {
+      actionError.value = __('This order has been reassigned. Please reload your list before acting.')
+      return
+    }
     await updateSWOStatus(props.swoName, newStatus)
     // Terminal transitions: close the modal; otherwise reload to refresh status
-    if (['Released', 'Staged'].includes(newStatus)) {
+    if (['Staged'].includes(newStatus)) {
       isDirty.value = false
+      emit('status-updated')
       emit('saved')
       emit('update:isOpen', false)
     } else {
+      emit('status-updated')
       await loadSWO()
     }
   } catch (err: unknown) {
     actionError.value = extractError(err)
+  } finally {
+    acting.value = false
+  }
+}
+
+async function onSkipSignature() {
+  if (!props.swoName) return
+  
+  const confirmed = window.confirm(
+    __('Are you sure you want to complete this order without a customer signature?')
+  )
+  if (!confirmed) return
+
+  actionError.value = ''
+  acting.value      = true
+  lastAction.value  = 'skip'
+  
+  try {
+    // We now skip without any attachment, immediately completing the doc
+    await updateSWO(props.swoName, {
+      signature_skipped: 1,
+      status: 'Completed',
+    })
+    await loadSWO()
+    emit('status-updated')
+  } catch (err: any) {
+    actionError.value = err.message || __('Failed to skip signature.')
   } finally {
     acting.value = false
   }
@@ -1160,6 +1232,7 @@ async function onFinishRepair() {
     try {
       await updateSWO(props.swoName!, _finishPayload)
       isDirty.value = false
+      emit('status-updated')
       emit('saved')
       emit('update:isOpen', false)
     } catch (err: unknown) {
@@ -1188,6 +1261,7 @@ async function confirmFinishRepair() {
     await updateSWO(props.swoName!, { ..._finishPayload, hours_worked: hours })
     isDirty.value        = false
     showHoursInput.value = false
+    emit('status-updated')
     emit('saved')
     emit('update:isOpen', false)
   } catch (err: unknown) {
@@ -1203,6 +1277,7 @@ async function onGenerateLink() {
   if (!props.swoName) return
   actionError.value = ''
   acting.value      = true
+  lastAction.value  = 'generate'
   try {
     await generateSignatureLink(props.swoName)
     await loadSWO()
@@ -1310,6 +1385,16 @@ function todayISO(): string {
   return new Date().toISOString().split('T')[0]
 }
 
+function toggleEquipment(name: string, checked: boolean) {
+  if (checked) {
+    if (!createForm.value.equipment_selection.includes(name)) {
+      createForm.value.equipment_selection.push(name)
+    }
+  } else {
+    createForm.value.equipment_selection = createForm.value.equipment_selection.filter(n => n !== name)
+  }
+}
+
 function extractError(err: unknown): string {
   const e = err as { _error_message?: string; message?: string }
   return e?._error_message ?? e?.message ?? __('Action failed. Please try again.')
@@ -1319,14 +1404,51 @@ function statusClass(s: string): string {
   const map: Record<string, string> = {
     New:             'bg-slate-100 text-slate-600',
     Programmed:      'bg-blue-100 text-blue-800',
-    Released:        'bg-blue-100 text-blue-800',
     Repairing:       'bg-amber-100 text-amber-800',
     'Partial Repair':'bg-amber-100 text-amber-800',
     Staged:          'bg-blue-100 text-blue-800',
     Completed:       'bg-emerald-100 text-emerald-800',
-    Invoiced:        'bg-slate-100 text-slate-500',
+    Billed:          'bg-emerald-100 text-emerald-800',
+    Issued:          'bg-emerald-100 text-emerald-800',
+    Closed:          'bg-emerald-100 text-emerald-800',
     Cancelled:       'bg-red-100 text-red-600',
   }
   return map[s] ?? 'bg-slate-100 text-slate-600'
 }
 </script>
+
+<style scoped>
+.custom-ion-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+  margin-bottom: 8px;
+  --border-color: #e2e8f0;
+}
+
+.equipment-item {
+  --background: #ffffff;
+  --padding-start: 4px;
+}
+
+.action-btn {
+  --border-radius: 12px;
+  --height: 52px;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.remove-btn {
+  margin: 0;
+  --padding-start: 4px;
+  --padding-end: 4px;
+}
+
+.spinner-small {
+  width: 18px;
+  height: 18px;
+}
+</style>
+

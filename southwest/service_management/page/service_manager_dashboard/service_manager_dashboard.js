@@ -130,6 +130,14 @@ function refresh_smd(wrapper) {
 			render_invoice_table(wrapper, data.ready_to_invoice_rows || []);
 			render_smd_signature_table(wrapper, data.waiting_signature_rows || []);
 
+			// Fetch and render PO Summary
+			frappe.call({
+				method: "southwest.service_management.page.service_manager_dashboard.service_manager_dashboard.get_customer_po_summary",
+				callback: function (r) {
+					render_po_assignments_table(wrapper, r.message || []);
+				},
+			});
+
 			// Ensure correct tab is shown after refresh
 			switch_tab(wrapper, wrapper.current_tab);
 		},
@@ -592,6 +600,8 @@ function switch_tab(wrapper, tab_name) {
 		$(wrapper.page.body).find("#smd-billing-section").show();
 	} else if (tab_name === "signatures") {
 		$(wrapper.page.body).find("#smd-signatures-section").show();
+	} else if (tab_name === "po_assignments") {
+		$(wrapper.page.body).find("#smd-po-assignments-section").show();
 	}
 }
 
@@ -623,6 +633,11 @@ function build_smd_html(wrapper) {
 				__("Pending Signatures") +
 				"</button>",
 			"</li>",
+			'<li class="nav-item show">',
+			'<button class="nav-link" data-tab="po_assignments" type="button" role="tab">' +
+				__("PO Assignments") +
+				"</button>",
+			"</li>",
 			"</ul>",
 			"</div>",
 
@@ -644,6 +659,11 @@ function build_smd_html(wrapper) {
 			'<div id="smd-signatures-section" class="smd-tab-content" style="display:none;">',
 			'<div class="smd-section-title">' + __("Pending Customer Signatures") + "</div>",
 			'<div id="smd-signature-list-wrapper"></div>',
+			"</div>",
+
+			'<div id="smd-po-assignments-section" class="smd-tab-content" style="display:none;">',
+			'<div class="smd-section-title">' + __("Customer PO Assignments") + "</div>",
+			'<div id="smd-po-assignments-list-wrapper"></div>',
 			"</div>",
 
 			"</div>",
@@ -690,11 +710,16 @@ function inject_smd_styles() {
 
 function get_smd_calendar_legend() {
 	var items = [
-		{ color: "#3498db", label: __("New / Programmed") },
-		{ color: "#f1c40f", label: __("Released / Start Repair") },
-		{ color: "#e67e22", label: __("Repairing / Partial") },
-		{ color: "#e74c3c", label: __("Staged / Signature") },
-		{ color: "#2ecc71", label: __("Completed / Invoiced") },
+		{ color: "#95a5a6", label: __("New") },
+		{ color: "#3498db", label: __("Programmed") },
+		{ color: "#e67e22", label: __("Repairing") },
+		{ color: "#f1c40f", label: __("Partial Repair") },
+		{ color: "#8e44ad", label: __("Staged (Signature)") },
+		{ color: "#27ae60", label: __("Completed") },
+		{ color: "#16a085", label: __("Billed") },
+		{ color: "#2980b9", label: __("Issued") },
+		{ color: "#2c3e50", label: __("Closed") },
+		{ color: "#c0392b", label: __("Cancelled") },
 	];
 
 	var html = '<div class="smd-calendar-legend">';
@@ -764,16 +789,16 @@ function format_calendar_events(events) {
 
 function get_status_color(status) {
 	var map = {
-		New: "#3498db",
+		New: "#95a5a6",
 		Programmed: "#3498db",
-		Released: "#f1c40f",
-		"Start Repair": "#f1c40f",
 		Repairing: "#e67e22",
-		"Partial Repair": "#e67e22",
-		Staged: "#e74c3c",
-		"Waiting for Signature": "#e74c3c",
-		Completed: "#2ecc71",
-		Invoiced: "#2ecc71",
+		"Partial Repair": "#f1c40f",
+		Staged: "#8e44ad",
+		Completed: "#27ae60",
+		Billed: "#16a085",
+		Issued: "#2980b9",
+		Closed: "#2c3e50",
+		Cancelled: "#c0392b",
 	};
 	return map[status] || "#95a5a6";
 }
@@ -911,7 +936,7 @@ function render_smd_signature_table(wrapper, rows) {
 		var link = $(this).data("link");
 		if (link) {
 			frappe.utils.copy_to_clipboard(link);
-			// Show success via tooltip or alert
+			frappe.show_alert({ message: __("Link copied to clipboard"), indicator: "blue" });
 		}
 	});
 
@@ -932,5 +957,96 @@ function render_smd_signature_table(wrapper, rows) {
 				}
 			},
 		});
+	});
+}
+
+// ---------------------------------------------------------------------------
+// PO Assignments table
+// ---------------------------------------------------------------------------
+function render_po_assignments_table(wrapper, rows) {
+	var $c = $(wrapper.page.body).find("#smd-po-assignments-list-wrapper");
+	if (!$c.length) return;
+
+	if (!rows.length) {
+		$c.html(
+			'<div class="frappe-list" style="margin-bottom: 30px">' +
+				'<div class="no-result text-muted flex justify-center align-center" style="min-height:160px">' +
+				'<div class="msg-box no-border">' +
+				"<p>" +
+				__("No customers found.") +
+				"</p>" +
+				"</div>" +
+				"</div>" +
+				"</div>",
+		);
+		return;
+	}
+
+	var header =
+		'<div class="list-row-container">' +
+		'<header class="level list-row-head text-muted">' +
+		'<div class="level-left list-header-subject">' +
+		smd_col(__("Customer"), "list-subject level name", true) +
+		smd_col(__("Customer Code"), "hidden-xs") +
+		smd_col(__("PO Assignment"), "hidden-xs") +
+		"</div>" +
+		'<div class="level-right">' +
+		'<span class="list-count">' +
+		rows.length +
+		" " +
+		__("customers") +
+		"</span>" +
+		"</div>" +
+		"</header>" +
+		"</div>";
+
+	var body = "";
+	rows.forEach(function (row) {
+		var active_po = row.active_po || '<span class="text-muted italic">' + __("No active assignment") + "</span>";
+
+		body +=
+			'<div class="list-row-container" tabindex="1">' +
+			'<div class="level list-row">' +
+			'<div class="level-left ellipsis">' +
+			'<div class="list-row-col ellipsis list-subject level name">' +
+			'<span class="level-item bold ellipsis">' +
+			frappe.utils.escape_html(row.customer_name) +
+			"</span>" +
+			"</div>" +
+			'<div class="list-row-col ellipsis hidden-xs text-muted">' +
+			frappe.utils.escape_html(row.customer_id) +
+			"</div>" +
+			'<div class="list-row-col ellipsis hidden-xs">' + active_po + "</div>" +
+			"</div>" +
+			'<div class="level-right">' +
+			'<div class="level-item list-row-activity">' +
+			'<button class="btn btn-xs btn-default smd-po-history-btn" ' +
+			'data-customer="' +
+			frappe.utils.escape_html(row.customer_id) +
+			'" ' +
+			'title="' +
+			__("View PO History") +
+			'">' +
+			'<i class="fa fa-history fa-fw"></i>' +
+			"</button>" +
+			"</div>" +
+			"</div>" +
+			"</div>" +
+			"</div>";
+	});
+
+	$c.html(
+		'<div class="frappe-list" style="margin-bottom: 30px">' +
+			'<div class="result no-assign-to">' +
+			header +
+			body +
+			"</div>" +
+			"</div>",
+	);
+
+	$c.off("click.smd_po").on("click.smd_po", ".smd-po-history-btn", function () {
+		var customer = $(this).data("customer");
+		frappe.route_options = { customer: customer };
+		frappe.set_route("List", "Customer PO Assignment");
 	});
 }

@@ -7,19 +7,98 @@ from southwest.utils.sequence import get_next_sequence
 class ServiceWorkOrder(Document):
 	def before_insert(self):
 		self.work_order_number = get_next_sequence(0, 6, "Service Work Order")
+		# Auto-assign the creating user as the responsible technician
+		if not self.responsible_user:
+			self.responsible_user = frappe.session.user
 
 	def validate(self):
 		self._validate_signature()
 		self._recalculate_total_repair_time()
 		self._calculate_service_cost()
 
+	def on_update(self):
+		self._handle_next_pm_automation()
+		self._check_and_submit_if_completed()
+
+	def _check_and_submit_if_completed(self):
+		"""Automatically submits the document when it reaches 'Completed' status (after signature)."""
+		if self.status == "Completed" and self.docstatus == 0:
+			self.submit()
+
 	def _validate_signature(self):
-		if self.status == "Completed" and not self.customer_signature:
-			frappe.throw(_("Customer Signature is required to complete the work order."))
+		if self.status == "Completed":
+			if not self.signature_skipped and not self.customer_signature:
+				frappe.throw(_("Customer Signature is required to complete the work order."))
 
 	def _recalculate_total_repair_time(self):
 		total = sum(row.duration_in_hours or 0 for row in (self.time_logs or []))
 		self.total_repair_time = round(total, 2)
+
+	def _handle_next_pm_automation(self):
+		"""
+		Automates the creation of the next Preventive Maintenance (PM) work order
+		based on the trigger configured in Service Manager Settings.
+
+		Rules:
+		- Applies ONLY to 'PM Frequency' service type.
+		- Triggered only once per document (next_pm_generated = 1).
+		- Calculates next_date by adding pm_frequency (from active assignment).
+		"""
+		if self.service_type != "PM Frequency" or self.next_pm_generated:
+			return
+
+		# ─── Load configuration ──────────────────────────────────────────────────
+		settings = frappe.get_single("Service Manager Settings")
+		trigger = settings.next_pm_generation_trigger or "On Start Repair"
+
+		# ─── Detection logic ─────────────────────────────────────────────────────
+		if not self.has_value_changed("status"):
+			return
+
+		# ─── Check triggers ──────────────────────────────────────────────────────
+		should_generate = False
+		if trigger == "On Start Repair" and self.status == "Repairing":
+			should_generate = True
+		elif trigger == "On Finish Repair" and self.status == "Staged":
+			should_generate = True
+
+		if not should_generate:
+			return
+
+		# ─── Resolve next date ───────────────────────────────────────────────────
+		if not self.equipment_selection or not self.equipment_selection[0].equipment:
+			return
+
+		equipment = self.equipment_selection[0].equipment
+		ref_date = self.scheduled_date or frappe.utils.today()
+
+		frequency = frappe.db.get_value(
+			"Service Equipment Assignment",
+			{
+				"equipment": equipment,
+				"customer": self.customer,
+				"status": "Active",
+				"valid_from": ["<=", ref_date],
+			},
+			"pm_frequency",
+			order_by="valid_from desc",
+		)
+
+		if not frequency:
+			# If no specific frequency found in assignment, fallback to 90 days
+			frequency = 90
+
+		next_date = frappe.utils.add_days(ref_date, frequency)
+
+		# ─── Create Next Order ───────────────────────────────────────────────────
+		create_programmed_order(self.name, next_date)
+
+		# Set flag on current doc using db_set to avoid re-triggering save logic
+		self.db_set("next_pm_generated", 1)
+		frappe.msgprint(
+			_("Next PM Work Order has been automatically generated for {0}.").format(next_date),
+			alert=True,
+		)
 
 	def _calculate_service_cost(self):
 		if not self.equipment_selection or not self.service_type:
@@ -181,7 +260,7 @@ def get_signature_page_data(token):
 	if not token:
 		frappe.throw(_("Invalid token."), frappe.AuthenticationError)
 
-	doc_name = frappe.db.get_value("Service Work Order", {"signature_token": token}, "name")
+	doc_name = frappe.db.get_value("Service Work Order", {"signature_token": token, "docstatus": ["<", 2]}, "name")
 	if not doc_name:
 		return {"expired": True}
 
@@ -255,18 +334,81 @@ def get_signature_page_data(token):
 		"repair_description": doc.repair_description or "",
 		"equipment_rows": equipment_rows,
 		"service_items": service_items,
+		"allow_skip_signature": frappe.db.get_single_value("Service Manager Settings", "allow_skip_signature") or 0,
 	}
 
 
+@frappe.whitelist()
+def update_swo_final_status(swo_name):
+	"""
+	Analyzes related Sales Invoice and Stock Entry records to determine the
+	administrative status of a submitted Service Work Order.
+	Statuses:
+	  - Billed: Invoice exists but Stock Entry is pending (if required).
+	  - Issued: Stock Entry exists but Invoice is pending.
+	  - Closed: Both completed, or Invoice completed and no stock required.
+	"""
+	doc = frappe.get_doc("Service Work Order", swo_name)
+	if doc.docstatus != 1:
+		return
+
+	# Check for Sales Invoice
+	has_invoice = frappe.db.exists(
+		"Sales Invoice",
+		{
+			"custom_source_doctype": "Service Work Order",
+			"custom_source_document": swo_name,
+			"docstatus": 1,
+		},
+	)
+
+	# Check if Stock Entry is required (based on exceptions)
+	exception_codes = _get_exception_item_codes(doc.customer, doc.service_type)
+	requires_stock = False
+	if exception_codes:
+		for item in doc.service_items or []:
+			if item.item_code in exception_codes:
+				requires_stock = True
+				break
+
+	# Check for Stock Entry
+	has_stock = frappe.db.exists(
+		"Stock Entry",
+		{
+			"custom_source_doctype": "Service Work Order",
+			"custom_source_document": swo_name,
+			"docstatus": 1,
+		},
+	)
+
+	new_status = doc.status
+	if has_invoice and (has_stock or not requires_stock):
+		new_status = "Closed"
+	elif has_invoice:
+		new_status = "Billed"
+	elif has_stock:
+		new_status = "Issued"
+
+	if new_status != doc.status:
+		doc.db_set("status", new_status)
+		frappe.msgprint(_("Work Order {0} status updated to {1}.").format(swo_name, new_status), alert=True)
+
+	return new_status
+
+
 @frappe.whitelist(allow_guest=True)
-def submit_signature(token, signature):
+def submit_signature(token, signature=None, skipped=0, paper_signature=None):
 	"""
 	Called from the public signature web page. Validates the token, saves the
-	customer signature, advances the status to Completed, and clears the token/link.
+	customer signature (or paper attachment), advances the status to Completed,
+	and clears the token/link.
 	No authentication required — the token acts as the credential.
 	"""
-	if not token or not signature:
-		frappe.throw(_("Token and signature are required."))
+	if not token:
+		frappe.throw(_("Token is required."))
+
+	if not skipped and not signature:
+		frappe.throw(_("Signature is required."))
 
 	doc_name = frappe.db.get_value("Service Work Order", {"signature_token": token}, "name")
 	if not doc_name:
@@ -276,7 +418,23 @@ def submit_signature(token, signature):
 	if doc.status != "Staged":
 		frappe.throw(_("This work order is no longer awaiting a signature."))
 
-	doc.customer_signature = signature
+	if skipped:
+		doc.signature_skipped = 1
+		# Save base64 as file
+		from frappe.utils.file_manager import save_file
+		import base64
+
+		file_name = f"paper_sig_{doc.name}.png"
+		if "," in paper_signature:
+			paper_signature = paper_signature.split(",")[1]
+
+		file_content = base64.b64decode(paper_signature)
+		saved_file = save_file(file_name, file_content, "Service Work Order", doc.name, is_private=0)
+		doc.paper_signature_attachment = saved_file.file_url
+	else:
+		doc.customer_signature = signature
+		doc.signature_skipped = 0
+
 	doc.signature_date = frappe.utils.now_datetime()
 	doc.status = "Completed"
 	doc.signature_token = ""
@@ -287,6 +445,75 @@ def submit_signature(token, signature):
 
 	frappe.db.commit()
 	return {"success": True, "doc_name": doc_name}
+
+
+@frappe.whitelist()
+def reset_signature(doc_name):
+	"""
+	Resets the signature status of a Service Work Order, allowing it to be signed again.
+	Clears signature, skipped flag, and attachment.
+	"""
+	doc = frappe.get_doc("Service Work Order", doc_name)
+	doc.customer_signature = None
+	doc.signature_date = None
+	doc.signature_skipped = 0
+	doc.paper_signature_attachment = None
+	doc.status = "Staged"
+	doc.save()
+	frappe.db.commit()
+	return True
+
+
+@frappe.whitelist()
+def desk_skip_signature(doc_name, paper_signature):
+	"""
+	Allows internal staff to skip a signature from the Desk by uploading a file.
+	"""
+	doc = frappe.get_doc("Service Work Order", doc_name)
+	if doc.status != "Staged":
+		frappe.throw(_("Work order must be in Staged status to skip signature."))
+
+	doc.signature_skipped = 1
+	doc.signature_date = frappe.utils.now_datetime()
+
+	# Handle base64 if provided, or assume it's already a file URL if passed from Desk
+	if paper_signature.startswith("data:"):
+		from frappe.utils.file_manager import save_file
+		import base64
+		file_name = f"paper_sig_desk_{doc.name}.png"
+		header, data = paper_signature.split(",")
+		file_content = base64.b64decode(data)
+		saved_file = save_file(file_name, file_content, "Service Work Order", doc.name, is_private=0)
+		doc.paper_signature_attachment = saved_file.file_url
+	else:
+		doc.paper_signature_attachment = paper_signature
+
+	doc.status = "Completed"
+	doc.signature_token = ""
+	doc.signature_link = ""
+	doc.save()
+
+	from southwest.service_management.doctype.service_work_order.service_work_order import _create_part_assignments
+	_create_part_assignments(doc)
+
+	frappe.db.commit()
+	return True
+
+
+@frappe.whitelist()
+def change_responsible_user(doc_name, new_user):
+	"""
+	Updates the responsible_user field on a Service Work Order.
+	Called from the Desk 'Change Responsible' action dialog.
+	"""
+	if not doc_name or not new_user:
+		frappe.throw(_("Document name and new user are required."))
+
+	if not frappe.db.exists("User", {"name": new_user, "enabled": 1}):
+		frappe.throw(_("User {0} does not exist or is disabled.").format(new_user))
+
+	frappe.db.set_value("Service Work Order", doc_name, "responsible_user", new_user)
+	frappe.db.commit()
 
 
 @frappe.whitelist()
@@ -316,6 +543,8 @@ def complete_work_order(doc_name, signature):
 
 	frappe.db.commit()
 	return doc.name
+
+
 
 
 def _create_part_assignments(doc):

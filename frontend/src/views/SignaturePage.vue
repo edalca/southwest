@@ -145,15 +145,53 @@
           </div>
 
           <div class="doc-sig-actions">
-            <button class="doc-btn-clear" @click="clearCanvas">{{ __('Clear') }}</button>
+            <ion-button
+              fill="clear"
+              size="small"
+              color="danger"
+              @click="clearCanvas"
+            >
+              {{ __('Clear') }}
+            </ion-button>
+          </div>
+
+          <div v-if="data.allow_skip_signature == 1" class="doc-skip-section">
+            <div class="doc-separator">
+              <span>{{ __('OR') }}</span>
+            </div>
+            
+            <ion-button
+              v-if="!paperSignatureBase64"
+              fill="outline"
+              class="doc-btn-skip"
+              @click="triggerFilePick"
+              style="--border-radius: 4px; --color: #3498db; --border-color: #3498db;"
+            >
+              <FeatherIcon name="camera" class="h-4 w-4 mr-2" />
+              {{ __('Skip & Attach Paper Report') }}
+            </ion-button>
+            <div v-else class="doc-attachment-preview">
+              <img :src="paperSignatureBase64" class="doc-attachment-img" />
+              <div class="doc-attachment-info">
+                <p class="doc-attachment-title">{{ __('Paper Report Attached') }}</p>
+                <button @click="paperSignatureBase64 = ''" class="doc-btn-remove-attachment">{{ __('Remove & Sign Digitally') }}</button>
+              </div>
+            </div>
+            <input type="file" ref="fileInputRef" class="hidden" accept="image/*" capture="environment" @change="onFilePicked" />
           </div>
 
           <p v-if="submitError" class="doc-error">{{ submitError }}</p>
 
-          <button class="doc-btn-submit" :disabled="submitting" @click="onSubmit">
-            <span v-if="submitting">{{ __('Submitting...') }}</span>
-            <span v-else>{{ __('Submit Signature') }}</span>
-          </button>
+          <ion-button
+            expand="block"
+            color="dark"
+            style="--border-radius: 4px; margin-top: 16px; height: 48px; font-weight: 600;"
+            :disabled="submitting"
+            @click="onSubmit"
+          >
+            <ion-spinner v-if="submitting" name="crescent" />
+            <span v-else>{{ paperSignatureBase64 ? __('Upload & Complete') : __('Submit Signature') }}</span>
+          </ion-button>
 
           <hr class="doc-rule-light" />
           <p class="doc-footer">{{ data.company_name }} · {{ data.company_phone }} · {{ data.company_email }}</p>
@@ -168,7 +206,7 @@
 <script setup lang="ts">
 import { ref, onMounted, nextTick, inject } from 'vue'
 import { useRoute } from 'vue-router'
-import { IonPage, IonContent } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonSpinner } from '@ionic/vue'
 import { FeatherIcon, LoadingIndicator } from 'frappe-ui'
 import { getSignaturePageData, getGuestCsrfToken, submitSignature, type SignaturePageData } from '@/services/api'
 import { formatDate } from '@/utils/date'
@@ -182,7 +220,24 @@ const state       = ref<PageState>('loading')
 const data        = ref<SignaturePageData | null>(null)
 const submitError = ref('')
 const submitting  = ref(false)
+const paperSignatureBase64 = ref('')
+const fileInputRef = ref<HTMLInputElement | null>(null)
 let   csrfToken   = ''
+
+function triggerFilePick() {
+  fileInputRef.value?.click()
+}
+
+function onFilePicked(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = (ev) => {
+    paperSignatureBase64.value = ev.target?.result as string
+    clearCanvas() // Clear digital signature if skip is chosen
+  }
+  reader.readAsDataURL(file)
+}
 
 // ── Canvas ────────────────────────────────────────────────────────────────
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -257,10 +312,21 @@ onMounted(async () => {
 // ── Submit ────────────────────────────────────────────────────────────────
 async function onSubmit() {
   submitError.value = ''
-  if (isCanvasBlank()) { submitError.value = __('Please sign before submitting.'); return }
+  
+  const isSkipped = !!paperSignatureBase64.value
+  
+  if (!isSkipped && isCanvasBlank()) { 
+    submitError.value = __('Please sign or attach a report before submitting.')
+    return 
+  }
+  
   submitting.value = true
   try {
-    await submitSignature(token, canvasRef.value!.toDataURL('image/png'), csrfToken)
+    if (isSkipped) {
+      await submitSignature(token, null, csrfToken, 1, paperSignatureBase64.value)
+    } else {
+      await submitSignature(token, canvasRef.value!.toDataURL('image/png'), csrfToken)
+    }
     state.value = 'done'
   } catch (err: unknown) {
     const e = err as { _error_message?: string; message?: string }
@@ -336,6 +402,20 @@ async function onSubmit() {
 .doc-btn-submit:not(:disabled):hover { background: #333; }
 
 .doc-footer { font-size: 10px; color: #999; text-align: center; margin: 0; font-family: sans-serif; }
+
+.doc-skip-section { margin-top: 16px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.doc-separator { width: 100%; position: relative; display: flex; align-items: center; justify-content: center; margin: 8px 0; }
+.doc-separator::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #eee; z-index: 1; }
+.doc-separator span { background: #fff; padding: 0 12px; font-size: 10px; color: #aaa; font-family: sans-serif; font-weight: 700; position: relative; z-index: 2; }
+
+.doc-btn-skip { background: none; border: 1px solid #3498db; border-radius: 4px; padding: 8px 16px; font-size: 12px; color: #3498db; font-weight: 600; cursor: pointer; font-family: sans-serif; display: flex; align-items: center; gap: 6px; }
+.doc-btn-skip:hover { background: #f0f7fd; }
+
+.doc-attachment-preview { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; background: #f0f7fd; border: 1px dashed #3498db; border-radius: 6px; }
+.doc-attachment-img { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+.doc-attachment-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.doc-attachment-title { font-size: 11px; font-weight: 700; color: #2980b9; margin: 0; font-family: sans-serif; }
+.doc-btn-remove-attachment { background: none; border: none; padding: 0; font-size: 10px; color: #e74c3c; font-weight: 600; cursor: pointer; text-decoration: underline; text-align: left; }
 
 @media (max-width: 480px) {
   .doc-wrapper { padding: 12px 0 40px; }

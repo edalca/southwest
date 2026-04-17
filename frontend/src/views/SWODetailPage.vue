@@ -5,32 +5,33 @@
     <ion-header class="ion-no-border">
       <div class="flex items-center justify-between px-2 py-3 bg-white border-b border-slate-100">
         <div class="flex items-center gap-1">
-          <button
+          <ion-button
+            fill="clear"
             @click="router.back()"
-            class="flex items-center justify-center w-9 h-9 rounded-xl text-slate-600 active:bg-slate-100 transition-colors"
+            class="header-btn"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="2.5"
                  stroke-linecap="round" stroke-linejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
-          </button>
+          </ion-button>
           <h2 class="text-base font-semibold text-gray-900">
             {{ swo ? (swo.work_order_number || swo.name) : '...' }}
           </h2>
         </div>
-        <button
+        <ion-button
+          fill="clear"
           @click="loadSWO"
-          :title="__('Refresh')"
-          class="flex items-center justify-center w-9 h-9 rounded-xl text-slate-500 active:bg-slate-100 transition-colors"
+          class="header-btn"
         >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                stroke="currentColor" stroke-width="2"
                stroke-linecap="round" stroke-linejoin="round">
             <polyline points="23 4 23 10 17 10"/>
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
           </svg>
-        </button>
+        </ion-button>
       </div>
     </ion-header>
 
@@ -38,7 +39,7 @@
 
       <!-- Loading -->
       <div v-if="loading" class="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-slate-400">
-        <span class="w-8 h-8 border-2 border-slate-200 border-t-blue-950 rounded-full animate-spin block" />
+        <ion-spinner name="crescent" />
       </div>
 
       <!-- Load error -->
@@ -53,12 +54,13 @@
           <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         <p class="text-sm">{{ loadError }}</p>
-        <button
+        <ion-button
+          fill="outline"
+          color="medium"
           @click="loadSWO"
-          class="px-4 h-9 rounded-xl border border-slate-200 bg-white text-sm font-medium text-gray-700 active:bg-slate-50"
         >
           {{ __('Retry') }}
-        </button>
+        </ion-button>
       </div>
 
       <div v-else class="space-y-4 p-4 pb-10">
@@ -106,17 +108,22 @@
           <div class="rounded-xl bg-white shadow-sm overflow-hidden">
             <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
               <p class="text-sm font-semibold text-slate-700">{{ __('Parts / Items') }}</p>
-              <button
+              <ion-button
                 v-if="isEditable"
+                size="small"
+                fill="clear"
+                class="text-xs font-semibold"
+                style="--color: #172554; margin:0;"
                 @click="showAddItemPanel = !showAddItemPanel"
-                class="flex items-center gap-1 text-xs font-semibold text-blue-950 py-1 px-2.5 rounded-md hover:bg-blue-50 active:bg-blue-100 transition-colors"
               >
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                {{ __('Add') }}
-              </button>
+                <div class="flex items-center gap-1">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  {{ __('Add') }}
+                </div>
+              </ion-button>
             </div>
             <div class="px-4 py-3 space-y-0">
               <p v-if="localItems.length === 0" class="text-center text-sm text-slate-400 py-2">
@@ -137,18 +144,21 @@
                     <span v-if="item.vendor"> · {{ item.vendor }}</span>
                   </p>
                 </div>
-                <button
+                <ion-button
                   v-if="isEditable"
+                  fill="clear"
+                  color="danger"
+                  size="small"
+                  class="remove-btn"
                   @click="removeItem(idx)"
-                  class="flex-shrink-0 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="3 6 5 6 21 6"/>
                     <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
                     <path d="M10 11v6"/><path d="M14 11v6"/>
                     <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
                   </svg>
-                </button>
+                </ion-button>
               </div>
             </div>
 
@@ -159,28 +169,23 @@
               <!-- Non-inventory toggle -->
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">{{ __('Non-inventory part') }}</span>
-                <button
-                  type="button"
-                  @click="newItem.is_non_inventory = !newItem.is_non_inventory; newItem.item_code = ''; itemSearchResults = []"
-                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200"
-                  :class="newItem.is_non_inventory ? 'bg-blue-950' : 'bg-slate-200'"
-                >
-                  <span
-                    class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200"
-                    :class="newItem.is_non_inventory ? 'translate-x-6' : 'translate-x-1'"
-                  />
-                </button>
+                <ion-toggle
+                  mode="md"
+                  :checked="newItem.is_non_inventory"
+                  @ionChange="newItem.is_non_inventory = $event.detail.checked; newItem.item_code = ''; itemSearchResults = []"
+                />
               </div>
 
               <!-- Inventory item search -->
               <div v-if="!newItem.is_non_inventory" class="relative">
-                <label class="block mb-1.5 text-sm text-slate-600">{{ __('Item Code') }} *</label>
-                <input
-                  type="text"
+                <ion-input
+                  fill="outline"
+                  :label="__('Item Code') + ' *'"
+                  label-placement="stacked"
                   v-model="newItem.item_code"
                   :placeholder="__('Type to search...')"
                   @input="onItemSearch"
-                  class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300"
+                  class="custom-ion-input"
                 />
                 <div
                   v-if="itemSearchResults.length"
@@ -201,44 +206,68 @@
 
               <!-- Non-inventory: part number -->
               <div v-if="newItem.is_non_inventory">
-                <label class="block mb-1.5 text-sm text-slate-600">{{ __('Part Number') }}</label>
-                <input
-                  type="text"
+                <ion-input
+                  fill="outline"
+                  :label="__('Part Number')"
+                  label-placement="stacked"
                   v-model="newItem.part_number"
                   placeholder="e.g. ABC-001"
-                  class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300"
+                  class="custom-ion-input"
                 />
               </div>
 
               <div>
-                <label class="block mb-1.5 text-sm text-slate-600">{{ __('Description') }}</label>
-                <input type="text" v-model="newItem.description" :placeholder="__('Part description')"
-                  class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300" />
+                <ion-input
+                  fill="outline"
+                  :label="__('Description')"
+                  label-placement="stacked"
+                  v-model="newItem.description"
+                  :placeholder="__('Part description')"
+                  class="custom-ion-input"
+                />
               </div>
 
               <div>
-                <label class="block mb-1.5 text-sm text-slate-600">{{ __('Qty') }} *</label>
-                <input type="number" v-model="newItem.qty" placeholder="1" step="0.01" min="0.01"
-                  class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300" />
+                <ion-input
+                  fill="outline"
+                  type="number"
+                  :label="__('Qty') + ' *'"
+                  label-placement="stacked"
+                  v-model="newItem.qty"
+                  placeholder="1"
+                  class="custom-ion-input"
+                />
               </div>
 
               <div>
-                <label class="block mb-1.5 text-sm text-slate-600">{{ __('Vendor') }}</label>
-                <input type="text" v-model="newItem.vendor" :placeholder="__('Optional')"
-                  class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300" />
+                <ion-input
+                  fill="outline"
+                  :label="__('Vendor')"
+                  label-placement="stacked"
+                  v-model="newItem.vendor"
+                  :placeholder="__('Optional')"
+                  class="custom-ion-input"
+                />
               </div>
 
               <p v-if="itemPanelError" class="text-sm text-red-500">{{ itemPanelError }}</p>
 
               <div class="flex gap-2 pt-1">
-                <button type="button" @click="closeAddItemPanel"
-                  class="flex-1 rounded-lg border border-slate-200 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                <ion-button
+                  fill="outline"
+                  color="medium"
+                  class="flex-1"
+                  @click="closeAddItemPanel"
+                >
                   {{ __('Cancel') }}
-                </button>
-                <button type="button" @click="confirmAddItem"
-                  class="flex-1 rounded-lg bg-blue-950 py-2.5 text-sm font-semibold text-white hover:bg-blue-900 transition-colors">
+                </ion-button>
+                <ion-button
+                  color="dark"
+                  class="flex-1"
+                  @click="confirmAddItem"
+                >
                   {{ __('Add Item') }}
-                </button>
+                </ion-button>
               </div>
             </div>
           </div>
@@ -247,23 +276,29 @@
           <div class="rounded-xl bg-white p-4 shadow-sm space-y-4">
             <p class="text-sm font-semibold text-slate-700">{{ __('Documentation') }}</p>
             <div>
-              <label class="block mb-1.5 text-xs font-medium text-slate-500">{{ __('Problem With Equipment') }}</label>
-              <textarea
+              <ion-textarea
+                fill="outline"
+                :label="__('Problem With Equipment')"
+                label-placement="stacked"
                 v-model="localDocs.problem_with_lift"
                 :placeholder="isEditable ? __('Describe the reported problem...') : '—'"
                 :readonly="!isEditable"
-                rows="3"
-                class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300 resize-none read-only:opacity-60 read-only:cursor-default"
+                auto-grow
+                :rows="3"
+                class="custom-ion-input"
               />
             </div>
             <div>
-              <label class="block mb-1.5 text-xs font-medium text-slate-500">{{ __('Repair Description') }}</label>
-              <textarea
+              <ion-textarea
+                fill="outline"
+                :label="__('Repair Description')"
+                label-placement="stacked"
                 v-model="localDocs.repair_description"
                 :placeholder="isEditable ? __('Describe the work performed...') : '—'"
                 :readonly="!isEditable"
-                rows="3"
-                class="w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300 resize-none read-only:opacity-60 read-only:cursor-default"
+                auto-grow
+                :rows="3"
+                class="custom-ion-input"
               />
             </div>
           </div>
@@ -274,27 +309,36 @@
         <div v-if="showHoursPanel" class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
           <p class="text-sm font-semibold text-amber-800">{{ __('Enter hours worked to finish the repair') }}</p>
           <div>
-            <label class="block mb-1.5 text-sm text-slate-600">{{ __('Hours Worked') }} *</label>
-            <input
-              v-model="hoursInput"
+            <ion-input
+              fill="outline"
               type="number"
               step="0.1"
-              min="0.1"
+              :label="__('Hours Worked') + ' *'"
+              label-placement="stacked"
+              v-model="hoursInput"
               placeholder="e.g. 2.5"
-              class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-amber-200 rounded-md px-3 py-2 focus:outline-none focus:border-amber-400 shadow-sm transition duration-300"
+              class="custom-ion-input"
             />
-            <p v-if="hoursError" class="mt-1 text-xs text-red-500">{{ hoursError }}</p>
+            <p v-if="hoursError" class="mt-1 text-xs text-red-500 font-medium px-1">{{ hoursError }}</p>
           </div>
           <div class="flex gap-2">
-            <button type="button" @click="showHoursPanel = false; hoursInput = ''; hoursError = ''"
-              class="flex-1 rounded-lg border border-slate-200 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+            <ion-button
+              fill="outline"
+              color="medium"
+              class="flex-1"
+              @click="showHoursPanel = false; hoursInput = ''; hoursError = ''"
+            >
               {{ __('Cancel') }}
-            </button>
-            <button type="button" @click="confirmFinishRepair" :disabled="acting"
-              class="flex-1 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50 transition-colors">
-              <span v-if="acting" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            </ion-button>
+            <ion-button
+              color="success"
+              class="flex-1"
+              :disabled="acting"
+              @click="confirmFinishRepair"
+            >
+              <ion-spinner v-if="acting" name="crescent" />
               <span v-else>{{ __('Confirm') }}</span>
-            </button>
+            </ion-button>
           </div>
         </div>
 
@@ -303,25 +347,17 @@
 
         <!-- Status action buttons (New / Programmed / Released — outside footer) -->
         <div v-if="!isEditable && !isLocked" class="space-y-3">
-          <button
+          <ion-button
             v-if="['New', 'Programmed'].includes(swo.status)"
-            @click="act('Released')"
+            expand="block"
+            color="warning"
+            class="action-btn"
             :disabled="acting"
-            class="w-full rounded-lg bg-blue-950 py-3.5 text-sm font-semibold text-white shadow-md hover:bg-blue-900 active:bg-blue-800 disabled:opacity-50 transition-all"
-          >
-            <span v-if="acting" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            <span v-else>{{ __('Release') }}</span>
-          </button>
-
-          <button
-            v-else-if="swo.status === 'Released'"
             @click="act('Repairing')"
-            :disabled="acting"
-            class="w-full rounded-lg bg-amber-500 py-3.5 text-sm font-semibold text-white shadow-md hover:bg-amber-600 active:bg-amber-700 disabled:opacity-50 transition-all"
           >
-            <span v-if="acting" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            <ion-spinner v-if="acting" name="crescent" />
             <span v-else>{{ __('Start Repair') }}</span>
-          </button>
+          </ion-button>
         </div>
 
         <!-- Locked notice -->
@@ -341,7 +377,7 @@
 
     <!-- Footer: editable and Staged actions -->
     <ion-footer
-      class="ion-no-border bg-white"
+      class="ion-no-border"
       v-if="swo && (isEditable || swo.status === 'Staged')"
     >
       <div class="px-4 py-3 border-t border-slate-100 bg-white">
@@ -349,123 +385,173 @@
         <!-- Editable footer (Repairing / Partial Repair) -->
         <div v-if="isEditable && !showHoursPanel" class="space-y-2">
           <!-- Save (primary, Navy Blue) -->
-          <button
-            @click="saveChanges"
+          <ion-button
+            expand="block"
+            color="dark"
+            class="action-btn"
             :disabled="saving || acting"
-            class="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-950 py-3 text-sm font-semibold text-white shadow-md hover:bg-blue-900 active:bg-blue-800 disabled:opacity-50 transition-all"
+            @click="saveChanges"
           >
-            <span v-if="saving" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            <ion-spinner v-if="saving" name="crescent" />
             <template v-else>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
-              </svg>
-              {{ __('Save') }}
+              <div class="flex items-center gap-2">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                {{ __('Save') }}
+              </div>
             </template>
-          </button>
+          </ion-button>
 
           <!-- Second row: Pause/Resume + Finish -->
           <div class="grid grid-cols-2 gap-2">
             <!-- Pause Repair (Amber) -->
-            <button
+            <ion-button
               v-if="swo.status === 'Repairing'"
-              @click="act('Partial Repair')"
+              color="warning"
+              class="flex-1 action-btn-small"
               :disabled="saving || acting"
-              class="flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 py-2.5 text-sm font-semibold text-white hover:bg-amber-600 active:bg-amber-700 disabled:opacity-50 transition-all"
+              @click="act('Partial Repair')"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="10" y1="15" x2="10" y2="9"/>
-                <line x1="14" y1="15" x2="14" y2="9"/>
-              </svg>
-              {{ __('Pause') }}
-            </button>
+              <div class="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="10" y1="15" x2="10" y2="9"/>
+                  <line x1="14" y1="15" x2="14" y2="9"/>
+                </svg>
+                {{ __('Pause') }}
+              </div>
+            </ion-button>
 
             <!-- Resume -->
-            <button
+            <ion-button
               v-else-if="swo.status === 'Partial Repair'"
-              @click="act('Repairing')"
+              fill="outline"
+              color="dark"
+              class="flex-1 action-btn-small"
               :disabled="saving || acting"
-              class="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 active:bg-slate-100 disabled:opacity-50 transition-all"
+              @click="act('Repairing')"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"/>
-                <polygon points="10 8 16 12 10 16 10 8"/>
-              </svg>
-              {{ __('Resume') }}
-            </button>
+              <div class="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polygon points="10 8 16 12 10 16 10 8"/>
+                </svg>
+                {{ __('Resume') }}
+              </div>
+            </ion-button>
 
             <!-- Finish Repair (Emerald) -->
-            <button
-              @click="onFinishRepair"
+            <ion-button
+              color="success"
+              class="flex-1 action-btn-small"
               :disabled="saving || acting"
-              class="flex items-center justify-center gap-1.5 rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 transition-all"
+              @click="onFinishRepair"
             >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              {{ __('Finish') }}
-            </button>
+              <div class="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+                {{ __('Finish') }}
+              </div>
+            </ion-button>
           </div>
         </div>
 
         <!-- Staged footer: signature actions -->
         <div v-else-if="swo.status === 'Staged'" class="space-y-2">
           <template v-if="!swo.signature_link">
-            <button
-              @click="onGenerateLink"
-              :disabled="acting"
-              class="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-950 py-3 text-sm font-semibold text-white hover:bg-blue-900 disabled:opacity-50 transition-all shadow-md"
-            >
-              <span v-if="acting" class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-              <template v-else>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                </svg>
-                {{ __('Generate Signature Link') }}
-              </template>
-            </button>
+          <ion-button
+            expand="block"
+            color="dark"
+            class="action-btn"
+            :disabled="acting"
+            @click="onGenerateLink"
+          >
+            <ion-spinner v-if="acting" name="crescent" />
+            <div v-else class="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+              </svg>
+              <span>{{__("Generate Signature Link")}}</span>
+            </div>
+          </ion-button>
+          <ion-button
+            expand="block"
+            fill="outline"
+            color="danger"
+            class="action-btn"
+            :disabled="acting"
+            @click="onSkipSignature"
+          >
+            <div class="flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+              {{__("Skip Signature & Attach")}}
+            </div>
+          </ion-button>
           </template>
 
           <template v-else>
-            <button
-              @click="openSignatureLink"
-              class="w-full flex items-center justify-center gap-2 rounded-lg bg-blue-950 py-3 text-sm font-semibold text-white hover:bg-blue-900 transition-all shadow-md"
-            >
+          <ion-button
+            expand="block"
+            color="dark"
+            class="action-btn"
+            @click="openSignatureLink"
+          >
+            <div class="flex items-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                 <polyline points="15 3 21 3 21 9"/>
                 <line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
               {{ __('Open Signature Link') }}
-            </button>
+            </div>
+          </ion-button>
             <div class="grid grid-cols-2 gap-2">
-              <button
-                @click="copySignatureLink"
-                class="flex items-center justify-center gap-1.5 rounded-lg border border-slate-200 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ion-button
+              fill="outline"
+              color="danger"
+              class="flex-1 action-btn-small"
+              :disabled="acting"
+              @click="onSkipSignature"
+            >
+              {{ __('Skip & Attach') }}
+            </ion-button>
+            <ion-button
+              fill="outline"
+              color="dark"
+              class="flex-1 action-btn-small"
+              @click="copySignatureLink"
+            >
+              <div class="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
                   <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                 </svg>
                 {{ __('Copy Link') }}
-              </button>
-              <button
-                @click="onGenerateLink"
-                :disabled="acting"
-                class="flex items-center justify-center gap-1.5 rounded-lg border border-red-200 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
-              >
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 4 23 10 17 10"/>
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                </svg>
-                {{ __('Regenerate') }}
-              </button>
+              </div>
+            </ion-button>
             </div>
+          <ion-button
+            expand="block"
+            fill="clear"
+            color="dark"
+            size="small"
+            class="action-btn text-[11px]"
+            :disabled="acting"
+            @click="onGenerateLink"
+          >
+            {{ __('Regenerate Link') }}
+          </ion-button>
           </template>
+          <input type="file" ref="skipFileInput" class="hidden" accept="image/*" capture="environment" @change="onPaperFilePicked" />
         </div>
 
       </div>
@@ -477,11 +563,17 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { IonPage, IonHeader, IonContent, IonFooter } from '@ionic/vue'
+import {
+  IonPage, IonHeader, IonContent, IonFooter,
+  IonButton, IonInput, IonTextarea, IonToggle, IonSpinner
+} from '@ionic/vue'
 import {
   getSWO, updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
+  skipSignatureMobile,
+  checkResponsibleUser,
   type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
 } from '@/services/api'
+import { session } from '@/data/session'
 import { formatDate } from '@/utils/date'
 
 const route   = useRoute()
@@ -514,10 +606,10 @@ let _searchTimer: ReturnType<typeof setTimeout> | null = null
 
 // ── Computed ───────────────────────────────────────────────────────────────────
 const EDITABLE_STATUSES     = ['Repairing', 'Partial Repair']
-const WORK_SECTION_STATUSES = [...EDITABLE_STATUSES, 'Staged', 'Completed', 'Invoiced']
+const WORK_SECTION_STATUSES = [...EDITABLE_STATUSES, 'Staged', 'Completed', 'Billed', 'Issued', 'Closed']
 
 const isEditable       = computed(() => EDITABLE_STATUSES.includes(swo.value?.status ?? ''))
-const isLocked         = computed(() => ['Staged', 'Completed', 'Invoiced', 'Cancelled'].includes(swo.value?.status ?? ''))
+const isLocked         = computed(() => ['Staged', 'Completed', 'Billed', 'Issued', 'Closed', 'Cancelled'].includes(swo.value?.status ?? ''))
 const showWorkSections = computed(() => WORK_SECTION_STATUSES.includes(swo.value?.status ?? ''))
 
 const infoRows = computed(() => {
@@ -550,7 +642,12 @@ async function loadSWO() {
   loadError.value = ''
   try {
     swo.value = await getSWO(docName)
-  } catch {
+    console.log('SWO Loaded:', swo.value)
+    // Diagnostic alert for the user
+    if (swo.value.status === 'Staged') {
+      console.log('Rendering Signature Buttons. Acting state:', acting.value)
+    }
+  } catch (err) {
     loadError.value = __('Could not load work order. Please try again.')
   } finally {
     loading.value = false
@@ -562,6 +659,12 @@ async function saveChanges() {
   actionError.value = ''
   saving.value      = true
   try {
+    // Security: verify the current user is still the responsible technician
+    const isStillResponsible = await checkResponsibleUser(docName, session.user ?? '')
+    if (!isStillResponsible) {
+      actionError.value = __('This order has been reassigned. Please reload your list before acting.')
+      return
+    }
     await updateSWO(docName, {
       service_items:      localItems.value,
       problem_with_lift:  localDocs.value.problem_with_lift,
@@ -580,6 +683,12 @@ async function act(newStatus: string) {
   actionError.value = ''
   acting.value      = true
   try {
+    // Security: verify the current user is still the responsible technician
+    const isStillResponsible = await checkResponsibleUser(docName, session.user ?? '')
+    if (!isStillResponsible) {
+      actionError.value = __('This order has been reassigned. Please reload your list before acting.')
+      return
+    }
     await updateSWOStatus(docName, newStatus)
     await loadSWO()
   } catch (err) {
@@ -651,6 +760,41 @@ async function confirmFinishRepair() {
 }
 
 // ── Signature link ─────────────────────────────────────────────────────────────
+// ─── Signature Flow ──────────────────────────────────────────────────────────
+
+const skipFileInput = ref<HTMLInputElement | null>(null)
+
+function onSkipSignature() {
+  skipFileInput.value?.click()
+}
+
+function onPaperFilePicked(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.onload = async (ev) => {
+    const base64 = ev.target?.result as string
+    
+    // Confirm skip
+    if (!confirm(__('Are you sure you want to skip the digital signature and attach this paper report?'))) {
+      if (skipFileInput.value) skipFileInput.value.value = ''
+      return
+    }
+
+    acting.value = true
+    try {
+      await skipSignatureMobile(swo.value!.name, base64)
+      await loadSWO()
+    } catch (err: any) {
+      alert(err.message || __('Failed to skip signature'))
+    } finally {
+      acting.value = false
+    }
+  }
+  reader.readAsDataURL(file)
+}
+
 async function onGenerateLink() {
   actionError.value = ''
   acting.value      = true
@@ -751,14 +895,53 @@ function statusClass(s: string): string {
   const map: Record<string, string> = {
     New:             'bg-slate-100 text-slate-600',
     Programmed:      'bg-blue-100 text-blue-800',
-    Released:        'bg-blue-100 text-blue-800',
     Repairing:       'bg-amber-100 text-amber-800',
     'Partial Repair':'bg-amber-100 text-amber-800',
     Staged:          'bg-blue-100 text-blue-800',
     Completed:       'bg-emerald-100 text-emerald-800',
-    Invoiced:        'bg-slate-100 text-slate-500',
+    Billed:          'bg-emerald-100 text-emerald-800',
+    Issued:          'bg-emerald-100 text-emerald-800',
+    Closed:          'bg-emerald-100 text-emerald-800',
     Cancelled:       'bg-red-100 text-red-600',
   }
   return map[s] ?? 'bg-slate-100 text-slate-600'
 }
 </script>
+
+<style scoped>
+.header-btn {
+  --color: #334155;
+  --background: transparent;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+}
+
+.custom-ion-input {
+  --background: #ffffff;
+  --border-color: #e2e8f0;
+  --border-radius: 8px;
+  --padding-start: 12px;
+  margin-bottom: 4px;
+}
+
+.remove-btn {
+  margin: 0;
+  --padding-start: 4px;
+  --padding-end: 4px;
+}
+
+.action-btn {
+  --border-radius: 10px;
+  --height: 48px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.action-btn-small {
+  --border-radius: 10px;
+  --height: 44px;
+  margin: 0;
+  font-weight: 600;
+}
+</style>

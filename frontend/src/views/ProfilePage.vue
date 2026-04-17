@@ -35,25 +35,28 @@
         </div>
 
         <!-- Logout -->
-        <button
-          class="w-full h-13 flex items-center justify-center gap-2 rounded-2xl font-semibold text-sm transition-colors active:opacity-80"
-          style="background: #fff1f2; color: #e11d48; height: 52px;"
+        <ion-button
+          expand="block"
+          fill="solid"
+          color="danger"
+          class="logout-btn"
           :disabled="loggingOut"
           @click="logout"
         >
-          <span v-if="loggingOut" class="w-4 h-4 border-2 border-red-300 border-t-transparent rounded-full animate-spin inline-block" />
+          <ion-spinner v-if="loggingOut" name="crescent" />
           <template v-else>
-            <!-- Feather: log-out -->
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
-            </svg>
-            {{ __('Sign Out') }}
+            <div class="flex items-center gap-2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5"
+                   stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              {{ __('Sign Out') }}
+            </div>
           </template>
-        </button>
+        </ion-button>
 
       </div>
     </ion-content>
@@ -62,7 +65,11 @@
 
 <script setup lang="ts">
 import { ref, computed, inject } from 'vue'
-import { IonPage, IonHeader, IonContent } from '@ionic/vue'
+import { IonPage, IonHeader, IonContent,
+  IonRefresher, IonRefresherContent,
+  IonButton, IonSpinner, IonList, IonItem,
+  onIonViewWillEnter,
+} from '@ionic/vue'
 import { session } from '@/data/session'
 
 const __ = inject<(t: string) => string>('$translate', (t) => t)
@@ -91,3 +98,14 @@ async function logout() {
   // session.logout() does a full page redirect — no further code runs
 }
 </script>
+
+<style scoped>
+.logout-btn {
+  --background: #fff1f2;
+  --color: #e11d48;
+  --border-radius: 16px;
+  --height: 52px;
+  margin: 0;
+  font-weight: 600;
+}
+</style>

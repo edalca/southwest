@@ -11,11 +11,10 @@ def before_insert(doc, method=None):
 
 
 def on_submit(doc, method=None):
-    """
-    When a Sales Invoice linked to a Service Work Order is submitted,
-    updates the work order status to Invoiced.
-    """
-    if doc.custom_source_doctype == "Service Work Order" and doc.custom_source_document:
-        frappe.db.set_value(
-            "Service Work Order", doc.custom_source_document, "status", "Invoiced"
-        )
+	"""
+	When a Sales Invoice linked to a Service Work Order is submitted,
+	triggers the final status update logic for the work order.
+	"""
+	if doc.custom_source_doctype == "Service Work Order" and doc.custom_source_document:
+		from southwest.service_management.doctype.service_work_order.service_work_order import update_swo_final_status
+		update_swo_final_status(doc.custom_source_document)
