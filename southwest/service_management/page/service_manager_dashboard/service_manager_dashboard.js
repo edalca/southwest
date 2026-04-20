@@ -431,13 +431,14 @@ function render_invoice_table(wrapper, rows) {
 		smd_col(__("Work Order ID"), "list-subject level name", true) +
 		smd_col(__("Customer"), "hidden-xs") +
 		smd_col(__("Scheduled Date"), "hidden-xs") +
+		smd_col(__("Status"), "hidden-xs") +
 		smd_col(__("PO Number"), "hidden-xs smd-col-right") +
 		"</div>" +
 		'<div class="level-right">' +
 		'<span class="list-count">' +
 		rows.length +
 		" " +
-		__("ready") +
+		__("orders") +
 		"</span>" +
 		"</div>" +
 		"</header>" +
@@ -449,9 +450,50 @@ function render_invoice_table(wrapper, rows) {
 		var cust = frappe.utils.escape_html(row.customer_name || row.customer || "—");
 		var date = row.scheduled_date ? frappe.datetime.str_to_user(row.scheduled_date) : "—";
 		var po = frappe.utils.escape_html(row.po_number || "—");
+		var status = frappe.utils.escape_html(row.status || "—");
 		var display_name = row.work_order_number
 			? row.name + " (" + row.work_order_number + ")"
 			: row.name;
+
+		// Build action cell: view buttons if docs already exist, play button if not
+		var action_html = "";
+		if (row.sales_invoice || row.stock_entry) {
+			if (row.sales_invoice) {
+				action_html +=
+					'<button class="btn btn-xs btn-default smd-view-inv-btn" ' +
+					'data-name="' +
+					frappe.utils.escape_html(row.sales_invoice) +
+					'" ' +
+					'title="' +
+					__("View Invoice") +
+					'" style="margin-right:4px">' +
+					__("View Invoice") +
+					"</button>";
+			}
+			if (row.stock_entry) {
+				action_html +=
+					'<button class="btn btn-xs btn-default smd-view-se-btn" ' +
+					'data-name="' +
+					frappe.utils.escape_html(row.stock_entry) +
+					'" ' +
+					'title="' +
+					__("View Stock Entry") +
+					'">' +
+					__("View Stock Entry") +
+					"</button>";
+			}
+		} else {
+			action_html =
+				'<button class="btn btn-xs btn-primary smd-process-btn" ' +
+				'data-name="' +
+				frappe.utils.escape_html(row.name) +
+				'" ' +
+				'title="' +
+				__("Process Billing & Stock") +
+				'">' +
+				'<i class="fa fa-play fa-fw"></i>' +
+				"</button>";
+		}
 
 		body +=
 			'<div class="list-row-container" tabindex="1">' +
@@ -472,21 +514,16 @@ function render_invoice_table(wrapper, rows) {
 			'<div class="list-row-col ellipsis hidden-xs">' +
 			date +
 			"</div>" +
+			'<div class="list-row-col ellipsis hidden-xs">' +
+			status +
+			"</div>" +
 			'<div class="list-row-col ellipsis hidden-xs smd-col-right text-muted">' +
 			po +
 			"</div>" +
 			"</div>" +
 			'<div class="level-right">' +
 			'<div class="level-item list-row-activity">' +
-			'<button class="btn btn-xs btn-primary smd-process-btn" ' +
-			'data-name="' +
-			frappe.utils.escape_html(row.name) +
-			'" ' +
-			'title="' +
-			__("Process Billing & Stock") +
-			'">' +
-			'<i class="fa fa-play fa-fw"></i>' +
-			"</button>" +
+			action_html +
 			"</div>" +
 			"</div>" +
 			"</div>" +
@@ -502,6 +539,7 @@ function render_invoice_table(wrapper, rows) {
 			"</div>",
 	);
 
+	// Process button — create invoice/stock entry
 	$c.off("click.smd_inv").on("click.smd_inv", ".smd-process-btn", function () {
 		var $btn = $(this);
 		var row_name = $btn.data("name");
@@ -533,6 +571,16 @@ function render_invoice_table(wrapper, rows) {
 				},
 			});
 		});
+	});
+
+	// View Invoice button — navigate to linked Sales Invoice
+	$c.off("click.smd_view_inv").on("click.smd_view_inv", ".smd-view-inv-btn", function () {
+		frappe.set_route("Form", "Sales Invoice", $(this).data("name"));
+	});
+
+	// View Stock Entry button — navigate to linked Stock Entry
+	$c.off("click.smd_view_se").on("click.smd_view_se", ".smd-view-se-btn", function () {
+		frappe.set_route("Form", "Stock Entry", $(this).data("name"));
 	});
 }
 

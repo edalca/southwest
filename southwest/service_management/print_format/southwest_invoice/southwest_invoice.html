@@ -11,7 +11,7 @@ None %} {% set po_number = swo.po_number if swo and swo.po_number else (doc.po_n
 make = equip.make if equip else "" %} {% set model = equip.model if equip else "" %} {% set
 serial_no = equip.serial_no if equip else "" %} {% set unit_no = equip.customer_unit_id_number if
 equip else "" %} {% set hour_meter = swo.hour_meter if swo and swo.hour_meter else "" %} {% set
-cust_email = doc.contact_email or "" %}
+cust_email = doc.contact_email or "" %} {% set _sms = frappe.get_doc("Service Manager Settings", "Service Manager Settings") %} {% set labor_item_codes = ([_sms.pm_labor_item, _sms.labor_rate_item, _sms.misc_labor_item] | select("string") | list) %}
 
 <style>
 	* {
@@ -162,7 +162,7 @@ cust_email = doc.contact_email or "" %}
 			<td style="vertical-align: top">{{ item.item_code }}</td>
 			<td style="vertical-align: top; min-height: 40px">{{ item.description or "" }}</td>
 			<td style="text-align: right; vertical-align: top">
-				{% if item.rate %}$ {{ "{:,.2f}".format(item.rate) }}{% endif %}
+				{% if item.item_code not in labor_item_codes %}{% if item.rate %}$ {{ "{:,.2f}".format(item.rate) }}{% endif %}{% endif %}
 			</td>
 			<td style="text-align: right; vertical-align: top">
 				$ {{ "{:,.2f}".format(item.amount) }}

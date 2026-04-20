@@ -12,7 +12,7 @@ def get_technician_swos(hours_limit=None):
 	import frappe
 	from frappe.utils import add_to_date, now_datetime, time_diff_in_seconds
 
-	filters = {"responsible_user": frappe.session.user, "status": ["!=", "Invoiced"]}
+	filters = {"responsible_user": frappe.session.user, "status": ["not in", ["Billed", "Issued", "Closed", "Cancelled"]]}
 
 	if hours_limit:
 		since = add_to_date(now_datetime(), hours=-int(hours_limit))
@@ -327,11 +327,13 @@ def process_billing_and_stock(swo_name):
 			sinv.insert(ignore_permissions=True)
 			created["sales_invoice"] = sinv.name
 			
-	# Push status forward
-	if created["stock_entry"] or created["sales_invoice"] or not (items_to_write_off or invoice_lines):
-		doc.status = "Invoiced"
-		doc.save(ignore_permissions=True)
-		frappe.db.commit()
+	frappe.db.commit()
+
+	# Push status forward using the canonical resolver
+	from southwest.service_management.doctype.service_work_order.service_work_order import update_swo_final_status
+	update_swo_final_status(swo_name)
+
+	return created
 
 
 @frappe.whitelist()
@@ -339,5 +341,3 @@ def get_misc_default_days():
 	"""Returns the misc_default_days setting for pre-populating the Next Scheduled Date field."""
 	days = frappe.db.get_single_value("Service Manager Settings", "misc_default_days")
 	return {"misc_default_days": int(days or 90)}
-
-	return created

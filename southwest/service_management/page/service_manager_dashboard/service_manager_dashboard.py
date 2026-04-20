@@ -15,7 +15,7 @@ def get_dashboard_data():
 		"Service Work Order", filters={"status": "Staged"}
 	)
 	ready_to_invoice = frappe.db.count(
-		"Service Work Order", filters={"status": "Completed"}
+		"Service Work Order", filters={"status": ["in", ["Completed", "Billed", "Issued"]]}
 	)
 
 	pending_rows = frappe.db.get_all(
@@ -37,10 +37,31 @@ def get_dashboard_data():
 			
 	ready_to_invoice_rows = frappe.db.get_all(
 		"Service Work Order",
-		filters={"status": "Completed"},
-		fields=["name", "work_order_number", "customer", "scheduled_date", "po_number"],
+		filters={"status": ["in", ["Completed", "Billed", "Issued"]]},
+		fields=["name", "work_order_number", "customer", "scheduled_date", "po_number", "status"],
 		order_by="scheduled_date asc"
 	)
+
+	# Attach linked Sales Invoice and Stock Entry names (non-cancelled) to each row
+	for row in ready_to_invoice_rows:
+		row["sales_invoice"] = frappe.db.get_value(
+			"Sales Invoice",
+			{
+				"custom_source_doctype": "Service Work Order",
+				"custom_source_document": row.name,
+				"docstatus": ["<", 2],
+			},
+			"name",
+		) or ""
+		row["stock_entry"] = frappe.db.get_value(
+			"Stock Entry",
+			{
+				"custom_source_doctype": "Service Work Order",
+				"custom_source_document": row.name,
+				"docstatus": ["<", 2],
+			},
+			"name",
+		) or ""
 
 	waiting_signature_rows = frappe.db.get_all(
 		"Service Work Order",

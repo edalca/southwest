@@ -285,7 +285,24 @@ function partial_repair(frm) {
 
 function finish_repair(frm) {
 	const needs_hours = ["Labor Rate", "Misc"].includes(frm.doc.service_type);
+	const is_misc = frm.doc.service_type === "Misc";
 
+	if (is_misc) {
+		frappe.db
+			.get_single_value("Service Manager Settings", "misc_default_days")
+			.then((days) => {
+				const default_next_date = frappe.datetime.add_days(
+					frappe.datetime.nowdate(),
+					days || 90,
+				);
+				_show_finish_repair_dialog(frm, needs_hours, is_misc, default_next_date);
+			});
+	} else {
+		_show_finish_repair_dialog(frm, needs_hours, is_misc, null);
+	}
+}
+
+function _show_finish_repair_dialog(frm, needs_hours, is_misc, default_next_date) {
 	const fields = [];
 
 	if (needs_hours) {
@@ -295,6 +312,17 @@ function finish_repair(frm) {
 			fieldtype: "Float",
 			reqd: 1,
 			description: __("Billable hours for service cost calculation"),
+		});
+	}
+
+	if (is_misc) {
+		fields.push({
+			label: __("Next Scheduled Date"),
+			fieldname: "next_scheduled_date",
+			fieldtype: "Date",
+			reqd: 1,
+			default: default_next_date,
+			description: __("Date for the next scheduled Misc work order (pre-filled from settings)"),
 		});
 	}
 
@@ -311,6 +339,9 @@ function finish_repair(frm) {
 		primary_action(values) {
 			if (needs_hours) {
 				frm.set_value("hours_worked", values.hours_worked);
+			}
+			if (is_misc) {
+				frm.set_value("next_scheduled_date", values.next_scheduled_date);
 			}
 			close_last_time_log(frm, values.description, "Repair Session");
 			frm.set_value("status", "Staged");

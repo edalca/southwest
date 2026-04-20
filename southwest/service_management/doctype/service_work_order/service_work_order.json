@@ -132,10 +132,10 @@
    "label": "Scheduled Date"
   },
   {
+   "description": "Date for the next Misc work order. Required when finishing a Misc repair.",
    "fieldname": "next_scheduled_date",
    "fieldtype": "Date",
    "label": "Next Scheduled Date",
-   "description": "Date for the next Misc work order. Required when finishing a Misc repair.",
    "no_copy": 1,
    "read_only": 1
   },
@@ -282,7 +282,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-19 17:37:48.169108",
+ "modified": "2026-04-19 23:51:45.862245",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Work Order",
@@ -290,6 +290,7 @@
  "owner": "Administrator",
  "permissions": [
   {
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -299,6 +300,7 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
