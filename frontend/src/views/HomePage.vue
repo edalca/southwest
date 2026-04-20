@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between px-4 py-4 bg-amber-500">
         <div>
           <p class="text-xs font-medium tracking-wide text-amber-900">{{ greeting }}</p>
-          <h1 class="text-lg font-bold text-slate-900 leading-tight">{{ displayName }}</h1>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">{{ firstName }}</h1>
         </div>
         <div class="flex items-center justify-center w-9 h-9 rounded-full bg-amber-600/30">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -26,63 +26,98 @@
         <!-- Date label -->
         <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest">{{ todayLabel }}</p>
 
-        <!-- Attendance Widget -->
-        <div class="bg-blue-950 rounded-2xl overflow-hidden shadow-sm">
+        <!-- Attendance Widget (HRMS home style) -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div class="px-5 pt-5 pb-5">
-            <div class="flex items-center justify-between mb-5">
-              <span class="text-xs font-semibold tracking-widest uppercase text-blue-300/60">
-                {{ __('Attendance') }}
-              </span>
-              <span v-if="attendanceLoading" class="text-xs text-white/25">
-                {{ __('Loading...') }}
-              </span>
-              <!-- Status badge -->
-              <span
-                v-else
-                class="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full transition-colors"
-                :class="checkedIn
-                  ? 'bg-amber-500/25 text-amber-300'
-                  : 'bg-white/8 text-white/35'"
-              >
-                <span
-                  class="w-1.5 h-1.5 rounded-full"
-                  :class="checkedIn ? 'bg-amber-400' : 'bg-white/25'"
-                />
-                {{ checkedIn ? __('Checked In') : __('Checked Out') }}
-              </span>
+            <!-- Greeting row -->
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex-1 min-w-0">
+                <p class="text-base font-bold text-slate-900 leading-snug">
+                  {{ greeting }}, {{ firstName }} 👋
+                </p>
+                <p v-if="attendanceLoading" class="text-xs text-slate-300 mt-1">
+                  {{ __('Loading...') }}
+                </p>
+                <p v-else-if="lastLogSummary" class="text-xs text-slate-400 mt-1">
+                  {{ lastLogSummary }}
+                  <button
+                    class="text-blue-500 font-semibold ml-1"
+                    @click="router.push('/tabs/assistance')"
+                  >
+                    {{ __('View List') }}
+                  </button>
+                </p>
+              </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-3 mt-4">
-              <!-- Check In -->
-              <ion-button
-                class="attendance-btn"
-                :class="{ 'active-in': !checkedIn && !attendanceLoading }"
-                :disabled="attendanceLoading || attendanceSubmitting || checkedIn"
-                @click="doCheckin('IN')"
-                expand="block"
-                fill="solid"
-                color="light"
-              >
-                <ion-spinner v-if="attendanceSubmitting && pendingLog === 'IN'" name="crescent" />
-                <span v-else>{{ __('Check In') }}</span>
-              </ion-button>
-
-              <!-- Check Out -->
-              <ion-button
-                class="attendance-btn"
-                :class="{ 'active-out': checkedIn && !attendanceLoading }"
-                :disabled="attendanceLoading || attendanceSubmitting || !checkedIn"
-                @click="doCheckin('OUT')"
-                expand="block"
-                fill="solid"
-                color="warning"
-              >
-                <ion-spinner v-if="attendanceSubmitting && pendingLog === 'OUT'" name="crescent" />
-                <span v-else>{{ __('Check Out') }}</span>
-              </ion-button>
+            <!-- Location row -->
+            <div class="flex items-center gap-1.5 mb-4 min-h-[18px]">
+              <template v-if="locationLoading">
+                <ion-spinner name="dots" color="medium" style="width:12px;height:12px;flex-shrink:0;" />
+                <span class="text-xs text-slate-400">{{ __('Getting your location...') }}</span>
+              </template>
+              <template v-else-if="locationData">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                     stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                     style="flex-shrink:0;">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span class="text-xs text-slate-400 line-clamp-1">{{ locationData.address }}</span>
+              </template>
+              <template v-else-if="locationError">
+                <button class="flex items-center gap-1" @click="fetchLocation">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                       stroke="#f87171" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                  </svg>
+                  <span class="text-xs text-red-400">{{ __('Location unavailable — tap to retry') }}</span>
+                </button>
+              </template>
             </div>
 
-            <p v-if="attendanceError" class="mt-3 text-xs text-center text-red-400">
+            <!-- Single contextual button -->
+            <ion-button
+              expand="block"
+              fill="outline"
+              :disabled="attendanceLoading || attendanceSubmitting || locationLoading || !locationData"
+              @click="doCheckin(checkedIn ? 'OUT' : 'IN')"
+              style="
+                --border-color: #e2e8f0;
+                --background: #f8fafc;
+                --background-activated: #e2e8f0;
+                --color: #0f172a;
+                --border-radius: 12px;
+                --padding-top: 14px;
+                --padding-bottom: 14px;
+                font-weight: 600;
+                font-size: 15px;
+              "
+            >
+              <ion-spinner v-if="attendanceSubmitting" name="crescent" color="dark" style="margin-right: 8px;" />
+              <template v-else>
+                <!-- Circle-plus icon for Check In -->
+                <svg v-if="!checkedIn" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     style="margin-right: 8px; flex-shrink: 0;">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="16"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+                <!-- Circle-minus icon for Check Out -->
+                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                     style="margin-right: 8px; flex-shrink: 0;">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                </svg>
+              </template>
+              {{ checkedIn ? __('Check Out') : __('Check In') }}
+            </ion-button>
+
+            <p v-if="attendanceError" class="mt-3 text-xs text-center text-red-500">
               {{ attendanceError }}
             </p>
           </div>
@@ -127,7 +162,7 @@
             </p>
           </div>
 
-          <ion-list v-else class="space-y-2 bg-transparent">
+          <ion-list v-else class="space-y-2" style="--background: transparent; background: transparent;">
             <ion-item
               v-for="order in swoList.data"
               :key="order.name"
@@ -135,7 +170,7 @@
               :detail="false"
               class="swo-item rounded-xl overflow-hidden shadow-sm"
               @click="openModal(order.name)"
-              style="--inner-padding-end: 0; --padding-start: 0; margin-bottom: 10px;"
+              style="--background: #ffffff; --border-width: 0; --inner-padding-end: 0; --padding-start: 0; margin-bottom: 10px;"
             >
               <div class="flex flex-col w-full p-4">
                 <div class="flex items-start justify-between gap-2 mb-1">
@@ -225,14 +260,16 @@ import { useRouter } from 'vue-router'
 import {
   IonPage, IonHeader, IonContent,
   IonRefresher, IonRefresherContent,
+  IonButton, IonSpinner,
+  IonList, IonItem,
   onIonViewWillEnter,
 } from '@ionic/vue'
-import { call, createResource, createListResource } from 'frappe-ui'
-import dayjs from 'dayjs'
+import { createResource } from 'frappe-ui'
 import { useTime } from '@/composables/useTime'
 import { pwaInstallPrompt, iosInstallPrompt } from '@/pwa'
 import { session } from '@/data/session'
-import { getSWOs, type ServiceWorkOrder } from '@/services/api'
+import { getAttendanceStatus, addCheckinLog, type ServiceWorkOrder } from '@/services/api'
+import { useAttendanceLocation } from '@/composables/useAttendanceLocation'
 import SWOFormModal from '@/components/SWOFormModal.vue'
 
 const router = useRouter()
@@ -262,9 +299,10 @@ const greeting = computed(() => {
   return __('Good evening')
 })
 
-const displayName = computed(() => {
+const firstName = computed(() => {
   const u = session.user ?? ''
-  return u.includes('@') ? u.split('@')[0] : u
+  const base = u.includes('@') ? u.split('@')[0] : u
+  return base.charAt(0).toUpperCase() + base.slice(1)
 })
 
 const todayLabel = computed(() =>
@@ -275,23 +313,35 @@ const todayLabel = computed(() =>
   })
 )
 
+// ── Location ───────────────────────────────────────────────────────────────────
+const { locationLoading, locationData, locationError, fetchLocation } = useAttendanceLocation()
+
 // ── Attendance ─────────────────────────────────────────────────────────────────
 const checkedIn            = ref(false)
 const attendanceLoading    = ref(false)
 const attendanceSubmitting = ref(false)
 const attendanceError      = ref('')
 const pendingLog           = ref<'IN' | 'OUT' | ''>('')
+const lastLogTime          = ref<string | null>(null)
+const lastLogType          = ref<string | null>(null)
+
+const lastLogSummary = computed(() => {
+  if (!lastLogTime.value || !lastLogType.value) return null
+  const t = new Date(lastLogTime.value)
+  const timeStr = t.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  return lastLogType.value === 'IN'
+    ? `${__('Last check-in was at')} ${timeStr}`
+    : `${__('Last check-out was at')} ${timeStr}`
+})
 
 async function loadAttendanceStatus() {
   attendanceLoading.value = true
   attendanceError.value   = ''
   try {
-    const result = await call('southwest.api.get_attendance_status') as {
-      employee:      string | null
-      last_log_type: string | null
-      checked_in:    boolean
-    }
-    checkedIn.value = result?.checked_in ?? false
+    const result = await getAttendanceStatus()
+    checkedIn.value   = result.checked_in ?? false
+    lastLogTime.value = result.last_log_time ?? null
+    lastLogType.value = result.last_log_type ?? null
   } catch {
     checkedIn.value = false
   } finally {
@@ -301,15 +351,18 @@ async function loadAttendanceStatus() {
 
 async function doCheckin(log_type: 'IN' | 'OUT') {
   if (attendanceSubmitting.value) return
+  if (!locationData.value) {
+    attendanceError.value = __('Location is not available yet. Please wait or retry.')
+    return
+  }
   attendanceSubmitting.value = true
   attendanceError.value      = ''
   pendingLog.value           = log_type
   try {
-    await call(
-      'hrms.hr.doctype.employee_checkin.employee_checkin.add_log_based_on_employee_field',
-      { based_on_field: 'user_id', field_value: session.user, log_type },
-    )
-    checkedIn.value = log_type === 'IN'
+    await addCheckinLog(log_type, session.user ?? '', locationData.value.latitude, locationData.value.longitude)
+    checkedIn.value   = log_type === 'IN'
+    lastLogType.value = log_type
+    lastLogTime.value = new Date().toISOString()
   } catch (err: unknown) {
     const e = err as { messages?: string[]; message?: string }
     attendanceError.value = e?.messages?.[0] ?? e?.message ?? __('Attendance update failed.')
@@ -342,6 +395,7 @@ watch(hoursLimit, (newVal) => {
 // ── Lifecycle ──────────────────────────────────────────────────────────────────
 onMounted(() => {
   loadAttendanceStatus()
+  fetchLocation()
 })
 
 onIonViewWillEnter(() => {

@@ -13,11 +13,13 @@ class ServiceWorkOrder(Document):
 
 	def validate(self):
 		self._validate_signature()
+		self._validate_misc_next_date()
 		self._recalculate_total_repair_time()
 		self._calculate_service_cost()
 
 	def on_update(self):
 		self._handle_next_pm_automation()
+		self._handle_next_misc_automation()
 		self._check_and_submit_if_completed()
 
 	def _check_and_submit_if_completed(self):
@@ -29,6 +31,16 @@ class ServiceWorkOrder(Document):
 		if self.status == "Completed":
 			if not self.signature_skipped and not self.customer_signature:
 				frappe.throw(_("Customer Signature is required to complete the work order."))
+
+	def _validate_misc_next_date(self):
+		"""Require next_scheduled_date when a Misc order transitions to Staged."""
+		if (
+			self.service_type == "Misc"
+			and self.has_value_changed("status")
+			and self.status == "Staged"
+			and not self.next_scheduled_date
+		):
+			frappe.throw(_("Next Scheduled Date is required to finish a Misc work order."))
 
 	def _recalculate_total_repair_time(self):
 		total = sum(row.duration_in_hours or 0 for row in (self.time_logs or []))
@@ -97,6 +109,29 @@ class ServiceWorkOrder(Document):
 		self.db_set("next_pm_generated", 1)
 		frappe.msgprint(
 			_("Next PM Work Order has been automatically generated for {0}.").format(next_date),
+			alert=True,
+		)
+
+	def _handle_next_misc_automation(self):
+		"""
+		Creates the next Misc work order when status transitions to Staged,
+		using next_scheduled_date provided by the technician via the mobile app.
+
+		Rules:
+		- Applies ONLY to 'Misc' service type.
+		- Requires next_scheduled_date to be set (validated in _validate_misc_next_date).
+		- Runs only when status changes to 'Staged'.
+		"""
+		if self.service_type != "Misc" or not self.next_scheduled_date:
+			return
+		if not self.has_value_changed("status") or self.status != "Staged":
+			return
+
+		create_programmed_order(self.name, self.next_scheduled_date)
+		frappe.msgprint(
+			_("Next Misc Work Order has been automatically scheduled for {0}.").format(
+				self.next_scheduled_date
+			),
 			alert=True,
 		)
 
@@ -577,18 +612,34 @@ def _create_part_assignments(doc):
 @frappe.whitelist()
 def create_programmed_order(source_name, next_date):
 	"""
-	Clones a completed Service Work Order as a new draft in 'Programmed' status
-	with the given next_date as the Scheduled Date.
-	Called from JS after completing when Service Type is PM or Misc.
+	Creates the next programmed Service Work Order from a completed one.
+	Only copies: Customer, Company, Equipment, Service Type, and Scheduled Date.
+	PO Number is fetched fresh from the customer's active PO assignment.
+	No items, hours, descriptions, logs, or signatures are carried over.
 	"""
 	source = frappe.get_doc("Service Work Order", source_name)
-	new_doc = frappe.copy_doc(source)
-	new_doc.status = "Programmed"
-	new_doc.scheduled_date = next_date
-	new_doc.customer_signature = None
-	new_doc.signature_date = None
-	new_doc.time_logs = []
-	new_doc.total_repair_time = 0
+
+	active_po = frappe.db.get_value(
+		"Customer PO Assignment",
+		{"customer": source.customer, "is_active": 1, "valid_from": ["<=", frappe.utils.today()]},
+		"po_number",
+		order_by="valid_from desc",
+	)
+
+	new_doc = frappe.get_doc({
+		"doctype": "Service Work Order",
+		"status": "Programmed",
+		"customer": source.customer,
+		"company": source.company,
+		"service_type": source.service_type,
+		"scheduled_date": next_date,
+		"po_number": active_po or "",
+		"equipment_selection": [
+			{"equipment": row.equipment}
+			for row in (source.equipment_selection or [])
+			if row.equipment
+		],
+	})
 	new_doc.insert(ignore_permissions=True)
 	frappe.db.commit()
 	return new_doc.name
@@ -821,7 +872,7 @@ def resolve_and_create_invoice(doc_name):
 					"item_code": labor_item,
 					"qty": labor_qty,
 					"rate": labor_rate,
-					"description": _("Labor — {0}").format(doc.service_type),
+					"description": doc.repair_description or _("Labor — {0}").format(doc.service_type),
 				},
 			)
 

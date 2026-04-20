@@ -1,0 +1,211 @@
+{% set company_doc = frappe.get_doc("Company", doc.company) %} {% set c_addr_rows =
+frappe.db.sql("SELECT a.name FROM `tabAddress` a JOIN `tabDynamic Link` dl ON dl.parent=a.name
+WHERE dl.link_doctype='Company' AND dl.link_name=%s AND a.is_primary_address=1 LIMIT 1",
+doc.company) %} {% set c_addr = frappe.get_doc("Address", c_addr_rows[0][0]) if c_addr_rows else
+None %} {% set bill_addr = frappe.get_doc("Address", doc.customer_address) if doc.customer_address
+else None %} {% set swo = frappe.get_doc("Service Work Order", doc.custom_source_document) if
+(doc.custom_source_document and doc.custom_source_doctype == "Service Work Order") else None %} {%
+set equip_row = swo.equipment_selection[0] if swo and swo.equipment_selection else None %} {% set
+equip = frappe.get_doc("Equipment", equip_row.equipment) if equip_row and equip_row.equipment else
+None %} {% set po_number = swo.po_number if swo and swo.po_number else (doc.po_no or "") %} {% set
+make = equip.make if equip else "" %} {% set model = equip.model if equip else "" %} {% set
+serial_no = equip.serial_no if equip else "" %} {% set unit_no = equip.customer_unit_id_number if
+equip else "" %} {% set hour_meter = swo.hour_meter if swo and swo.hour_meter else "" %} {% set
+cust_email = doc.contact_email or "" %}
+
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
+	body,
+	.sw-invoice {
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: 11px;
+		color: #000;
+	}
+	.sw-invoice {
+		padding: 20px;
+		max-width: 780px;
+		margin: 0 auto;
+	}
+	table {
+		border-collapse: collapse;
+		width: 100%;
+	}
+	td {
+		border: 1px solid #000;
+		padding: 5px 8px;
+		font-size: 10.5px;
+		vertical-align: top;
+		color: #000;
+	}
+	th {
+		border: 1px solid #000;
+		padding: 5px 8px;
+		font-size: 10.5px;
+		font-weight: bold;
+		text-align: center;
+		color: #000 !important;
+	}
+	.section-label {
+		font-weight: bold;
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		padding-bottom: 3px;
+		margin-bottom: 4px;
+		border-bottom: 1px solid #000;
+	}
+</style>
+
+<div class="sw-invoice">
+	<!-- ═══ HEADER: Letter Head (left) + Invoice title (right) ═══ -->
+	<table style="width: 100%; border: none; margin-bottom: 14px">
+		<tr>
+			<!-- Left: letter head -->
+			<td style="border: none; vertical-align: top; padding: 0; width: 55%">
+				{{letter_head}}
+			</td>
+			<!-- Right: Invoice label + date/WO table -->
+			<td style="border: none; vertical-align: top; padding: 0; text-align: right">
+				<div class="bold" style="font-size: 22px; margin-bottom: 8px">Invoice</div>
+				<table style="margin-left: auto">
+					<tr>
+						<th style="padding: 4px 14px">Date</th>
+						<th style="padding: 4px 14px">Work Order #</th>
+					</tr>
+					<tr>
+						<td style="padding: 4px 14px">
+							{{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}
+						</td>
+						<td style="padding: 4px 14px">{{ doc.custom_work_order_number or "" }}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+	<!-- ═══ BILL TO / SHIP TO ═══ -->
+	<table style="width: 100%; margin-bottom: 0">
+		<tr>
+			<td style="width: 50%; vertical-align: top; border: 1px solid #000; padding: 8px">
+				<div class="section-label">Bill To</div>
+				<div class="bold">{{ doc.customer_name }}</div>
+				{% if cust_email %}
+				<div>{{ cust_email }}</div>
+				{% endif %} {% if bill_addr %}
+				<div>
+					{{ bill_addr.address_line1 }}{% if bill_addr.address_line2 %}, {{
+					bill_addr.address_line2 }}{% endif %}
+				</div>
+				<div>
+					{{ bill_addr.city }}{% if bill_addr.state %}, {{ bill_addr.state }}{% endif
+					%}{% if bill_addr.pincode %} {{ bill_addr.pincode }}{% endif %}
+				</div>
+				{% endif %}
+			</td>
+			<td style="width: 50%; vertical-align: top; border: 1px solid #000; padding: 8px">
+				<div class="section-label">Ship To</div>
+				<div class="bold">{{ doc.company }}</div>
+				{% if c_addr %}
+				<div>
+					{{ c_addr.address_line1 }}{% if c_addr.address_line2 %}, {{
+					c_addr.address_line2 }}{% endif %}
+				</div>
+				<div>
+					{{ c_addr.city }}{% if c_addr.state %}, {{ c_addr.state }}{% endif %}{% if
+					c_addr.pincode %} {{ c_addr.pincode }}{% endif %}
+				</div>
+				{% endif %} {% if company_doc.email %}
+				<div>{{ company_doc.email }}</div>
+				{% endif %} {% if company_doc.website %}
+				<div>{{ company_doc.website }}</div>
+				{% endif %}
+			</td>
+		</tr>
+	</table>
+
+	<!-- ═══ PO / EQUIPMENT ROW ═══ -->
+	<table style="width: 100%; margin-top: -1px">
+		<tr>
+			<th style="width: 18%">P.O Number</th>
+			<th style="width: 15%">Make</th>
+			<th style="width: 15%">Model</th>
+			<th style="width: 18%">Serial #</th>
+			<th style="width: 17%">Unit #</th>
+			<th style="width: 17%">Hour Meter</th>
+		</tr>
+		<tr>
+			<td>{{ po_number }}</td>
+			<td>{{ make }}</td>
+			<td>{{ model }}</td>
+			<td>{{ serial_no }}</td>
+			<td>{{ unit_no }}</td>
+			<td>{{ hour_meter }}</td>
+		</tr>
+	</table>
+
+	<!-- ═══ LINE ITEMS ═══ -->
+	<table style="width: 100%; margin-top: -1px">
+		<tr>
+			<th style="width: 8%; text-align: center">Quantity</th>
+			<th style="width: 13%">Item Code</th>
+			<th>Description</th>
+			<th style="width: 13%; text-align: right">Price Each</th>
+			<th style="width: 13%; text-align: right">Amount</th>
+		</tr>
+		{% for item in doc.items %}
+		<tr>
+			<td style="text-align: center; vertical-align: top">{{ item.qty | int }}</td>
+			<td style="vertical-align: top">{{ item.item_code }}</td>
+			<td style="vertical-align: top; min-height: 40px">{{ item.description or "" }}</td>
+			<td style="text-align: right; vertical-align: top">
+				{% if item.rate %}$ {{ "{:,.2f}".format(item.rate) }}{% endif %}
+			</td>
+			<td style="text-align: right; vertical-align: top">
+				$ {{ "{:,.2f}".format(item.amount) }}
+			</td>
+		</tr>
+		{% endfor %} {% set filler = [0, 12 - doc.items | length] | max %} {% for i in
+		range(filler) %}
+		<tr style="height: 22px">
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		{% endfor %}
+	</table>
+
+	<!-- ═══ TOTAL ROW ═══ -->
+	<table style="width: 100%; margin-top: -1px">
+		<tr>
+			<td
+				style="
+					border: 1px solid #000;
+					text-align: right;
+					font-weight: bold;
+					padding: 7px 12px;
+					font-size: 12px;
+				"
+			>
+				Total
+			</td>
+			<td
+				style="
+					border: 1px solid #000;
+					text-align: right;
+					font-weight: bold;
+					padding: 7px 14px;
+					font-size: 12px;
+					width: 16%;
+				"
+			>
+				$ {{ "{:,.2f}".format(doc.grand_total) }}
+			</td>
+		</tr>
+	</table>
+</div>

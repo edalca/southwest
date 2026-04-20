@@ -321,12 +321,26 @@
             />
             <p v-if="hoursError" class="mt-1 text-xs text-red-500 font-medium px-1">{{ hoursError }}</p>
           </div>
+
+          <!-- Next Scheduled Date — only for Misc orders -->
+          <div v-if="swo?.service_type === 'Misc'">
+            <ion-input
+              fill="outline"
+              type="date"
+              :label="__('Next Scheduled Date') + ' *'"
+              label-placement="stacked"
+              v-model="nextScheduledDate"
+              class="custom-ion-input"
+            />
+            <p v-if="nextDateError" class="mt-1 text-xs text-red-500 font-medium px-1">{{ nextDateError }}</p>
+          </div>
+
           <div class="flex gap-2">
             <ion-button
               fill="outline"
               color="medium"
               class="flex-1"
-              @click="showHoursPanel = false; hoursInput = ''; hoursError = ''"
+              @click="showHoursPanel = false; hoursInput = ''; hoursError = ''; nextScheduledDate = ''; nextDateError = ''"
             >
               {{ __('Cancel') }}
             </ion-button>
@@ -569,7 +583,7 @@ import {
 } from '@ionic/vue'
 import {
   getSWO, updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
-  skipSignatureMobile,
+  skipSignatureMobile, getMiscDefaultDays,
   checkResponsibleUser,
   type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
 } from '@/services/api'
@@ -592,9 +606,11 @@ const localItems  = ref<SWOItem[]>([])
 const localDocs   = ref({ problem_with_lift: '', repair_description: '' })
 
 // Hours inline panel
-const showHoursPanel = ref(false)
-const hoursInput     = ref('')
-const hoursError     = ref('')
+const showHoursPanel    = ref(false)
+const hoursInput        = ref('')
+const hoursError        = ref('')
+const nextScheduledDate = ref('')
+const nextDateError     = ref('')
 let _pendingFinishPayload: Record<string, unknown> = {}
 
 // Add Item panel
@@ -734,21 +750,51 @@ async function onFinishRepair() {
     return
   }
 
-  hoursInput.value  = ''
-  hoursError.value  = ''
+  hoursInput.value        = ''
+  hoursError.value        = ''
+  nextScheduledDate.value = ''
+  nextDateError.value     = ''
+
+  // Pre-populate next scheduled date for Misc orders
+  if (swo.value?.service_type === 'Misc') {
+    try {
+      const days = await getMiscDefaultDays()
+      const d = new Date()
+      d.setDate(d.getDate() + days)
+      nextScheduledDate.value = d.toISOString().split('T')[0]
+    } catch {
+      // fallback: leave empty
+    }
+  }
+
   showHoursPanel.value = true
 }
 
 async function confirmFinishRepair() {
-  hoursError.value = ''
+  hoursError.value  = ''
+  nextDateError.value = ''
+
   const hours = parseFloat(hoursInput.value)
   if (!hours || hours <= 0) {
     hoursError.value = __('Please enter a valid number of hours.')
     return
   }
+
+  if (swo.value?.service_type === 'Misc' && !nextScheduledDate.value) {
+    nextDateError.value = __('Next Scheduled Date is required for Misc work orders.')
+    return
+  }
+
   acting.value = true
   try {
-    await updateSWO(docName, { ..._pendingFinishPayload, hours_worked: hours })
+    const payload: Record<string, unknown> = {
+      ..._pendingFinishPayload,
+      hours_worked: hours,
+    }
+    if (swo.value?.service_type === 'Misc') {
+      payload.next_scheduled_date = nextScheduledDate.value
+    }
+    await updateSWO(docName, payload)
     showHoursPanel.value = false
     await loadSWO()
   } catch (err) {

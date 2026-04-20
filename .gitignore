@@ -25,6 +25,7 @@ MANIFEST
 .vscode/
 .claude/
 .docs/
+.docs
 .aider*
 .cursorrules
 # Environments

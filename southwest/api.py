@@ -175,6 +175,7 @@ def get_attendance_status():
 	return {
 		"employee": employee,
 		"last_log_type": last_log.log_type if last_log else None,
+		"last_log_time": str(last_log.time) if last_log else None,
 		"checked_in": last_log.log_type == "IN" if last_log else False,
 	}
 
@@ -331,5 +332,12 @@ def process_billing_and_stock(swo_name):
 		doc.status = "Invoiced"
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
+
+
+@frappe.whitelist()
+def get_misc_default_days():
+	"""Returns the misc_default_days setting for pre-populating the Next Scheduled Date field."""
+	days = frappe.db.get_single_value("Service Manager Settings", "misc_default_days")
+	return {"misc_default_days": int(days or 90)}
 
 	return created

@@ -168,11 +168,52 @@ function set_status_buttons(frm) {
 		);
 	}
 
-	// Completed → Create Invoice
+	// Completed → Create Invoice or View Invoice (if one already exists)
 	if (status === "Completed") {
-		frm.add_custom_button(__("Create Invoice"), () => create_invoice(frm)).addClass(
-			"btn-primary",
-		);
+		frappe.db
+			.get_value(
+				"Sales Invoice",
+				{
+					custom_source_doctype: "Service Work Order",
+					custom_source_document: frm.doc.name,
+					docstatus: ["<", 2],
+				},
+				"name",
+			)
+			.then((r) => {
+				const invoice_name = r.message && r.message.name;
+				if (invoice_name) {
+					frm.add_custom_button(__("View Invoice"), () => {
+						frappe.set_route("Form", "Sales Invoice", invoice_name);
+					}).addClass("btn-primary");
+				} else {
+					frm.add_custom_button(__("Create Invoice"), () =>
+						create_invoice(frm),
+					).addClass("btn-primary");
+				}
+			});
+	}
+
+	// Billed / Issued / Closed → View Invoice (always exists)
+	if (["Billed", "Issued", "Closed"].includes(status)) {
+		frappe.db
+			.get_value(
+				"Sales Invoice",
+				{
+					custom_source_doctype: "Service Work Order",
+					custom_source_document: frm.doc.name,
+					docstatus: ["<", 2],
+				},
+				"name",
+			)
+			.then((r) => {
+				const invoice_name = r.message && r.message.name;
+				if (invoice_name) {
+					frm.add_custom_button(__("View Invoice"), () => {
+						frappe.set_route("Form", "Sales Invoice", invoice_name);
+					}).addClass("btn-primary");
+				}
+			});
 	}
 
 	// PO Number action — available once repair has started

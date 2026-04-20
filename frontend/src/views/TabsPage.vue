@@ -31,6 +31,19 @@
           </div>
         </ion-tab-button>
 
+        <ion-tab-button tab="assistance" href="/tabs/assistance" class="app-tab-btn">
+          <div :class="iconWrap('assistance')">
+            <!-- Feather: clock -->
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="tab-label">{{ __('Attendance') }}</span>
+          </div>
+        </ion-tab-button>
+
         <ion-tab-button tab="profile" href="/tabs/profile" class="app-tab-btn">
           <div :class="iconWrap('profile')">
             <!-- Feather: user -->

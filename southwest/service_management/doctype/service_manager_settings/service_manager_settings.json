@@ -8,6 +8,7 @@
   "pm_labor_item",
   "labor_rate_item",
   "misc_labor_item",
+  "misc_default_days",
   "inventory_column",
   "default_swo_stock_entry_type",
   "system_automation_tab",
@@ -45,6 +46,13 @@
    "label": "Misc Labor Item",
    "options": "Item",
    "description": "Item used as the labor line on Misc invoices"
+  },
+  {
+   "fieldname": "misc_default_days",
+   "fieldtype": "Int",
+   "label": "Misc Default Days",
+   "default": "90",
+   "description": "Default number of days to add to today's date when pre-populating the Next Scheduled Date on Misc work orders."
   },
   {
    "fieldname": "inventory_column",

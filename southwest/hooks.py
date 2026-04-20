@@ -1,4 +1,5 @@
 app_name = "southwest"
+
 app_title = "Southwest"
 app_publisher = "Edwin Carrillo"
 app_description = "Custom adaptation for Southwest company built on top of ERPNext + HRMS"

@@ -327,6 +327,96 @@ export async function getCompanies(): Promise<Company[]> {
 }
 
 // ---------------------------------------------------------------------------
+// Attendance / Employee Check-in
+// ---------------------------------------------------------------------------
+
+export interface AttendanceStatus {
+  employee: string | null
+  last_log_type: string | null
+  last_log_time: string | null
+  checked_in: boolean
+}
+
+export async function getAttendanceStatus(): Promise<AttendanceStatus> {
+  return getMethod<AttendanceStatus>('southwest.api.get_attendance_status')
+}
+
+export async function getMiscDefaultDays(): Promise<number> {
+  const res = await getMethod<{ misc_default_days: number }>('southwest.api.get_misc_default_days')
+  return res.misc_default_days ?? 90
+}
+
+export async function addCheckinLog(
+  log_type: 'IN' | 'OUT',
+  userEmail: string,
+  latitude: number,
+  longitude: number,
+): Promise<void> {
+  const timestamp = new Date().toISOString().replace('T', ' ').split('.')[0]
+  await call(
+    'hrms.hr.doctype.employee_checkin.employee_checkin.add_log_based_on_employee_field',
+    {
+      employee_field_value: userEmail,
+      timestamp,
+      log_type,
+      employee_fieldname: 'user_id',
+      latitude,
+      longitude,
+    },
+  )
+}
+
+export interface CheckinLog {
+  name: string
+  log_type: 'IN' | 'OUT'
+  time: string
+}
+
+export async function getTodayCheckinLogs(employee: string): Promise<CheckinLog[]> {
+  const today = new Date().toISOString().split('T')[0]
+  return resource<CheckinLog[]>('GET', 'Employee Checkin', {
+    params: {
+      fields: JSON.stringify(['name', 'log_type', 'time']),
+      filters: JSON.stringify([
+        ['employee', '=', employee],
+        ['time', '>=', `${today} 00:00:00`],
+      ]),
+      order_by: 'time desc',
+      limit_page_length: '20',
+    },
+  }) ?? []
+}
+
+export interface AttendanceRecord {
+  name: string
+  attendance_date: string
+  status: 'Present' | 'Absent' | 'Half Day' | 'On Leave'
+}
+
+export async function getMonthlyAttendance(
+  employee: string,
+  year: number,
+  month: number,
+): Promise<AttendanceRecord[]> {
+  const mm = String(month).padStart(2, '0')
+  const lastDay = new Date(year, month, 0).getDate()
+  const from = `${year}-${mm}-01`
+  const to = `${year}-${mm}-${String(lastDay).padStart(2, '0')}`
+  return resource<AttendanceRecord[]>('GET', 'Attendance', {
+    params: {
+      fields: JSON.stringify(['name', 'attendance_date', 'status']),
+      filters: JSON.stringify([
+        ['employee', '=', employee],
+        ['attendance_date', '>=', from],
+        ['attendance_date', '<=', to],
+        ['docstatus', '=', 1],
+      ]),
+      limit_page_length: '35',
+    },
+  }) ?? []
+}
+
+// ---------------------------------------------------------------------------
 // User preferences
 // ---------------------------------------------------------------------------
 

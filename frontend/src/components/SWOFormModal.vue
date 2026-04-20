@@ -335,12 +335,27 @@
               />
             </ion-item>
             <p v-if="hoursError" class="mt-1 text-xs text-red-500 font-medium px-2">{{ hoursError }}</p>
+
+            <!-- Next Scheduled Date — only for Misc orders -->
+            <template v-if="swo?.service_type === 'Misc'">
+              <ion-item class="custom-ion-item" style="--background: transparent; --border-color: #fde68a;">
+                <ion-input
+                  :label="__('Next Scheduled Date') + ' *'"
+                  label-placement="stacked"
+                  v-model="nextScheduledDate"
+                  type="date"
+                  class="hour-input"
+                />
+              </ion-item>
+              <p v-if="nextDateError" class="mt-1 text-xs text-red-500 font-medium px-2">{{ nextDateError }}</p>
+            </template>
+
             <div class="flex gap-2">
               <ion-button
                 fill="outline"
                 color="medium"
                 class="flex-1"
-                @click="showHoursInput = false; hoursInput = ''; hoursError = ''"
+                @click="showHoursInput = false; hoursInput = ''; hoursError = ''; nextScheduledDate = ''; nextDateError = ''"
               >
                 {{ __('Cancel') }}
               </ion-button>
@@ -774,7 +789,7 @@ import {
 import {
   getCustomers, getCompanies, getCustomerEquipment, createSWO, getSWO,
   updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
-  skipSignatureMobile,
+  skipSignatureMobile, getMiscDefaultDays,
   checkResponsibleUser, getActiveCustomerPO,
   type Customer, type Equipment, type Company,
   type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
@@ -898,9 +913,11 @@ const partForm               = ref(blankPartForm())
 let _sheetSearchTimer: ReturnType<typeof setTimeout> | null = null
 
 // Hours inline input
-const showHoursInput = ref(false)
-const hoursInput     = ref('')
-const hoursError     = ref('')
+const showHoursInput    = ref(false)
+const hoursInput        = ref('')
+const hoursError        = ref('')
+const nextScheduledDate = ref('')
+const nextDateError     = ref('')
 let _finishPayload: Record<string, unknown> = {}
 
 // Derived status flags
@@ -978,6 +995,8 @@ function onDismissed() {
   showHoursInput.value          = false
   hoursInput.value              = ''
   hoursError.value              = ''
+  nextScheduledDate.value       = ''
+  nextDateError.value           = ''
   actionError.value             = ''
   showPartSheet.value           = false
   sheetItemSearchResults.value  = []
@@ -1244,21 +1263,47 @@ async function onFinishRepair() {
   }
 
   // Labor Rate / Misc: prompt for hours worked
-  hoursInput.value     = ''
-  hoursError.value     = ''
+  hoursInput.value        = ''
+  hoursError.value        = ''
+  nextScheduledDate.value = ''
+  nextDateError.value     = ''
+
+  if (swo.value?.service_type === 'Misc') {
+    try {
+      const days = await getMiscDefaultDays()
+      const d = new Date()
+      d.setDate(d.getDate() + days)
+      nextScheduledDate.value = d.toISOString().split('T')[0]
+    } catch {
+      // fallback: leave empty for manual entry
+    }
+  }
+
   showHoursInput.value = true
 }
 
 async function confirmFinishRepair() {
-  hoursError.value = ''
+  hoursError.value  = ''
+  nextDateError.value = ''
+
   const hours = parseFloat(hoursInput.value)
   if (!hours || hours <= 0) {
     hoursError.value = __('Please enter a valid number of hours.')
     return
   }
+
+  if (swo.value?.service_type === 'Misc' && !nextScheduledDate.value) {
+    nextDateError.value = __('Next Scheduled Date is required for Misc work orders.')
+    return
+  }
+
   acting.value = true
   try {
-    await updateSWO(props.swoName!, { ..._finishPayload, hours_worked: hours })
+    const payload: Record<string, unknown> = { ..._finishPayload, hours_worked: hours }
+    if (swo.value?.service_type === 'Misc') {
+      payload.next_scheduled_date = nextScheduledDate.value
+    }
+    await updateSWO(props.swoName!, payload)
     isDirty.value        = false
     showHoursInput.value = false
     emit('status-updated')
