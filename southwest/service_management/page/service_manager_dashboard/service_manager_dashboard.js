@@ -742,32 +742,32 @@ function inject_smd_styles() {
 		".form-tabs .nav-link:hover:not(.active){color: var(--text-color); border-bottom: 2px solid var(--border-color);}",
 
 		/* Calendar Legend */
-		".smd-calendar-legend{display:flex; flex-wrap:wrap; gap:15px; margin-bottom:15px; padding:10px; background:var(--bg-light-gray); border-radius:var(--border-radius-sm)}",
+		".smd-calendar-legend{display:flex; flex-wrap:wrap; gap:15px; margin-bottom:15px; padding:10px; background:var(--bg-light-gray); border-radius:var(--border-radius-sm); border: 1px solid var(--border-color);}",
 		".legend-item{display:flex; align-items:center; font-size:12px; color:var(--text-muted); font-weight:500;}",
 		".legend-dot{width:12px; height:12px; border-radius:50%; margin-right:6px; display:inline-block}",
 
 		/* FullCalendar Scroll Fix */
-		"#smd-calendar-section { height: calc(100vh - 270px); min-height: 500px; overflow: hidden; display: flex; flex-direction: column; background: #fff; }",
+		"#smd-calendar-section { height: calc(100vh - 270px); min-height: 500px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-color); }",
 		"#smd-calendar-wrapper { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 20px; }",
 		"#smd-calendar-wrapper .fc { flex: 1; overflow: hidden; }",
-		"#smd-calendar-wrapper .fc-view-harness { background: #fff; }",
-		".fc-scroller-harness { background: #fff; }",
+		"#smd-calendar-wrapper .fc-view-harness { background: var(--bg-color); }",
+		".fc-scroller-harness { background: var(--bg-color); }",
 	].join("\n");
 	document.head.appendChild(el);
 }
 
 function get_smd_calendar_legend() {
 	var items = [
-		{ color: "#95a5a6", label: __("New") },
-		{ color: "#3498db", label: __("Programmed") },
-		{ color: "#e67e22", label: __("Repairing") },
-		{ color: "#f1c40f", label: __("Partial Repair") },
-		{ color: "#8e44ad", label: __("Staged (Signature)") },
-		{ color: "#27ae60", label: __("Completed") },
-		{ color: "#16a085", label: __("Billed") },
-		{ color: "#2980b9", label: __("Issued") },
-		{ color: "#2c3e50", label: __("Closed") },
-		{ color: "#c0392b", label: __("Cancelled") },
+		{ color: "var(--gray-500)", label: __("New") },
+		{ color: "var(--blue-500)", label: __("Programmed") },
+		{ color: "var(--orange-500)", label: __("Repairing") },
+		{ color: "var(--yellow-600)", label: __("Partial Repair") },
+		{ color: "var(--purple-500)", label: __("Staged (Signature)") },
+		{ color: "var(--green-500)", label: __("Completed") },
+		{ color: "var(--cyan-600)", label: __("Billed") },
+		{ color: "var(--blue-600)", label: __("Issued") },
+		{ color: "var(--gray-700)", label: __("Closed") },
+		{ color: "var(--red-500)", label: __("Cancelled") },
 	];
 
 	var html = '<div class="smd-calendar-legend">';
@@ -793,7 +793,7 @@ function render_smd_calendar(wrapper, events) {
 	var $container = $(wrapper.page.body).find("#smd-calendar-wrapper");
 	if (!$container.length) return;
 
-	frappe.require(["calendar.bundle.js", "calendar.bundle.css"], function () {
+	frappe.require(["calendar.bundle.js"], function () {
 		if (wrapper.calendar) {
 			wrapper.calendar.removeAllEvents();
 			wrapper.calendar.addEventSource(format_calendar_events(events));
@@ -837,18 +837,18 @@ function format_calendar_events(events) {
 
 function get_status_color(status) {
 	var map = {
-		New: "#95a5a6",
-		Programmed: "#3498db",
-		Repairing: "#e67e22",
-		"Partial Repair": "#f1c40f",
-		Staged: "#8e44ad",
-		Completed: "#27ae60",
-		Billed: "#16a085",
-		Issued: "#2980b9",
-		Closed: "#2c3e50",
-		Cancelled: "#c0392b",
+		New: "var(--gray-500)",
+		Programmed: "var(--blue-500)",
+		Repairing: "var(--orange-500)",
+		"Partial Repair": "var(--yellow-600)",
+		Staged: "var(--purple-500)",
+		Completed: "var(--green-500)",
+		Billed: "var(--cyan-600)",
+		Issued: "var(--blue-600)",
+		Closed: "var(--gray-700)",
+		Cancelled: "var(--red-500)",
 	};
-	return map[status] || "#95a5a6";
+	return map[status] || "var(--gray-500)";
 }
 
 // ---------------------------------------------------------------------------

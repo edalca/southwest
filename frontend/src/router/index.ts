@@ -46,13 +46,7 @@ const routes: Array<RouteRecordRaw> = [
       {
         path: 'orders',
         name: 'Orders',
-        component: () => import('@/views/SWOPage.vue'),
-      },
-      {
-        // Sub-page rendered inside the Orders tab stack
-        path: 'orders/:name',
-        name: 'SWODetail',
-        component: () => import('@/views/SWODetailPage.vue'),
+        component: () => import('@/views/OrderPage.vue'),
       },
       {
         path: 'assistance',

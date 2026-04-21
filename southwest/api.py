@@ -181,6 +181,21 @@ def get_attendance_status():
 
 
 @frappe.whitelist()
+def add_checkin_log(log_type: str, latitude: float = 0, longitude: float = 0):
+	"""Create an Employee Checkin log using the server-side timestamp."""
+	from hrms.hr.doctype.employee_checkin.employee_checkin import add_log_based_on_employee_field
+
+	add_log_based_on_employee_field(
+		employee_field_value=frappe.session.user,
+		timestamp=frappe.utils.now_datetime(),
+		log_type=log_type,
+		employee_fieldname="user_id",
+		latitude=latitude,
+		longitude=longitude,
+	)
+
+
+@frappe.whitelist()
 def get_active_customer_po(customer):
 	"""
 	Return the most recent active PO Number for a given customer.
@@ -334,6 +349,50 @@ def process_billing_and_stock(swo_name):
 	update_swo_final_status(swo_name)
 
 	return created
+
+
+@frappe.whitelist()
+def get_pause_reason_mandatory():
+	"""Returns whether a pause reason is required when pausing a Service Work Order."""
+	val = frappe.db.get_single_value("Service Manager Settings", "pause_reason_mandatory")
+	return {"pause_reason_mandatory": int(val or 0)}
+
+
+@frappe.whitelist()
+def pause_repair(swo_name, reason=None):
+	"""
+	Pauses a Service Work Order by transitioning it to Partial Repair.
+	Mirrors the Desk flow: closes the open time log entry (sets end_time, duration,
+	and description), then saves the status change.
+	Validates pause reason if pause_reason_mandatory is enabled.
+	"""
+	from frappe.utils import now_datetime, time_diff_in_seconds
+
+	if frappe.db.get_single_value("Service Manager Settings", "pause_reason_mandatory"):
+		if not (reason or "").strip():
+			frappe.throw(frappe._("Pause Reason is required to pause this work order."))
+
+	doc = frappe.get_doc("Service Work Order", swo_name)
+
+	# Close the open time log entry (mirrors close_last_time_log in JS)
+	open_log = None
+	for row in reversed(doc.time_logs or []):
+		if row.start_time and not row.end_time:
+			open_log = row
+			break
+
+	if open_log:
+		end_time = now_datetime()
+		diff_seconds = time_diff_in_seconds(end_time, open_log.start_time)
+		open_log.end_time = end_time
+		open_log.duration_in_hours = round(max(0, diff_seconds / 3600), 2)
+		if reason:
+			open_log.description = reason.strip()
+		open_log.type = "Partial Repair"
+
+	doc.status = "Partial Repair"
+	doc.save(ignore_permissions=False)
+	return "ok"
 
 
 @frappe.whitelist()

@@ -346,24 +346,21 @@ export async function getMiscDefaultDays(): Promise<number> {
   return res.misc_default_days ?? 90
 }
 
+export async function getPauseReasonMandatory(): Promise<boolean> {
+  const res = await getMethod<{ pause_reason_mandatory: number }>('southwest.api.get_pause_reason_mandatory')
+  return !!(res?.pause_reason_mandatory)
+}
+
+export async function pauseRepair(name: string, reason: string): Promise<void> {
+  await call('southwest.api.pause_repair', { swo_name: name, reason })
+}
+
 export async function addCheckinLog(
   log_type: 'IN' | 'OUT',
-  userEmail: string,
   latitude: number,
   longitude: number,
 ): Promise<void> {
-  const timestamp = new Date().toISOString().replace('T', ' ').split('.')[0]
-  await call(
-    'hrms.hr.doctype.employee_checkin.employee_checkin.add_log_based_on_employee_field',
-    {
-      employee_field_value: userEmail,
-      timestamp,
-      log_type,
-      employee_fieldname: 'user_id',
-      latitude,
-      longitude,
-    },
-  )
+  await call('southwest.api.add_checkin_log', { log_type, latitude, longitude })
 }
 
 export interface CheckinLog {

@@ -5,6 +5,9 @@ from southwest.utils.sequence import get_next_sequence
 
 
 class ServiceWorkOrder(Document):
+	def before_save(self):
+		self._open_time_log_on_start()
+
 	def before_insert(self):
 		self.work_order_number = get_next_sequence(0, 6, "Service Work Order")
 		# Auto-assign the creating user as the responsible technician
@@ -26,6 +29,20 @@ class ServiceWorkOrder(Document):
 		"""Automatically submits the document when it reaches 'Completed' status (after signature)."""
 		if self.status == "Completed" and self.docstatus == 0:
 			self.submit()
+
+	def _open_time_log_on_start(self):
+		"""Appends an open Repair Session log whenever status transitions to Repairing.
+		Covers both Start Repair and Resume flows."""
+		if not self.has_value_changed("status") or self.status != "Repairing":
+			return
+		for row in (self.time_logs or []):
+			if row.start_time and not row.end_time:
+				return  # already has an open log
+		from frappe.utils import now_datetime
+		self.append("time_logs", {
+			"start_time": now_datetime(),
+			"type": "Repair Session",
+		})
 
 	def _validate_signature(self):
 		if self.status == "Completed":

@@ -18,7 +18,8 @@
   "calendar_months_after",
   "app_settings_tab",
   "recent_orders_hours",
-  "allow_skip_signature"
+  "allow_skip_signature",
+  "pause_reason_mandatory"
  ],
  "fields": [
   {
@@ -116,6 +117,13 @@
    "fieldtype": "Check",
    "label": "Allow Skip Signature",
    "description": "If enabled, technicians can skip digital signatures in the mobile app by attaching a physical document instead."
+  },
+  {
+   "default": "0",
+   "fieldname": "pause_reason_mandatory",
+   "fieldtype": "Check",
+   "label": "Pause Reason Mandatory",
+   "description": "If enabled, technicians must provide a reason when pausing a repair in the mobile app."
   }
  ],
  "issingle": 1,

@@ -1,0 +1,2 @@
+import{v as f}from"./index-ClGQY5z0.js";const t=f(!1),i=f(null);let u=null,e=null;function v(o=null,n){i.value=o,u=(n==null?void 0:n.onSaved)??null,e=(n==null?void 0:n.onStatusUpdated)??null,t.value=!0}function d(){function o(){t.value=!1}function n(){u==null||u()}function r(){e==null||e()}return{isOpen:t,swoName:i,close:o,notifySaved:n,notifyStatusUpdated:r}}export{v as o,d as u};
+//# sourceMappingURL=FormModal.vue_vue_type_style_index_0_scoped_0d2754d0_lang-CQA4_wvv.js.map

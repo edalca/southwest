@@ -3,6 +3,8 @@
     <ion-tabs>
       <ion-router-outlet />
 
+      <FormModal />
+
       <ion-tab-bar slot="bottom" class="app-tab-bar">
 
         <ion-tab-button tab="home" href="/tabs/home" class="app-tab-btn">
@@ -63,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { inject } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   IonPage,
@@ -72,6 +74,7 @@ import {
   IonTabBar,
   IonTabButton,
 } from '@ionic/vue'
+import FormModal from '@/components/orders/FormModal.vue'
 
 const route = useRoute()
 const __ = inject<(t: string) => string>('$translate', (t) => t)

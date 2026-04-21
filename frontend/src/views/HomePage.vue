@@ -82,8 +82,9 @@
             <ion-button
               expand="block"
               fill="outline"
-              :disabled="attendanceLoading || attendanceSubmitting || locationLoading || !locationData"
-              @click="doCheckin(checkedIn ? 'OUT' : 'IN')"
+              id="open-checkin-sheet"
+              :disabled="attendanceLoading"
+              @click="openCheckinSheet"
               style="
                 --border-color: #e2e8f0;
                 --background: #f8fafc;
@@ -96,24 +97,19 @@
                 font-size: 15px;
               "
             >
-              <ion-spinner v-if="attendanceSubmitting" name="crescent" color="dark" style="margin-right: 8px;" />
-              <template v-else>
-                <!-- Circle-plus icon for Check In -->
-                <svg v-if="!checkedIn" width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     style="margin-right: 8px; flex-shrink: 0;">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="8" x2="12" y2="16"/>
-                  <line x1="8" y1="12" x2="16" y2="12"/>
-                </svg>
-                <!-- Circle-minus icon for Check Out -->
-                <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                     style="margin-right: 8px; flex-shrink: 0;">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="8" y1="12" x2="16" y2="12"/>
-                </svg>
-              </template>
+              <svg v-if="!checkedIn" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   style="margin-right: 8px; flex-shrink: 0;">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="16"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
+              <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                   style="margin-right: 8px; flex-shrink: 0;">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="8" y1="12" x2="16" y2="12"/>
+              </svg>
               {{ checkedIn ? __('Check Out') : __('Check In') }}
             </ion-button>
 
@@ -122,6 +118,75 @@
             </p>
           </div>
         </div>
+
+        <!-- Check-in confirmation sheet -->
+        <ion-modal
+          ref="checkinModal"
+          trigger="open-checkin-sheet"
+          :initial-breakpoint="0.55"
+          :breakpoints="[0, 0.55]"
+        >
+          <div class="flex flex-col items-center gap-5 px-6 pt-8 pb-10">
+            <!-- Live clock -->
+            <div class="flex flex-col items-center gap-0.5">
+              <span class="font-bold text-3xl text-slate-900 tabular-nums">{{ liveTime }}</span>
+              <span class="text-sm text-slate-400">{{ todayLabel }}</span>
+            </div>
+
+            <!-- Location -->
+            <template v-if="locationLoading">
+              <div class="flex items-center gap-2 text-sm text-slate-400">
+                <ion-spinner name="dots" color="medium" style="width:14px;height:14px;" />
+                {{ __('Getting your location...') }}
+              </div>
+            </template>
+            <template v-else-if="locationData">
+              <!-- OSM embed map -->
+              <div class="w-full rounded-xl overflow-hidden border border-slate-100" style="height: 150px;">
+                <iframe
+                  width="100%"
+                  height="150"
+                  frameborder="0"
+                  scrolling="no"
+                  style="border:0"
+                  :src="`https://www.openstreetmap.org/export/embed.html?bbox=${locationData.longitude - 0.005},${locationData.latitude - 0.005},${locationData.longitude + 0.005},${locationData.latitude + 0.005}&layer=mapnik&marker=${locationData.latitude},${locationData.longitude}`"
+                />
+              </div>
+              <div class="flex items-start gap-1.5 w-full">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+                     stroke="#94a3b8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                     class="flex-shrink-0 mt-0.5">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span class="text-xs text-slate-500 leading-snug">{{ locationData.address }}</span>
+              </div>
+            </template>
+            <template v-else-if="locationError">
+              <button class="flex items-center gap-1.5 text-sm text-red-400" @click="fetchLocation">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                {{ __('Location unavailable — tap to retry') }}
+              </button>
+            </template>
+
+            <!-- Confirm button -->
+            <ion-button
+              expand="block"
+              class="w-full"
+              :disabled="attendanceSubmitting || locationLoading || !locationData"
+              @click="confirmCheckin"
+              style="--border-radius: 12px; --padding-top: 14px; --padding-bottom: 14px; font-weight: 600; font-size: 15px;"
+            >
+              <ion-spinner v-if="attendanceSubmitting" name="crescent" style="margin-right: 8px;" />
+              {{ checkedIn ? __('Confirm Check Out') : __('Confirm Check In') }}
+            </ion-button>
+          </div>
+        </ion-modal>
 
         <!-- Recent Work Orders -->
         <div>
@@ -169,7 +234,7 @@
               button
               :detail="false"
               class="swo-item rounded-xl overflow-hidden shadow-sm"
-              @click="openModal(order.name)"
+              @click="open(order.name, { onStatusUpdated: swoList.reload })"
               style="--background: #ffffff; --border-width: 0; --inner-padding-end: 0; --padding-start: 0; margin-bottom: 10px;"
             >
               <div class="flex flex-col w-full p-4">
@@ -245,39 +310,29 @@
       </div>
     </ion-content>
 
-    <!-- Unified create / edit modal -->
-    <SWOFormModal
-      v-model:is-open="showModal"
-      :swo-name="activeSwoName"
-      @status-updated="swoList.reload()"
-    />
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, onMounted, watch } from 'vue'
+import { ref, computed, inject, onMounted, onBeforeUnmount, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   IonPage, IonHeader, IonContent,
   IonRefresher, IonRefresherContent,
-  IonButton, IonSpinner,
+  IonButton, IonSpinner, IonModal,
   IonList, IonItem,
-  onIonViewWillEnter,
+  onIonViewWillEnter, modalController,
 } from '@ionic/vue'
 import { createResource } from 'frappe-ui'
 import { useTime } from '@/composables/useTime'
 import { pwaInstallPrompt, iosInstallPrompt } from '@/pwa'
 import { session } from '@/data/session'
-import { getAttendanceStatus, addCheckinLog, type ServiceWorkOrder } from '@/services/api'
+import { getAttendanceStatus, addCheckinLog } from '@/services/api'
 import { useAttendanceLocation } from '@/composables/useAttendanceLocation'
-import SWOFormModal from '@/components/SWOFormModal.vue'
+import { open } from '@/components/orders/FormModal.vue'
 
 const router = useRouter()
 const __ = inject<(t: string) => string>('$translate', (t) => t)
-
-// ── Modal State ──────────────────────────────────────────────────────────────
-const showModal     = ref(false)
-const activeSwoName = ref<string | null>(null)
 
 // ── App Settings ──────────────────────────────────────────────────────────────
 const appSettings = createResource({
@@ -349,20 +404,34 @@ async function loadAttendanceStatus() {
   }
 }
 
-async function doCheckin(log_type: 'IN' | 'OUT') {
-  if (attendanceSubmitting.value) return
-  if (!locationData.value) {
-    attendanceError.value = __('Location is not available yet. Please wait or retry.')
-    return
-  }
+// ── Check-in sheet ─────────────────────────────────────────────────────────────
+const liveTime = ref('')
+let clockInterval: ReturnType<typeof setInterval> | null = null
+
+function updateClock() {
+  liveTime.value = new Date().toLocaleTimeString(undefined, {
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  })
+}
+
+function openCheckinSheet() {
+  updateClock()
+  if (!clockInterval) clockInterval = setInterval(updateClock, 1000)
+  if (!locationData.value) fetchLocation()
+}
+
+async function confirmCheckin() {
+  const log_type = checkedIn.value ? 'OUT' : 'IN'
+  if (attendanceSubmitting.value || !locationData.value) return
   attendanceSubmitting.value = true
   attendanceError.value      = ''
   pendingLog.value           = log_type
   try {
-    await addCheckinLog(log_type, session.user ?? '', locationData.value.latitude, locationData.value.longitude)
+    await addCheckinLog(log_type, locationData.value.latitude, locationData.value.longitude)
     checkedIn.value   = log_type === 'IN'
     lastLogType.value = log_type
     lastLogTime.value = new Date().toISOString()
+    await modalController.dismiss()
   } catch (err: unknown) {
     const e = err as { messages?: string[]; message?: string }
     attendanceError.value = e?.messages?.[0] ?? e?.message ?? __('Attendance update failed.')
@@ -372,11 +441,10 @@ async function doCheckin(log_type: 'IN' | 'OUT') {
   }
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────────
-function openModal(swoName: string | null) {
-  activeSwoName.value = swoName
-  showModal.value     = true
-}
+onBeforeUnmount(() => {
+  if (clockInterval) clearInterval(clockInterval)
+})
+
 
 // ── Work Orders ────────────────────────────────────────────────────────────────
 const swoList = createResource({
