@@ -400,3 +400,64 @@ def get_misc_default_days():
 	"""Returns the misc_default_days setting for pre-populating the Next Scheduled Date field."""
 	days = frappe.db.get_single_value("Service Manager Settings", "misc_default_days")
 	return {"misc_default_days": int(days or 90)}
+
+
+@frappe.whitelist()
+def get_swo_pdf_url(name):
+	"""
+	Return the URL for the custom SWO PDF streaming endpoint.
+	Access is restricted to Staged or Completed documents.
+	"""
+	from urllib.parse import quote
+
+	doc = frappe.get_doc("Service Work Order", name)
+	frappe.has_permission("Service Work Order", doc=doc, throw=True)
+
+	if doc.status not in ("Staged", "Completed"):
+		frappe.throw(frappe._("PDF download is only available for Staged or Completed work orders."))
+
+	return f"/api/method/southwest.api.stream_swo_pdf?name={quote(name)}"
+
+
+@frappe.whitelist()
+def stream_swo_pdf(name):
+	"""
+	Generate and stream the Service Work Order PDF.
+
+	wkhtmltopdf fails SSL handshakes when the Frappe site is behind HTTPS,
+	because scrub_urls() expands relative asset paths to absolute HTTPS URLs
+	that wkhtmltopdf's embedded Qt WebKit cannot verify. The fix: pre-expand
+	those URLs ourselves using http://localhost:8000 so wkhtmltopdf fetches
+	everything over plain HTTP inside the container, bypassing SSL entirely.
+	"""
+	doc = frappe.get_doc("Service Work Order", name)
+	frappe.has_permission("Service Work Order", doc=doc, throw=True)
+
+	if doc.status not in ("Staged", "Completed"):
+		frappe.throw(frappe._("PDF download is only available for Staged or Completed work orders."))
+
+	letter_head = frappe.db.get_single_value("Service Manager Settings", "app_pdf_letter_head") or ""
+
+	html = frappe.get_print(
+		"Service Work Order",
+		name,
+		"Service Work Order",
+		letterhead=letter_head or None,
+		no_letterhead=not bool(letter_head),
+	)
+
+	# Pre-expand relative URLs to localhost HTTP so wkhtmltopdf never does an
+	# SSL handshake against the external domain (which it cannot verify).
+	from frappe.utils.data import scrub_urls
+	from frappe.utils import get_url
+	html = scrub_urls(html)  # /files/x  →  https://domain/files/x
+	site_url = get_url().rstrip("/")
+	if site_url.startswith("https://"):
+		html = html.replace(site_url, "http://localhost:8000")
+
+	from frappe.utils.pdf import get_pdf
+	pdf = get_pdf(html)
+
+	frappe.local.response.type = "pdf"
+	frappe.local.response.filecontent = pdf
+	frappe.local.response.filename = f"Work-Order-{name}.pdf"

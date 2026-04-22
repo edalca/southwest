@@ -61,6 +61,7 @@ export default defineConfig({
       base: '/assets/southwest/frontend/',
       workbox: {
         globPatterns: ['**/*.{js,css,ico,png,svg}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         navigateFallback: null,
         modifyURLPrefix: {
           '': 'assets/southwest/frontend/'

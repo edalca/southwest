@@ -12,5 +12,7 @@ declare module 'vue' {
     InstallPWAPrompt: typeof import('./src/components/InstallPWAPrompt.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    SwoPdfButton: typeof import('./src/components/orders/SwoPdfButton.vue')['default']
+    WorkOrderPdfView: typeof import('./src/components/orders/WorkOrderPdfView.vue')['default']
   }
 }

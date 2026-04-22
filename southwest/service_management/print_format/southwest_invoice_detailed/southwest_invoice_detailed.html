@@ -5,17 +5,11 @@ doc.company) %} {% set c_addr = frappe.get_doc("Address", c_addr_rows[0][0]) if 
 None %} {% set bill_addr = frappe.get_doc("Address", doc.customer_address) if doc.customer_address
 else None %} {% set swo = frappe.get_doc("Service Work Order", doc.custom_source_document) if
 (doc.custom_source_document and doc.custom_source_doctype == "Service Work Order") else None %} {%
-set equip_row = swo.equipment_selection[0] if swo and swo.equipment_selection else None %} {% set
-equip = frappe.get_doc("Equipment", equip_row.equipment) if equip_row and equip_row.equipment else
-None %} {% set po_number = swo.po_number if swo and swo.po_number else (doc.po_no or "") %} {% set
-is_misc = True if (swo and swo.service_type and swo.service_type|lower == 'misc') else False %} {%
-set make = "MISC" if is_misc else (equip.make if equip else "") %} {% set model = "MISC" if is_misc
-else (equip.model if equip else "") %} {% set serial_no = "MISC" if is_misc else (equip.serial_no
-if equip else "") %} {% set unit_no = "MISC" if is_misc else (equip.customer_unit_id_number if
-equip else "") %} {% set hour_meter = swo.hour_meter if swo and swo.hour_meter else "" %} {% set
-cust_email = doc.contact_email or "" %} {% set _sms = frappe.get_doc("Service Manager Settings",
-"Service Manager Settings") %} {% set labor_item_codes = ([_sms.pm_labor_item,
-_sms.labor_rate_item, _sms.misc_labor_item] | select("string") | list) %}
+set po_number = swo.po_number if swo and swo.po_number else (doc.po_no or "") %} {% set hour_meter
+= swo.hour_meter if swo and swo.hour_meter else "" %} {% set cust_email = doc.contact_email or ""
+%} {% set _sms = frappe.get_doc("Service Manager Settings", "Service Manager Settings") %} {% set
+labor_item_codes = ([_sms.pm_labor_item, _sms.labor_rate_item, _sms.misc_labor_item] |
+select("string") | list) %}
 
 <style>
 	* {
@@ -37,16 +31,19 @@ _sms.labor_rate_item, _sms.misc_labor_item] | select("string") | list) %}
 	table {
 		border-collapse: collapse;
 		width: 100%;
+		border: 1px solid #000;
 	}
 	td {
 		border-left: 1px solid #000;
 		border-right: 1px solid #000;
+		padding: 5px 8px;
 		font-size: 10.5px;
 		vertical-align: top;
 		color: #000;
 	}
 	th {
 		border: 1px solid #000;
+		padding: 5px 8px;
 		font-size: 10.5px;
 		font-weight: bold;
 		text-align: center;
@@ -74,14 +71,16 @@ _sms.labor_rate_item, _sms.misc_labor_item] | select("string") | list) %}
 			<!-- Right: Invoice label + date/WO table -->
 			<td style="border: none; vertical-align: top; padding: 0; text-align: right">
 				<div class="bold" style="font-size: 22px; margin-bottom: 8px">Invoice</div>
-				<table style="border: 1px solid #000">
+				<table style="margin-left: auto">
 					<tr>
-						<th>Date</th>
-						<th>Work Order #</th>
+						<th style="padding: 4px 14px">Date</th>
+						<th style="padding: 4px 14px">Work Order #</th>
 					</tr>
 					<tr>
-						<td>{{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}</td>
-						<td>{{ doc.custom_work_order_number or "" }}</td>
+						<td style="padding: 4px 14px">
+							{{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}
+						</td>
+						<td style="padding: 4px 14px">{{ doc.custom_work_order_number or "" }}</td>
 					</tr>
 				</table>
 			</td>
@@ -128,25 +127,38 @@ _sms.labor_rate_item, _sms.misc_labor_item] | select("string") | list) %}
 		</tr>
 	</table>
 
-	<!-- ═══ PO / EQUIPMENT ROW ═══ -->
+	<!-- ═══ PO / HOUR METER ROW ═══ -->
 	<table style="width: 100%; margin-top: -1px">
 		<tr>
-			<th style="width: 18%">P.O Number</th>
-			<th style="width: 15%">Make</th>
-			<th style="width: 15%">Model</th>
-			<th style="width: 18%">Serial #</th>
-			<th style="width: 17%">Unit #</th>
-			<th style="width: 17%">Hour Meter</th>
+			<th style="width: 50%">P.O Number</th>
+			<th style="width: 50%">Hour Meter</th>
 		</tr>
 		<tr>
 			<td>{{ po_number }}</td>
-			<td>{{ make }}</td>
-			<td>{{ model }}</td>
-			<td>{{ serial_no }}</td>
-			<td>{{ unit_no }}</td>
 			<td>{{ hour_meter }}</td>
 		</tr>
 	</table>
+
+	<!-- ═══ EQUIPMENT ROWS (all equipment listed individually) ═══ -->
+	{% if swo and swo.equipment_selection %}
+	<table style="width: 100%; margin-top: -1px">
+		<tr>
+			<th style="width: 25%">Make</th>
+			<th style="width: 25%">Model</th>
+			<th style="width: 25%">Serial #</th>
+			<th style="width: 25%">Unit #</th>
+		</tr>
+		{% for sel in swo.equipment_selection %} {% set equip = frappe.get_doc("Equipment",
+		sel.equipment) if sel.equipment else None %} {% if equip %}
+		<tr>
+			<td>{{ equip.make or "" }}</td>
+			<td>{{ equip.model or "" }}</td>
+			<td>{{ equip.serial_no or "" }}</td>
+			<td>{{ equip.customer_unit_id_number or "" }}</td>
+		</tr>
+		{% endif %} {% endfor %}
+	</table>
+	{% endif %}
 
 	<!-- ═══ LINE ITEMS ═══ -->
 	<table style="width: 100%; margin-top: -1px">

@@ -485,6 +485,9 @@
                         </div>
                     </template>
 
+                    <!-- PDF download (Staged / Completed) -->
+                    <SwoPdfButton :status="swo.status" :name="swo.name" :work-order-number="swo.work_order_number" />
+
                 </template>
 
             </div>
@@ -683,6 +686,7 @@ import {
 import { session } from '@/data/session'
 import { formatDate } from '@/utils/date'
 import { useFormModal } from '@/composables/useFormModal'
+import SwoPdfButton from '@/components/orders/SwoPdfButton.vue'
 
 const { isOpen, swoName, close, notifySaved, notifyStatusUpdated } = useFormModal()
 

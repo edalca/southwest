@@ -5,7 +5,7 @@ app_publisher = "Edwin Carrillo"
 app_description = "Custom adaptation for Southwest company built on top of ERPNext + HRMS"
 app_email = "edwinalonso162@hotmail.com"
 app_license = "mit"
-app_version = "16.5.0"
+app_version = "16.5.1"
 # Installation hooks
 after_install = "southwest.setup.after_install"
 before_uninstall = "southwest.setup.before_uninstall"
@@ -37,8 +37,10 @@ add_to_apps_screen = [
 	}
 ]
 
-# Redirect all /southwest/* sub-routes to the SPA entry point
+# Redirect all /southwest/* sub-routes to the SPA entry point.
+# work-order-view lives outside /southwest/ to avoid the SPA catch-all.
 website_route_rules = [
+	{"from_route": "/work-order-view/<name>", "to_route": "work-order-view"},
 	{"from_route": "/southwest/<path:app_path>", "to_route": "southwest"},
 ]
 

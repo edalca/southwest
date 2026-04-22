@@ -420,3 +420,15 @@ export async function getMonthlyAttendance(
 export async function getDateFormat(): Promise<string> {
   return (await getMethod<string>('southwest.api.get_date_format')) || 'dd-mm-yyyy'
 }
+
+// ---------------------------------------------------------------------------
+// PDF
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns the Frappe download URL for the Service Work Order PDF.
+ * Only succeeds when the SWO status is Staged or Completed.
+ */
+export async function getSWOPdfUrl(name: string): Promise<string> {
+  return getMethod<string>('southwest.api.get_swo_pdf_url', { name }) ?? ''
+}

@@ -19,7 +19,8 @@
   "app_settings_tab",
   "recent_orders_hours",
   "allow_skip_signature",
-  "pause_reason_mandatory"
+  "pause_reason_mandatory",
+  "app_pdf_letter_head"
  ],
  "fields": [
   {
@@ -124,6 +125,13 @@
    "fieldtype": "Check",
    "label": "Pause Reason Mandatory",
    "description": "If enabled, technicians must provide a reason when pausing a repair in the mobile app."
+  },
+  {
+   "fieldname": "app_pdf_letter_head",
+   "fieldtype": "Link",
+   "label": "App PDF Letter Head",
+   "options": "Letter Head",
+   "description": "Letter Head applied to Work Order PDFs downloaded from the mobile app. Leave blank to use no letter head."
   }
  ],
  "issingle": 1,

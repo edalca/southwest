@@ -146,47 +146,28 @@
     </tr>
   </table>
 
-  <!-- ── Equipment (4-column table, one row per unit) ── -->
-  {% if doc.service_type and doc.service_type|lower == 'misc' %}
-    <table style="width:100%; border-collapse:collapse; margin-bottom:10px; border-top:1px solid #ddd;">
+  <!-- ── Equipment — always list every unit individually regardless of service type ── -->
+  {% for sel in doc.equipment_selection %}
+    {% set equip = frappe.get_doc('Equipment', sel.equipment) if sel.equipment else none %}
+    {% if equip %}
+    <table style="width:100%; border-collapse:collapse; margin-bottom:6px; border-top:1px solid #ddd;">
       <tr>
         <td style="width:25%; padding:5px 8px 5px 0; vertical-align:top;">
-          <div class="swo-field"><label>Make</label><span>MISC</span></div>
+          <div class="swo-field"><label>Make</label><span>{{ equip.make or '—' }}</span></div>
         </td>
         <td style="width:25%; padding:5px 8px; vertical-align:top;">
-          <div class="swo-field"><label>Model</label><span>MISC</span></div>
+          <div class="swo-field"><label>Model</label><span>{{ equip.model or '—' }}</span></div>
         </td>
         <td style="width:25%; padding:5px 8px; vertical-align:top;">
-          <div class="swo-field"><label>Serial #</label><span>MISC</span></div>
+          <div class="swo-field"><label>Serial #</label><span>{{ equip.serial_no or '—' }}</span></div>
         </td>
         <td style="width:25%; padding:5px 0 5px 8px; vertical-align:top;">
-          <div class="swo-field"><label>Unit #</label><span>MISC</span></div>
+          <div class="swo-field"><label>Unit #</label><span>{{ equip.customer_unit_id_number or '—' }}</span></div>
         </td>
       </tr>
     </table>
-  {% else %}
-    {% for sel in doc.equipment_selection %}
-      {% set equip = frappe.get_doc('Equipment', sel.equipment) if sel.equipment else none %}
-      {% if equip %}
-      <table style="width:100%; border-collapse:collapse; margin-bottom:6px; border-top:1px solid #ddd;">
-        <tr>
-          <td style="width:25%; padding:5px 8px 5px 0; vertical-align:top;">
-            <div class="swo-field"><label>Make</label><span>{{ equip.make or '—' }}</span></div>
-          </td>
-          <td style="width:25%; padding:5px 8px; vertical-align:top;">
-            <div class="swo-field"><label>Model</label><span>{{ equip.model or '—' }}</span></div>
-          </td>
-          <td style="width:25%; padding:5px 8px; vertical-align:top;">
-            <div class="swo-field"><label>Serial #</label><span>{{ equip.serial_no or '—' }}</span></div>
-          </td>
-          <td style="width:25%; padding:5px 0 5px 8px; vertical-align:top;">
-            <div class="swo-field"><label>Unit #</label><span>{{ equip.customer_unit_id_number or '—' }}</span></div>
-          </td>
-        </tr>
-      </table>
-      {% endif %}
-    {% endfor %}
-  {% endif %}
+    {% endif %}
+  {% endfor %}
 
   <!-- ── Documentation (2-column table) ── -->
   {% if doc.repair_description or doc.problem_with_lift %}

@@ -1,0 +1,29 @@
+{
+ "absolute_value": 0,
+ "align_labels_right": 0,
+ "creation": "2026-04-21 00:00:00.000000",
+ "custom_format": 0,
+ "default_print_language": "en",
+ "disabled": 0,
+ "doc_type": "Service Work Order",
+ "docstatus": 0,
+ "doctype": "Print Format",
+ "font": "Default",
+ "font_size": 0,
+ "html": "",
+ "idx": 0,
+ "line_breaks": 0,
+ "modified": "2026-04-21 00:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Service Management",
+ "name": "Service Work Order Detailed",
+ "owner": "Administrator",
+ "print_format_type": "Jinja",
+ "show_section_headings": 0,
+ "standard": "Yes",
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ]
+}
