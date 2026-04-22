@@ -71,3 +71,4 @@ frontend/.eslintignore
 frontend/.eslintrc.cjs
 frontend/.gitignore
 .docs/
+southwest/public/frontend/
