@@ -6,6 +6,32 @@ import { defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 /**
+ * Renames .mjs assets to .js in the build output so nginx serves them
+ * with the correct application/javascript MIME type (nginx's default
+ * mime.types does not include .mjs, causing module load failures).
+ */
+function mjsToJs(): Plugin {
+  return {
+    name: 'mjs-to-js',
+    enforce: 'post',
+    generateBundle(_, bundle) {
+      for (const name of Object.keys(bundle)) {
+        if (name.endsWith('.mjs')) {
+          const chunk = bundle[name]
+          const newName = name.replace(/\.mjs$/, '.js')
+          chunk.fileName = chunk.fileName.replace(/\.mjs$/, '.js')
+          bundle[newName] = chunk
+          delete bundle[name]
+        }
+      }
+    },
+    renderChunk(code) {
+      return { code: code.replace(/\.mjs(['"])/g, '.js$1'), map: null }
+    },
+  }
+}
+
+/**
  * frappe-ui's TextEditor component uses ~icons/lucide/* (unplugin-icons).
  * Since we don't use TextEditor, stub all icon imports with an empty component.
  * The plugin must intercept both at Vite level AND inside esbuild's dep scanner.
@@ -46,6 +72,7 @@ export default defineConfig({
     allowedHosts: true,
   },
   plugins: [
+    mjsToJs(),
     iconStubPlugin(),
     frappeui({
       frappeProxy: false,

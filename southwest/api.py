@@ -12,7 +12,9 @@ def get_technician_swos(hours_limit=None):
 	import frappe
 	from frappe.utils import add_to_date, now_datetime, time_diff_in_seconds
 
-	filters = {"responsible_user": frappe.session.user, "status": ["not in", ["Billed", "Issued", "Closed", "Cancelled"]]}
+	filters = {"status": ["not in", ["Billed", "Issued", "Closed", "Cancelled"]]}
+	if frappe.session.user != "Administrator":
+		filters["responsible_user"] = frappe.session.user
 
 	if hours_limit:
 		since = add_to_date(now_datetime(), hours=-int(hours_limit))
