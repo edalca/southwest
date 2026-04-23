@@ -405,10 +405,10 @@ def get_misc_default_days():
 @frappe.whitelist()
 def get_swo_pdf_url(name):
 	"""
-	Return the URL for the custom SWO PDF streaming endpoint.
+	Return Frappe's built-in download_pdf URL for the SWO with the configured letter head.
 	Access is restricted to Staged or Completed documents.
 	"""
-	from urllib.parse import quote
+	from urllib.parse import quote, urlencode
 
 	doc = frappe.get_doc("Service Work Order", name)
 	frappe.has_permission("Service Work Order", doc=doc, throw=True)
@@ -416,7 +416,19 @@ def get_swo_pdf_url(name):
 	if doc.status not in ("Staged", "Completed"):
 		frappe.throw(frappe._("PDF download is only available for Staged or Completed work orders."))
 
-	return f"/api/method/southwest.api.stream_swo_pdf?name={quote(name)}"
+	letter_head = frappe.db.get_single_value("Service Manager Settings", "app_pdf_letter_head") or ""
+
+	params = urlencode({
+		"doctype": "Service Work Order",
+		"name": name,
+		"format": "Service Work Order",
+		"no_letterhead": 0 if letter_head else 1,
+		"letterhead": letter_head,
+		"settings": "{}",
+		"_lang": "en",
+		"pdf_generator": "wkhtmltopdf",
+	})
+	return f"/api/method/frappe.utils.print_format.download_pdf?{params}"
 
 
 @frappe.whitelist()
@@ -538,8 +550,8 @@ def stream_swo_pdf(name):
 	from frappe.utils import get_url
 	html = scrub_urls(html)
 	site_url = get_url().rstrip("/")
-	if site_url.startswith("https://"):
-		html = html.replace(site_url, "http://localhost:8000")
+	pdf_backend_url = frappe.conf.get("pdf_backend_url", "http://localhost:8000")
+	html = html.replace(site_url, pdf_backend_url)
 
 	from frappe.utils.pdf import get_pdf
 	pdf = get_pdf(html)

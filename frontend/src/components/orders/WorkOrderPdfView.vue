@@ -88,7 +88,7 @@ import * as pdfjsLib from 'pdfjs-dist'
 import { EventBus, PDFViewer, PDFLinkService } from 'pdfjs-dist/web/pdf_viewer.mjs'
 import 'pdfjs-dist/web/pdf_viewer.css'
 import workerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url'
-import { enqueueSWOPdf, getSWOPdfStatus } from '@/services/api'
+import { getSWOPdfUrl } from '@/services/api'
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -123,21 +123,8 @@ async function load() {
     destroyViewer()
 
     try {
-        const cacheKey = await enqueueSWOPdf(props.name)
-
-        // Poll until the background job finishes (max 60s)
-        const deadline = Date.now() + 60_000
-        let status = 'pending'
-        while (status === 'pending' && Date.now() < deadline) {
-            await new Promise(r => setTimeout(r, 2000))
-            const res = await getSWOPdfStatus(cacheKey)
-            status = res.status
-            if (status === 'error') throw new Error(res.message ?? 'PDF generation failed.')
-        }
-        if (status !== 'done') throw new Error('PDF generation timed out.')
-
-        const downloadUrl = `/api/method/southwest.api.download_swo_pdf?cache_key=${encodeURIComponent(cacheKey)}&name=${encodeURIComponent(props.name)}`
-        const res = await fetch(downloadUrl, { credentials: 'include' })
+        const url = await getSWOPdfUrl(props.name)
+        const res = await fetch(url, { credentials: 'include' })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         pdfBytes.value = await res.arrayBuffer()
     } catch (err: unknown) {
