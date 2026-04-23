@@ -470,7 +470,8 @@ def _generate_swo_pdf_job(name, cache_key):
 		from frappe.utils import get_url
 		html = scrub_urls(html)
 		site_url = get_url().rstrip("/")
-		html = html.replace(site_url, "http://localhost:8000")
+		pdf_backend_url = frappe.conf.get("pdf_backend_url", "http://localhost:8000")
+		html = html.replace(site_url, pdf_backend_url)
 
 		from frappe.utils.pdf import get_pdf
 		pdf = get_pdf(html)
