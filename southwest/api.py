@@ -420,15 +420,102 @@ def get_swo_pdf_url(name):
 
 
 @frappe.whitelist()
+def enqueue_swo_pdf(name):
+	"""
+	Validate the request and enqueue PDF generation in the RQ background worker.
+	Returns a cache_key the client uses to poll for completion.
+
+	Running wkhtmltopdf inside a gunicorn worker causes a deadlock: wkhtmltopdf
+	makes HTTP requests back to gunicorn (to load CSS/assets) while the worker
+	is blocked waiting for wkhtmltopdf to finish. The RQ worker is a completely
+	separate process, so it can make those HTTP requests without any deadlock.
+	"""
+	doc = frappe.get_doc("Service Work Order", name)
+	frappe.has_permission("Service Work Order", doc=doc, throw=True)
+
+	if doc.status not in ("Staged", "Completed"):
+		frappe.throw(frappe._("PDF download is only available for Staged or Completed work orders."))
+
+	cache_key = f"swo_pdf_{frappe.generate_hash(name, 16)}"
+	frappe.cache().delete_value(cache_key)
+
+	frappe.enqueue(
+		"southwest.api._generate_swo_pdf_job",
+		queue="short",
+		timeout=120,
+		name=name,
+		cache_key=cache_key,
+	)
+	return cache_key
+
+
+def _generate_swo_pdf_job(name, cache_key):
+	"""
+	RQ background job: generate the PDF and store it in Redis cache.
+	Runs in the worker process — no gunicorn deadlock possible.
+	"""
+	import base64
+	try:
+		letter_head = frappe.db.get_single_value("Service Manager Settings", "app_pdf_letter_head") or ""
+
+		html = frappe.get_print(
+			"Service Work Order",
+			name,
+			"Service Work Order",
+			letterhead=letter_head or None,
+			no_letterhead=not bool(letter_head),
+		)
+
+		from frappe.utils.data import scrub_urls
+		from frappe.utils import get_url
+		html = scrub_urls(html)
+		site_url = get_url().rstrip("/")
+		html = html.replace(site_url, "http://localhost:8000")
+
+		from frappe.utils.pdf import get_pdf
+		pdf = get_pdf(html)
+
+		frappe.cache().set_value(
+			cache_key,
+			{"status": "done", "pdf_b64": base64.b64encode(pdf).decode()},
+			expires_in_sec=600,
+		)
+	except Exception as e:
+		frappe.cache().set_value(
+			cache_key,
+			{"status": "error", "message": str(e)},
+			expires_in_sec=60,
+		)
+
+
+@frappe.whitelist()
+def get_swo_pdf_status(cache_key):
+	"""Poll whether a background PDF job has finished."""
+	result = frappe.cache().get_value(cache_key)
+	if not result:
+		return {"status": "pending"}
+	return {"status": result["status"], "message": result.get("message", "")}
+
+
+@frappe.whitelist()
+def download_swo_pdf(cache_key, name):
+	"""Stream the generated PDF from Redis cache."""
+	import base64
+	result = frappe.cache().get_value(cache_key)
+	if not result or result.get("status") != "done":
+		frappe.throw(frappe._("PDF is not ready yet."))
+
+	pdf = base64.b64decode(result["pdf_b64"])
+	frappe.local.response.type = "pdf"
+	frappe.local.response.filecontent = pdf
+	frappe.local.response.filename = f"Work-Order-{name}.pdf"
+
+
+@frappe.whitelist()
 def stream_swo_pdf(name):
 	"""
-	Generate and stream the Service Work Order PDF.
-
-	wkhtmltopdf fails SSL handshakes when the Frappe site is behind HTTPS,
-	because scrub_urls() expands relative asset paths to absolute HTTPS URLs
-	that wkhtmltopdf's embedded Qt WebKit cannot verify. The fix: pre-expand
-	those URLs ourselves using http://localhost:8000 so wkhtmltopdf fetches
-	everything over plain HTTP inside the container, bypassing SSL entirely.
+	Legacy direct-stream endpoint (kept for fallback).
+	Prefer enqueue_swo_pdf to avoid the gunicorn deadlock on busy servers.
 	"""
 	doc = frappe.get_doc("Service Work Order", name)
 	frappe.has_permission("Service Work Order", doc=doc, throw=True)
@@ -446,11 +533,9 @@ def stream_swo_pdf(name):
 		no_letterhead=not bool(letter_head),
 	)
 
-	# Pre-expand relative URLs to localhost HTTP so wkhtmltopdf never does an
-	# SSL handshake against the external domain (which it cannot verify).
 	from frappe.utils.data import scrub_urls
 	from frappe.utils import get_url
-	html = scrub_urls(html)  # /files/x  →  https://domain/files/x
+	html = scrub_urls(html)
 	site_url = get_url().rstrip("/")
 	if site_url.startswith("https://"):
 		html = html.replace(site_url, "http://localhost:8000")

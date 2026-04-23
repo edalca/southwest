@@ -432,3 +432,11 @@ export async function getDateFormat(): Promise<string> {
 export async function getSWOPdfUrl(name: string): Promise<string> {
   return getMethod<string>('southwest.api.get_swo_pdf_url', { name }) ?? ''
 }
+
+export async function enqueueSWOPdf(name: string): Promise<string> {
+  return getMethod<string>('southwest.api.enqueue_swo_pdf', { name }) ?? ''
+}
+
+export async function getSWOPdfStatus(cacheKey: string): Promise<{ status: string; message?: string }> {
+  return (getMethod('southwest.api.get_swo_pdf_status', { cache_key: cacheKey }) as Promise<{ status: string; message?: string }>) ?? { status: 'pending' }
+}
