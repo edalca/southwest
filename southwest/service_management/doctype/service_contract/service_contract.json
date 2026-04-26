@@ -18,6 +18,7 @@
   "column_break_btkj",
   "misc_rate",
   "covered_equipment_section",
+  "equipment_types",
   "equipment_details",
   "notes",
   "amended_from"
@@ -94,6 +95,13 @@
    "label": "Covered Equipment"
   },
   {
+   "fieldname": "equipment_types",
+   "fieldtype": "Table MultiSelect",
+   "label": "Equipment Types",
+   "options": "Contract Equipment Type",
+   "reqd": 1
+  },
+  {
    "fieldname": "equipment_details",
    "fieldtype": "Table",
    "label": "Equipment Details",
@@ -121,7 +129,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-12 23:10:46.372678",
+ "modified": "2026-04-25 18:18:39.811761",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Contract",

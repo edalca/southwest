@@ -7,6 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "equipment_type",
   "details_section",
   "equipment_details_column",
   "customer",
@@ -21,6 +22,14 @@
   "serial_no"
  ],
  "fields": [
+  {
+   "fieldname": "equipment_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Equipment Type",
+   "options": "Equipment Type",
+   "reqd": 1
+  },
   {
    "fieldname": "customer",
    "fieldtype": "Link",
@@ -97,7 +106,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-24 02:58:29.126870",
+ "modified": "2026-04-24 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Equipment",

@@ -20,6 +20,7 @@
   "next_scheduled_date",
   "hour_meter",
   "po_number",
+  "previous_work_order",
   "responsible_user",
   "service_items_section",
   "service_items",
@@ -143,6 +144,16 @@
    "fieldname": "hour_meter",
    "fieldtype": "Data",
    "label": "Hour Meter"
+  },
+  {
+   "description": "The work order that triggered the creation of this one (PM or Misc scheduling chain).",
+   "fieldname": "previous_work_order",
+   "fieldtype": "Link",
+   "label": "Previous Work Order",
+   "no_copy": 1,
+   "options": "Service Work Order",
+   "print_hide": 1,
+   "read_only": 1
   },
   {
    "description": "The technician responsible for this work order. Determines visibility in the mobile app.",
@@ -282,7 +293,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-19 23:51:45.862245",
+ "modified": "2026-04-26 02:37:41.775757",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Work Order",
@@ -305,6 +316,7 @@
   }
  ],
  "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [

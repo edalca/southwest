@@ -79,7 +79,7 @@
                             {{ __('Equipment') }} <span class="text-red-500">*</span>
                         </label>
 
-                        <!-- Misc: checkbox list -->
+                        <!-- Misc: tags + bottom sheet -->
                         <template v-if="isMisc">
                             <div v-if="loadingEquipment" class="flex items-center gap-2 text-sm text-slate-400 py-2">
                                 <ion-spinner name="crescent" class="spinner-small" />
@@ -93,17 +93,24 @@
                             <p v-else-if="equipment.length === 0" class="text-sm text-amber-600">
                                 {{ __('No active equipment found for this customer on the selected date') }}
                             </p>
-                            <div v-else class="space-y-1 border border-slate-200 rounded-md p-3 bg-white shadow-sm">
-                                <ion-item v-for="e in equipment" :key="e.name" class="equipment-item">
-                                    <ion-checkbox slot="start"
-                                        :checked="createForm.equipment_selection.includes(e.name)"
-                                        @ionChange="(ev: any) => toggleEquipment(e.name, ev.detail.checked)" />
-                                    <ion-label>
-                                        <p class="text-sm font-semibold text-slate-700">{{ e.customer_unit_id_number }}
-                                        </p>
-                                        <p class="text-xs text-slate-400">{{ e.name }}</p>
-                                    </ion-label>
-                                </ion-item>
+                            <div v-else>
+                                <!-- Selected equipment tags (vertical scroll) -->
+                                <div class="flex flex-col gap-1.5 overflow-y-auto mb-2"
+                                    style="max-height: 160px;">
+                                    <span v-if="createForm.equipment_selection.length === 0"
+                                        class="text-sm text-slate-400 py-1">
+                                        {{ __('No equipment selected') }}
+                                    </span>
+                                    <ion-chip v-for="name in createForm.equipment_selection" :key="name"
+                                        style="--background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; margin:0; width:100%;">
+                                        {{ equipmentLabel(name) }}
+                                    </ion-chip>
+                                </div>
+                                <!-- Manage button -->
+                                <button @click="openEquipmentSheet"
+                                    class="w-full text-sm font-semibold text-blue-950 border border-blue-950 rounded-lg py-2.5 bg-white shadow-sm active:opacity-70 transition-opacity">
+                                    {{ __('Manage Equipment') }}
+                                </button>
                             </div>
                         </template>
 
@@ -149,6 +156,10 @@
                         <div>
                             <p class="text-xs text-slate-400 mb-0.5">{{ __('Scheduled Date') }}</p>
                             <p class="text-sm font-semibold text-slate-800">{{ formatDate(swo.scheduled_date) }}</p>
+                        </div>
+                        <div v-if="previousWONumber" class="col-span-2">
+                            <p class="text-xs text-slate-400 mb-0.5">{{ __('Previous Work Order') }}</p>
+                            <p class="text-sm font-semibold text-slate-800">{{ previousWONumber }}</p>
                         </div>
                     </div>
 
@@ -616,6 +627,102 @@
 
         </ion-modal>
 
+        <!-- ── Manage Equipment bottom sheet ────────────────────────────────── -->
+        <ion-modal :is-open="showEquipmentSheet" :initial-breakpoint="0.92" :breakpoints="[0, 0.92, 1]"
+            style="--border-radius: 16px;" @did-dismiss="closeEquipmentSheet">
+            <ion-header class="ion-no-border">
+                <ion-toolbar style="--background: #fff; --min-height: 56px;">
+                    <ion-buttons slot="start" style="padding-left: 8px;">
+                        <button @click="saveEquipmentSelection" :disabled="false"
+                            style="background:#172554; color:#fff; border-radius:9999px; padding:6px 16px; font-size:14px; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,.25); cursor:pointer; white-space:nowrap;">
+                            {{ __('Save') }}
+                        </button>
+                    </ion-buttons>
+                    <ion-title style="font-size:15px; font-weight:700; color:#0f172a; text-align:center;">
+                        {{ __('Manage Equipment') }}
+                    </ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button @click="closeEquipmentSheet" style="--color: #ef4444;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+                <!-- Equipment Type filter — only shown when there are types to filter by -->
+                <div v-if="equipmentTypeOptions.length > 0"
+                    style="padding: 4px 16px 8px; border-top: 1px solid #f1f5f9;">
+                    <ion-item class="custom-ion-item" style="--min-height:44px;">
+                        <ion-select :label="__('Filter by Type')" label-placement="stacked"
+                            v-model="equipmentTypeFilter" interface="action-sheet">
+                            <ion-select-option value="">{{ __('All Types') }}</ion-select-option>
+                            <ion-select-option v-for="t in equipmentTypeOptions" :key="t" :value="t">
+                                {{ t }}
+                            </ion-select-option>
+                        </ion-select>
+                    </ion-item>
+                </div>
+            </ion-header>
+            <ion-content style="--background: #f8fafc;">
+                <div class="px-4 pt-4 pb-10 max-w-lg mx-auto space-y-5">
+
+                    <!-- Available -->
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                            {{ __('Available') }}
+                        </p>
+                        <!-- Search -->
+                        <input v-model="equipmentSearch" type="text"
+                            :placeholder="__('Search by name or unit ID...')"
+                            class="w-full mb-2 bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-950 shadow-sm transition duration-300" />
+                        <p v-if="availableEquipment.length === 0" class="text-sm text-slate-400 py-1">
+                            {{ __('No equipment available') }}
+                        </p>
+                        <!-- Scrollable list capped at ~5 rows -->
+                        <div v-else class="space-y-2 overflow-y-auto" style="max-height: 272px;">
+                            <div v-for="e in availableEquipment" :key="e.name"
+                                class="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-sm">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-700">{{ e.name }}</p>
+                                    <p class="text-xs text-slate-400">{{ e.customer_unit_id_number }}<span v-if="e.equipment_type"> · {{ e.equipment_type }}</span></p>
+                                </div>
+                                <button @click="draftAdd(e.name)"
+                                    class="text-xs font-semibold text-blue-950 border border-blue-950 rounded-full px-3 py-1 active:opacity-60 transition-opacity flex-shrink-0">
+                                    {{ __('Add') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selected -->
+                    <div>
+                        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                            {{ __('Selected') }}
+                        </p>
+                        <p v-if="selectedEquipment.length === 0" class="text-sm text-slate-400 py-1">
+                            {{ __('None selected') }}
+                        </p>
+                        <div v-else class="space-y-2">
+                            <div v-for="e in selectedEquipment" :key="e.name"
+                                class="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-xl px-3 py-2.5">
+                                <div>
+                                    <p class="text-sm font-semibold text-slate-700">{{ e.name }}</p>
+                                    <p class="text-xs text-slate-400">{{ e.customer_unit_id_number }}<span v-if="e.equipment_type"> · {{ e.equipment_type }}</span></p>
+                                </div>
+                                <button @click="draftRemove(e.name)"
+                                    class="text-xs font-semibold text-red-600 border border-red-300 rounded-full px-3 py-1 active:opacity-60 transition-opacity flex-shrink-0">
+                                    {{ __('Remove') }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </ion-content>
+        </ion-modal>
+
         <!-- ── Pause Repair bottom sheet ─────────────────────────────────────── -->
         <ion-modal :is-open="showPauseSheet" :initial-breakpoint="0.5" :breakpoints="[0, 0.5, 1]"
             style="--border-radius: 16px;" @did-dismiss="closePauseSheet">
@@ -672,14 +779,14 @@ import { createResource } from 'frappe-ui'
 import {
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonFooter, IonItem, IonLabel,
-    IonSelect, IonSelectOption, IonInput, IonTextarea, IonSpinner, IonCheckbox,
+    IonSelect, IonSelectOption, IonInput, IonTextarea, IonSpinner, IonChip,
     alertController,
 } from '@ionic/vue'
 import {
     getCustomers, getCompanies, getCustomerEquipment, createSWO, getSWO,
     updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
     getMiscDefaultDays, pauseRepair,
-    checkResponsibleUser, getActiveCustomerPO,
+    checkResponsibleUser, getActiveCustomerPO, getSWOWorkOrderNumber,
     type Customer, type Equipment, type Company,
     type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
 } from '@/services/api'
@@ -802,10 +909,66 @@ const nextScheduledDate = ref('')
 const nextDateError = ref('')
 let _finishPayload: Record<string, unknown> = {}
 
+// Previous work order display
+const previousWONumber = ref('')
+
 // Pause sheet
 const showPauseSheet = ref(false)
 const pauseReasonInput = ref('')
 const pauseReasonError = ref('')
+
+// Equipment sheet
+const showEquipmentSheet = ref(false)
+const draftSelection = ref<string[]>([])
+const equipmentTypeFilter = ref('')
+const equipmentSearch = ref('')
+
+const equipmentTypeOptions = computed(() =>
+    [...new Set(equipment.value.map(e => e.equipment_type).filter(Boolean))]
+)
+
+const availableEquipment = computed(() => {
+    const q = equipmentSearch.value.toLowerCase()
+    return equipment.value.filter(e =>
+        !draftSelection.value.includes(e.name) &&
+        (!equipmentTypeFilter.value || e.equipment_type === equipmentTypeFilter.value) &&
+        (!q || e.name.toLowerCase().includes(q) || e.customer_unit_id_number?.toLowerCase().includes(q))
+    )
+})
+
+const selectedEquipment = computed(() =>
+    equipment.value.filter(e => draftSelection.value.includes(e.name))
+)
+
+function equipmentLabel(name: string): string {
+    const e = equipment.value.find(eq => eq.name === name)
+    if (!e) return name
+    return e.customer_unit_id_number ? `${e.name} · ${e.customer_unit_id_number}` : e.name
+}
+
+function openEquipmentSheet() {
+    draftSelection.value = [...createForm.value.equipment_selection]
+    equipmentTypeFilter.value = ''
+    equipmentSearch.value = ''
+    showEquipmentSheet.value = true
+}
+
+function closeEquipmentSheet() {
+    showEquipmentSheet.value = false
+}
+
+function saveEquipmentSelection() {
+    createForm.value.equipment_selection = [...draftSelection.value]
+    showEquipmentSheet.value = false
+}
+
+function draftAdd(name: string) {
+    if (!draftSelection.value.includes(name)) draftSelection.value.push(name)
+}
+
+function draftRemove(name: string) {
+    draftSelection.value = draftSelection.value.filter(n => n !== name)
+}
 
 // Derived status flags
 const status = computed(() => swo.value?.status ?? '')
@@ -893,6 +1056,11 @@ function onDismissed() {
     showPauseSheet.value = false
     pauseReasonInput.value = ''
     pauseReasonError.value = ''
+    showEquipmentSheet.value = false
+    draftSelection.value = []
+    equipmentTypeFilter.value = ''
+    equipmentSearch.value = ''
+    previousWONumber.value = ''
 }
 
 async function loadSWO() {
@@ -900,6 +1068,12 @@ async function loadSWO() {
     loading.value = true
     try {
         swo.value = await getSWO(swoName.value)
+        if (swo.value?.previous_work_order) {
+            previousWONumber.value =
+                await getSWOWorkOrderNumber(swo.value.previous_work_order) || swo.value.previous_work_order
+        } else {
+            previousWONumber.value = ''
+        }
     } finally {
         loading.value = false
     }

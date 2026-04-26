@@ -60,6 +60,7 @@ def get_customer_equipment(customer, scheduled_date=None):
 		SELECT DISTINCT
 			e.name,
 			e.customer_unit_id_number,
+			e.equipment_type,
 			e.make,
 			e.model,
 			e.serial_no

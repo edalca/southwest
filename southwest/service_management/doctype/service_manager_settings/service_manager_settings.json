@@ -3,7 +3,7 @@
  "creation": "2026-04-02 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
-  "field_order": [
+ "field_order": [
   "operational_tab",
   "pm_labor_item",
   "labor_rate_item",
@@ -11,6 +11,7 @@
   "misc_default_days",
   "inventory_column",
   "default_swo_stock_entry_type",
+  "print_equipment_type_for",
   "system_automation_tab",
   "next_pm_generation_trigger",
   "dashboard_column",
@@ -29,32 +30,39 @@
    "label": "Operational Settings"
   },
   {
+   "description": "Item used as the labor line on PM Frequency invoices",
    "fieldname": "pm_labor_item",
    "fieldtype": "Link",
    "label": "PM Labor Item",
-   "options": "Item",
-   "description": "Item used as the labor line on PM Frequency invoices"
+   "options": "Item"
   },
   {
+   "description": "Item used as the labor line on Labor Rate invoices (hourly billing)",
    "fieldname": "labor_rate_item",
    "fieldtype": "Link",
    "label": "Labor Rate Item",
-   "options": "Item",
-   "description": "Item used as the labor line on Labor Rate invoices (hourly billing)"
+   "options": "Item"
   },
   {
+   "description": "Item used as the labor line on Misc invoices",
    "fieldname": "misc_labor_item",
    "fieldtype": "Link",
    "label": "Misc Labor Item",
-   "options": "Item",
-   "description": "Item used as the labor line on Misc invoices"
+   "options": "Item"
   },
   {
+   "default": "90",
+   "description": "Default number of days to add to today's date when pre-populating the Next Scheduled Date on Misc work orders.",
    "fieldname": "misc_default_days",
    "fieldtype": "Int",
-   "label": "Misc Default Days",
-   "default": "90",
-   "description": "Default number of days to add to today's date when pre-populating the Next Scheduled Date on Misc work orders."
+   "label": "Misc Default Days"
+  },
+  {
+   "description": "Service types that will include equipment type(s) in the printed Service Type field (e.g. 'Misc - Truck / Door').",
+   "fieldname": "print_equipment_type_for",
+   "fieldtype": "Table",
+   "label": "Print Equipment Type For",
+   "options": "Service Type Config"
   },
   {
    "fieldname": "inventory_column",
@@ -62,11 +70,11 @@
    "label": "Inventory"
   },
   {
+   "description": "Stock Entry Type used when creating inventory write-offs from Service Work Orders (typically Material Issue)",
    "fieldname": "default_swo_stock_entry_type",
    "fieldtype": "Link",
    "label": "Default SWO Stock Entry Type",
-   "options": "Stock Entry Type",
-   "description": "Stock Entry Type used when creating inventory write-offs from Service Work Orders (typically Material Issue)"
+   "options": "Stock Entry Type"
   },
   {
    "fieldname": "system_automation_tab",
@@ -74,12 +82,12 @@
    "label": "System & Automation"
   },
   {
+   "default": "On Start Repair",
+   "description": "Determines when the next programmed PM work order is automatically created for PM Frequency orders.",
    "fieldname": "next_pm_generation_trigger",
    "fieldtype": "Select",
    "label": "Next PM Generation Trigger",
-   "options": "On Start Repair\nOn Finish Repair",
-   "description": "Determines when the next programmed PM work order is automatically created for PM Frequency orders.",
-   "default": "On Start Repair"
+   "options": "On Start Repair\nOn Finish Repair"
   },
   {
    "fieldname": "dashboard_column",
@@ -87,18 +95,18 @@
    "label": "Dashboard Configuration"
   },
   {
+   "default": "2",
+   "description": "Number of past months to load work orders from for the dashboard calendar.",
    "fieldname": "calendar_months_before",
    "fieldtype": "Int",
-   "label": "Calendar Months Before",
-   "description": "Number of past months to load work orders from for the dashboard calendar.",
-   "default": "2"
+   "label": "Calendar Months Before"
   },
   {
+   "default": "2",
+   "description": "Number of future months to load work orders for in the dashboard calendar.",
    "fieldname": "calendar_months_after",
    "fieldtype": "Int",
-   "label": "Calendar Months After",
-   "description": "Number of future months to load work orders for in the dashboard calendar.",
-   "default": "2"
+   "label": "Calendar Months After"
   },
   {
    "fieldname": "app_settings_tab",
@@ -106,37 +114,37 @@
    "label": "App Settings"
   },
   {
+   "default": "24",
+   "description": "Hours to look back for recent activity on the mobile home page.",
    "fieldname": "recent_orders_hours",
    "fieldtype": "Int",
-   "label": "Recent Orders Hours Limit",
-   "default": "24",
-   "description": "Hours to look back for recent activity on the mobile home page."
+   "label": "Recent Orders Hours Limit"
   },
   {
    "default": "0",
+   "description": "If enabled, technicians can skip digital signatures in the mobile app by attaching a physical document instead.",
    "fieldname": "allow_skip_signature",
    "fieldtype": "Check",
-   "label": "Allow Skip Signature",
-   "description": "If enabled, technicians can skip digital signatures in the mobile app by attaching a physical document instead."
+   "label": "Allow Skip Signature"
   },
   {
    "default": "0",
+   "description": "If enabled, technicians must provide a reason when pausing a repair in the mobile app.",
    "fieldname": "pause_reason_mandatory",
    "fieldtype": "Check",
-   "label": "Pause Reason Mandatory",
-   "description": "If enabled, technicians must provide a reason when pausing a repair in the mobile app."
+   "label": "Pause Reason Mandatory"
   },
   {
+   "description": "Letter Head applied to Work Order PDFs downloaded from the mobile app. Leave blank to use no letter head.",
    "fieldname": "app_pdf_letter_head",
    "fieldtype": "Link",
    "label": "App PDF Letter Head",
-   "options": "Letter Head",
-   "description": "Letter Head applied to Work Order PDFs downloaded from the mobile app. Leave blank to use no letter head."
+   "options": "Letter Head"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-04-05 00:00:00",
+ "modified": "2026-04-26 01:15:45.374198",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Manager Settings",

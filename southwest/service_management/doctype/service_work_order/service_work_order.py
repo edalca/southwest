@@ -152,6 +152,42 @@ class ServiceWorkOrder(Document):
 			alert=True,
 		)
 
+	def get_service_type_display(self):
+		"""Returns a formatted service type string for print formats.
+
+		If self.service_type is listed in Service Manager Settings →
+		print_equipment_type_for, the unique equipment types from
+		equipment_selection are appended.
+
+		Examples:
+		  'Misc'          → 'Misc - Truck / Door'   (when Misc is configured)
+		  'PM Frequency'  → 'PM Frequency'           (when not configured)
+		"""
+		if not self.service_type:
+			return ""
+
+		configured = frappe.get_all(
+			"Service Type Config",
+			filters={"parent": "Service Manager Settings", "parentfield": "print_equipment_type_for"},
+			pluck="service_type",
+		)
+
+		if self.service_type not in configured:
+			return self.service_type
+
+		types = []
+		for row in self.equipment_selection or []:
+			if not row.equipment:
+				continue
+			eq_type = frappe.get_cached_value("Equipment", row.equipment, "equipment_type")
+			if eq_type and eq_type not in types:
+				types.append(eq_type)
+
+		if not types:
+			return self.service_type
+
+		return "{} - {}".format(self.service_type, " / ".join(types))
+
 	def _calculate_service_cost(self):
 		if not self.equipment_selection or not self.service_type:
 			self.service_cost = 0
@@ -651,6 +687,7 @@ def create_programmed_order(source_name, next_date):
 		"service_type": source.service_type,
 		"scheduled_date": next_date,
 		"po_number": active_po or "",
+		"previous_work_order": source_name,
 		"equipment_selection": [
 			{"equipment": row.equipment}
 			for row in (source.equipment_selection or [])

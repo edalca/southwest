@@ -9,9 +9,10 @@ set equip_row = swo.equipment_selection[0] if swo and swo.equipment_selection el
 equip = frappe.get_doc("Equipment", equip_row.equipment) if equip_row and equip_row.equipment else
 None %} {% set po_number = swo.po_number if swo and swo.po_number else (doc.po_no or "") %} {% set
 is_misc = True if (swo and swo.service_type and swo.service_type|lower == 'misc') else False %} {%
-set make = "MISC" if is_misc else (equip.make if equip else "") %} {% set model = "MISC" if is_misc
-else (equip.model if equip else "") %} {% set serial_no = "MISC" if is_misc else (equip.serial_no
-if equip else "") %} {% set unit_no = "MISC" if is_misc else (equip.customer_unit_id_number if
+set swo_display = swo.get_service_type_display() if swo else "" %} {%
+set make = swo_display if is_misc else (equip.make if equip else "") %} {% set model = swo_display if is_misc
+else (equip.model if equip else "") %} {% set serial_no = swo_display if is_misc else (equip.serial_no
+if equip else "") %} {% set unit_no = swo_display if is_misc else (equip.customer_unit_id_number if
 equip else "") %} {% set hour_meter = swo.hour_meter if swo and swo.hour_meter else "" %} {% set
 cust_email = doc.contact_email or "" %} {% set _sms = frappe.get_doc("Service Manager Settings",
 "Service Manager Settings") %} {% set labor_item_codes = ([_sms.pm_labor_item,
@@ -173,7 +174,16 @@ _sms.labor_rate_item, _sms.misc_labor_item] | select("string") | list) %}
 				$ {{ "{:,.2f}".format(item.amount) }}
 			</td>
 		</tr>
-		{% endfor %} {% set filler = [0, 12 - doc.items | length] | max %} {% for i in
+		{% endfor %}
+		{% for tax in doc.taxes %}
+		<tr>
+			<td style="text-align: center; vertical-align: top"></td>
+			<td style="vertical-align: top"></td>
+			<td style="vertical-align: top">{{ tax.description or "" }}</td>
+			<td style="text-align: right; vertical-align: top"></td>
+			<td style="text-align: right; vertical-align: top">$ {{ "{:,.2f}".format(tax.tax_amount or 0) }}</td>
+		</tr>
+		{% endfor %} {% set filler = [0, 12 - doc.items | length - doc.taxes | length] | max %} {% for i in
 		range(filler) %}
 		<tr style="height: 22px">
 			<td></td>

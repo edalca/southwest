@@ -140,6 +140,7 @@ export interface SWOItem {
 export interface ServiceWorkOrderDetail extends ServiceWorkOrder {
   hour_meter: string
   po_number: string
+  previous_work_order: string
   hours_worked: number
   service_cost: number
   problem_with_lift: string
@@ -162,6 +163,15 @@ export async function updateSWOStatus(
   await resource<unknown>('PUT', `Service Work Order/${encodeURIComponent(name)}`, {
     body: { status, ...extra },
   })
+}
+
+export async function getSWOWorkOrderNumber(name: string): Promise<string> {
+  const doc = await resource<{ work_order_number: string }>(
+    'GET',
+    `Service Work Order/${encodeURIComponent(name)}`,
+    { params: { fields: JSON.stringify(['work_order_number']) } },
+  )
+  return doc.work_order_number ?? ''
 }
 
 export async function updateSWO(name: string, data: Record<string, unknown>): Promise<void> {
@@ -309,7 +319,7 @@ export async function getActiveCustomerPO(customer: string): Promise<string | nu
   }
 }
 
-export interface Equipment { name: string; customer_unit_id_number: string; make: string; model: string; serial_no: string }
+export interface Equipment { name: string; customer_unit_id_number: string; equipment_type: string; make: string; model: string; serial_no: string }
 
 export async function getCustomerEquipment(customer: string, scheduledDate: string): Promise<Equipment[]> {
   return getMethod<Equipment[]>('southwest.api.get_customer_equipment', {

@@ -119,7 +119,7 @@
         <div class="swo-field"><label>Customer Name</label><span>{{ doc.customer }}</span></div>
       </td>
       <td style="width:50%; padding:0 0 6px 0; vertical-align:top;">
-        <div class="swo-field"><label>Service Type</label><span>{{ doc.service_type or '—' }}</span></div>
+        <div class="swo-field"><label>Service Type</label><span>{{ doc.get_service_type_display() or '—' }}</span></div>
       </td>
     </tr>
     <tr>
