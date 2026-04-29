@@ -25,6 +25,9 @@ class ServiceWorkOrder(Document):
 		self._handle_next_misc_automation()
 		self._check_and_submit_if_completed()
 
+	def on_submit(self):
+		_create_part_assignments(self)
+
 	def _check_and_submit_if_completed(self):
 		"""Automatically submits the document when it reaches 'Completed' status (after signature)."""
 		if self.status == "Completed" and self.docstatus == 0:
@@ -529,8 +532,6 @@ def submit_signature(token, signature=None, skipped=0, paper_signature=None):
 	doc.signature_link = ""
 	doc.save(ignore_permissions=True)
 
-	_create_part_assignments(doc)
-
 	frappe.db.commit()
 	return {"success": True, "doc_name": doc_name}
 
@@ -581,9 +582,6 @@ def desk_skip_signature(doc_name, paper_signature):
 	doc.signature_link = ""
 	doc.save()
 
-	from southwest.service_management.doctype.service_work_order.service_work_order import _create_part_assignments
-	_create_part_assignments(doc)
-
 	frappe.db.commit()
 	return True
 
@@ -627,8 +625,6 @@ def complete_work_order(doc_name, signature):
 	doc.status = "Completed"
 	doc.save(ignore_permissions=True)
 
-	_create_part_assignments(doc)
-
 	frappe.db.commit()
 	return doc.name
 
@@ -653,6 +649,7 @@ def _create_part_assignments(doc):
 					"doctype": "Service Part Assignment",
 					"service_work_order": doc.name,
 					"swo_row_name": row.name,
+					"line_no": row.idx,
 					"part_number": row.part_number or "",
 					"description": row.description or "",
 					"qty": row.qty or 1,

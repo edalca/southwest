@@ -19,6 +19,34 @@ frappe.pages["service-manager-dashboard"].on_page_load = function (wrapper) {
 		show_new_po_dialog(wrapper);
 	});
 
+	page.add_inner_button(__("Backfill Part Assignments"), function () {
+		frappe.confirm(
+			__("Scan all completed work orders and create missing Part Assignment records?"),
+			function () {
+				frappe.call({
+					method: "southwest.service_management.page.service_manager_dashboard.service_manager_dashboard.backfill_part_assignments",
+					freeze: true,
+					freeze_message: __("Scanning work orders…"),
+					callback: function (r) {
+						if (!r.exc) {
+							var res = r.message || {};
+							var n = res.created || 0;
+							var f = res.fixed || 0;
+							var parts = [];
+							if (n > 0) parts.push(__("{0} assignment(s) created.", [n]));
+							if (f > 0) parts.push(__("{0} line number(s) fixed.", [f]));
+							frappe.show_alert({
+								message: parts.length ? parts.join(" ") : __("No missing assignments found."),
+								indicator: parts.length ? "green" : "blue",
+							}, 5);
+							refresh_smd(wrapper);
+						}
+					},
+				});
+			}
+		);
+	});
+
 	// Tab switching events
 	$(wrapper.page.body).on("click", ".nav-link", function () {
 		var tab = $(this).data("tab");
@@ -225,7 +253,8 @@ function render_smd_table(wrapper, rows) {
 		'<header class="level list-row-head text-muted">' +
 		'<div class="level-left list-header-subject">' +
 		smd_col(__("Assignment ID"), "list-subject level name", true) +
-		smd_col(__("Work Order"), "hidden-xs") +
+		smd_col(__("Work Order #"), "hidden-xs") +
+		smd_col(__("Line #"), "hidden-xs smd-col-narrow") +
 		smd_col(__("Part Number"), "hidden-xs") +
 		smd_col(__("Description"), "hidden-xs") +
 		smd_col(__("Qty"), "hidden-xs smd-col-right") +
@@ -244,9 +273,11 @@ function render_smd_table(wrapper, rows) {
 	rows.forEach(function (row) {
 		var pa_link = frappe.utils.get_form_link("Service Part Assignment", row.name);
 		var swo_link = frappe.utils.get_form_link("Service Work Order", row.service_work_order);
+		var wo_label = frappe.utils.escape_html(row.work_order_number || row.service_work_order || "—");
 		var part_no = frappe.utils.escape_html(row.part_number || "—");
 		var desc = frappe.utils.escape_html(row.description || "—");
 		var qty = row.qty != null ? row.qty : "—";
+		var line_no = row.line_no != null ? row.line_no : "—";
 
 		body +=
 			'<div class="list-row-container" tabindex="1">' +
@@ -265,8 +296,11 @@ function render_smd_table(wrapper, rows) {
 			'<a href="' +
 			swo_link +
 			'">' +
-			frappe.utils.escape_html(row.service_work_order || "—") +
+			wo_label +
 			"</a>" +
+			"</div>" +
+			'<div class="list-row-col ellipsis hidden-xs smd-col-narrow text-muted">' +
+			line_no +
 			"</div>" +
 			'<div class="list-row-col ellipsis hidden-xs text-muted">' +
 			part_no +
@@ -286,6 +320,12 @@ function render_smd_table(wrapper, rows) {
 			'" ' +
 			'data-swo="' +
 			frappe.utils.escape_html(row.service_work_order || "") +
+			'" ' +
+			'data-wo-number="' +
+			frappe.utils.escape_html(row.work_order_number || row.service_work_order || "") +
+			'" ' +
+			'data-line-no="' +
+			(row.line_no != null ? row.line_no : "") +
 			'" ' +
 			'data-part="' +
 			frappe.utils.escape_html(row.part_number || "") +
@@ -336,15 +376,22 @@ function render_smd_table(wrapper, rows) {
 				{
 					fieldtype: "Data",
 					fieldname: "swo_display",
-					label: __("Work Order Number"),
+					label: __("Work Order #"),
 					read_only: 1,
-					default: $btn.data("swo"),
+					default: $btn.data("wo-number"),
 				},
 				{
 					fieldtype: "Data",
 					fieldname: "service_work_order",
 					hidden: 1,
 					default: $btn.data("swo"),
+				},
+				{
+					fieldtype: "Int",
+					fieldname: "line_no",
+					label: __("Line #"),
+					read_only: 1,
+					default: $btn.data("line-no"),
 				},
 				{
 					fieldtype: "Data",
@@ -734,6 +781,7 @@ function inject_smd_styles() {
 		".smd-val-muted{color:var(--text-muted,#8d99a6)}",
 		".smd-section-title{font-size:var(--text-md,13px);font-weight:600;margin-top:10px;margin-bottom:10px;color:var(--heading-color,#1f272e);text-transform:uppercase;letter-spacing:.04em}",
 		".smd-col-right{text-align:right}",
+		".smd-col-narrow{max-width:60px;text-align:center}",
 		".smd-empty-state{padding:40px;text-align:center;font-size:13px}",
 
 		/* Native Tab Tweak - ensures correct cursor and spacing on custom page */

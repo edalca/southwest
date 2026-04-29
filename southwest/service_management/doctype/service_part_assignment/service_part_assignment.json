@@ -9,6 +9,7 @@
   "status",
   "details_section",
   "swo_row_name",
+  "line_no",
   "part_number",
   "description",
   "col_break",
@@ -44,6 +45,14 @@
    "fieldtype": "Data",
    "hidden": 1,
    "label": "SWO Row Name",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "line_no",
+   "fieldtype": "Int",
+   "in_list_view": 1,
+   "label": "Line #",
    "no_copy": 1,
    "read_only": 1
   },

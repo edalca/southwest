@@ -21,19 +21,26 @@ def get_dashboard_data():
 	pending_rows = frappe.db.get_all(
 		"Service Part Assignment",
 		filters={"status": "Pending"},
-		fields=["name", "service_work_order", "part_number", "description", "qty"],
+		fields=["name", "service_work_order", "part_number", "description", "qty", "line_no"],
 		order_by="creation desc",
-		limit=10,
+		limit=50,
 	)
 
-	# Fetch scheduled_date from parent SWO
+	# Batch fetch SWO data (work_order_number + scheduled_date) to avoid N+1 queries
+	swo_names = list({r.service_work_order for r in pending_rows if r.service_work_order})
+	swo_map = {}
+	if swo_names:
+		for swo in frappe.db.get_all(
+			"Service Work Order",
+			filters={"name": ["in", swo_names]},
+			fields=["name", "work_order_number", "scheduled_date"],
+		):
+			swo_map[swo.name] = swo
+
 	for row in pending_rows:
-		if row.get("service_work_order"):
-			row["scheduled_date"] = frappe.db.get_value(
-				"Service Work Order", row.service_work_order, "scheduled_date"
-			)
-		else:
-			row["scheduled_date"] = None
+		swo = swo_map.get(row.service_work_order or "", frappe._dict())
+		row["work_order_number"] = swo.get("work_order_number") or ""
+		row["scheduled_date"] = swo.get("scheduled_date")
 			
 	ready_to_invoice_rows = frappe.db.get_all(
 		"Service Work Order",
@@ -144,3 +151,44 @@ def get_customer_po_summary():
 		})
 
 	return summary
+
+
+@frappe.whitelist()
+def backfill_part_assignments():
+	"""
+	Scans all submitted Service Work Orders for non-inventory part rows that
+	are missing a Service Part Assignment record and creates them.
+	Also fixes existing assignments where line_no is 0 (created before the field existed).
+	Returns counts of created and fixed assignments.
+	"""
+	swos = frappe.db.get_all("Service Work Order", filters={"docstatus": 1, "status": "Completed"}, fields=["name"])
+	created = 0
+	fixed = 0
+	for swo_ref in swos:
+		doc = frappe.get_doc("Service Work Order", swo_ref.name)
+		for row in doc.service_items or []:
+			if not row.is_non_inventory_part:
+				continue
+			existing = frappe.db.get_value(
+				"Service Part Assignment",
+				{"service_work_order": doc.name, "swo_row_name": row.name},
+				["name", "line_no"],
+				as_dict=True,
+			)
+			if not existing:
+				frappe.get_doc({
+					"doctype": "Service Part Assignment",
+					"service_work_order": doc.name,
+					"swo_row_name": row.name,
+					"line_no": row.idx,
+					"part_number": row.part_number or "",
+					"description": row.description or "",
+					"qty": row.qty or 1,
+					"status": "Pending",
+				}).insert(ignore_permissions=True)
+				created += 1
+			elif not existing.line_no:
+				frappe.db.set_value("Service Part Assignment", existing.name, "line_no", row.idx)
+				fixed += 1
+	frappe.db.commit()
+	return {"created": created, "fixed": fixed}
