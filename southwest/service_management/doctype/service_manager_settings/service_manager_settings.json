@@ -12,6 +12,8 @@
   "inventory_column",
   "default_swo_stock_entry_type",
   "print_equipment_type_for",
+  "section_break_buog",
+  "invoice_price_each_threshold",
   "system_automation_tab",
   "next_pm_generation_trigger",
   "dashboard_column",
@@ -63,6 +65,13 @@
    "fieldtype": "Table",
    "label": "Print Equipment Type For",
    "options": "Service Type Config"
+  },
+  {
+   "default": "0",
+   "description": "Minimum quantity required to display 'Price Each' on the Southwest Invoice. Set to 0 to always show it. Labor items never show Price Each regardless of this setting.",
+   "fieldname": "invoice_price_each_threshold",
+   "fieldtype": "Float",
+   "label": "Invoice Price Each Min Quantity"
   },
   {
    "fieldname": "inventory_column",
@@ -140,11 +149,15 @@
    "fieldtype": "Link",
    "label": "App PDF Letter Head",
    "options": "Letter Head"
+  },
+  {
+   "fieldname": "section_break_buog",
+   "fieldtype": "Section Break"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-04-26 01:15:45.374198",
+ "modified": "2026-04-29 17:13:03.515619",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Manager Settings",

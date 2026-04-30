@@ -9,7 +9,7 @@ set po_number = swo.po_number if swo and swo.po_number else (doc.po_no or "") %}
 = swo.hour_meter if swo and swo.hour_meter else "" %} {% set cust_email = doc.contact_email or ""
 %} {% set _sms = frappe.get_doc("Service Manager Settings", "Service Manager Settings") %} {% set
 labor_item_codes = ([_sms.pm_labor_item, _sms.labor_rate_item, _sms.misc_labor_item] |
-select("string") | list) %}
+select("string") | list) %} {% set price_each_threshold = (_sms.invoice_price_each_threshold or 0) %}
 
 <style>
 	* {
@@ -118,6 +118,8 @@ select("string") | list) %}
 					{{ c_addr.city }}{% if c_addr.state %}, {{ c_addr.state }}{% endif %}{% if
 					c_addr.pincode %} {{ c_addr.pincode }}{% endif %}
 				</div>
+				{% endif %} {% if company_doc.phone_no %}
+				<div>{{ company_doc.phone_no }}</div>
 				{% endif %} {% if company_doc.email %}
 				<div>{{ company_doc.email }}</div>
 				{% endif %} {% if company_doc.website %}
@@ -178,7 +180,7 @@ select("string") | list) %}
 			<td style="vertical-align: top">{{ item.item_code }}</td>
 			<td style="vertical-align: top; min-height: 40px">{{ item.description or "" }}</td>
 			<td style="text-align: right; vertical-align: top">
-				{% if item.item_code not in labor_item_codes %}{% if item.rate %}$ {{
+				{% if item.item_code not in labor_item_codes and (not price_each_threshold or item.qty >= price_each_threshold) %}{% if item.rate %}$ {{
 				"{:,.2f}".format(item.rate) }}{% endif %}{% endif %}
 			</td>
 			<td style="text-align: right; vertical-align: top">

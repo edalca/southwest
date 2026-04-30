@@ -420,6 +420,9 @@ function render_smd_table(wrapper, rows) {
 					label: __("Product (Item)"),
 					options: "Item",
 					reqd: 1,
+					get_query: function () {
+						return { filters: { is_stock_item: 1, disabled: 0 } };
+					},
 				},
 			],
 			primary_action_label: __("Save & Assign"),
