@@ -14,6 +14,8 @@
   "print_equipment_type_for",
   "section_break_buog",
   "invoice_price_each_threshold",
+  "invoice_item_display_field",
+  "invoice_item_description_field",
   "system_automation_tab",
   "next_pm_generation_trigger",
   "dashboard_column",
@@ -72,6 +74,18 @@
    "fieldname": "invoice_price_each_threshold",
    "fieldtype": "Float",
    "label": "Invoice Price Each Min Quantity"
+  },
+  {
+   "description": "Item field to display in the Item Code column of the Southwest Invoice. Leave blank to use the item name.",
+   "fieldname": "invoice_item_display_field",
+   "fieldtype": "Data",
+   "label": "Invoice Item Display Field"
+  },
+  {
+   "description": "Item field to display in the Description column of the Southwest Invoice. Leave blank to use the invoice line description.",
+   "fieldname": "invoice_item_description_field",
+   "fieldtype": "Data",
+   "label": "Invoice Item Description Field"
   },
   {
    "fieldname": "inventory_column",
