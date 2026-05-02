@@ -10,6 +10,14 @@ def before_insert(doc, method=None):
     doc.custom_company_sequence = get_next_sequence(0, 7, doc.doctype, doc.company)
 
 
+def validate(doc, method=None):
+	if doc.custom_source_doctype != "Service Work Order":
+		return
+	has_labor = any(item.custom_is_labor_item for item in doc.items)
+	if not has_labor:
+		frappe.throw("A Sales Invoice from a Service Work Order must have at least one labor item.")
+
+
 def on_submit(doc, method=None):
 	"""
 	When a Sales Invoice linked to a Service Work Order is submitted,

@@ -924,6 +924,7 @@ def resolve_and_create_invoice(doc_name):
 					"qty": labor_qty,
 					"rate": labor_rate,
 					"description": doc.repair_description or _("Labor — {0}").format(doc.service_type),
+					"custom_is_labor_item": 1,
 				},
 			)
 

@@ -51,6 +51,16 @@ def get_custom_fields():
 				"insert_after": "custom_service_exceptions_tab",
 			},
 		],
+		"Sales Invoice Item": [
+			{
+				"fieldname": "custom_is_labor_item",
+				"label": _("Item Labor"),
+				"fieldtype": "Check",
+				"insert_after": "amount",
+				"read_only": 1,
+				"no_copy": 1,
+			},
+		],
 		"Sales Invoice": [
 			{
 				"fieldname": "custom_company_sequence",

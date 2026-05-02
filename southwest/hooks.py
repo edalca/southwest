@@ -158,6 +158,7 @@ website_route_rules = [
 doc_events = {
     "Sales Invoice": {
         "before_insert": "southwest.overrides.sales_invoice_events.before_insert",
+        "validate": "southwest.overrides.sales_invoice_events.validate",
         "on_submit": "southwest.overrides.sales_invoice_events.on_submit",
     },
     "Stock Entry": {

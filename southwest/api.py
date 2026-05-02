@@ -326,7 +326,7 @@ def process_billing_and_stock(swo_name):
 				labor_qty = 1
 				labor_rate = doc.service_cost
 			labor_desc = doc.repair_description or f"Labor — {doc.service_type}"
-			invoice_lines.append({"item_code": labor_item, "qty": labor_qty, "rate": labor_rate, "description": labor_desc})
+			invoice_lines.append({"item_code": labor_item, "qty": labor_qty, "rate": labor_rate, "description": labor_desc, "custom_is_labor_item": 1})
 
 	if invoice_lines:
 		existing_si = frappe.db.get_value("Sales Invoice", {"custom_source_doctype": "Service Work Order", "custom_source_document": swo_name, "docstatus": ["<", 2]}, "name")
