@@ -356,6 +356,10 @@ export async function getMiscDefaultDays(): Promise<number> {
   return res.misc_default_days ?? 90
 }
 
+export async function getSuggestedPMDate(doc_name: string): Promise<{ suggested_date: string }> {
+  return getMethod<{ suggested_date: string }>('southwest.api.get_suggested_pm_date', { doc_name })
+}
+
 export async function getPauseReasonMandatory(): Promise<boolean> {
   const res = await getMethod<{ pause_reason_mandatory: number }>('southwest.api.get_pause_reason_mandatory')
   return !!(res?.pause_reason_mandatory)

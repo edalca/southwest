@@ -283,26 +283,54 @@ function partial_repair(frm) {
 	dialog.show();
 }
 
-function finish_repair(frm) {
-	const needs_hours = ["Labor Rate", "Misc"].includes(frm.doc.service_type);
-	const is_misc = frm.doc.service_type === "Misc";
-
-	if (is_misc) {
-		frappe.db
-			.get_single_value("Service Manager Settings", "misc_default_days")
-			.then((days) => {
-				const default_next_date = frappe.datetime.add_days(
-					frappe.datetime.nowdate(),
-					days || 90,
-				);
-				_show_finish_repair_dialog(frm, needs_hours, is_misc, default_next_date);
-			});
-	} else {
-		_show_finish_repair_dialog(frm, needs_hours, is_misc, null);
+async function finish_repair(frm) {
+	if (!frm.doc.problem_with_lift || !frm.doc.problem_with_lift.trim()) {
+		frappe.msgprint({
+			title: __("Required"),
+			message: __("Problem With Equipment is required before finishing the repair."),
+			indicator: "red",
+		});
+		return;
 	}
+	if (!frm.doc.repair_description || !frm.doc.repair_description.trim()) {
+		frappe.msgprint({
+			title: __("Required"),
+			message: __("Repair Description is required before finishing the repair."),
+			indicator: "red",
+		});
+		return;
+	}
+
+	const service_type = frm.doc.service_type;
+	const needs_hours = ["Labor Rate", "Misc"].includes(service_type);
+	const needs_date = ["PM Frequency", "Misc"].includes(service_type);
+
+	let default_next_date = null;
+
+	if (service_type === "Misc") {
+		const days = await frappe.db.get_single_value(
+			"Service Manager Settings",
+			"misc_default_days",
+		);
+		default_next_date = frappe.datetime.add_days(frappe.datetime.nowdate(), days || 90);
+	} else if (service_type === "PM Frequency") {
+		try {
+			const r = await frappe.call({
+				method: "southwest.api.get_suggested_pm_date",
+				args: { doc_name: frm.doc.name },
+			});
+			default_next_date =
+				r.message?.suggested_date ||
+				frappe.datetime.add_days(frappe.datetime.nowdate(), 90);
+		} catch {
+			default_next_date = frappe.datetime.add_days(frappe.datetime.nowdate(), 90);
+		}
+	}
+
+	_show_finish_repair_dialog(frm, needs_hours, needs_date, default_next_date);
 }
 
-function _show_finish_repair_dialog(frm, needs_hours, is_misc, default_next_date) {
+function _show_finish_repair_dialog(frm, needs_hours, needs_date, default_next_date) {
 	const fields = [];
 
 	if (needs_hours) {
@@ -315,14 +343,21 @@ function _show_finish_repair_dialog(frm, needs_hours, is_misc, default_next_date
 		});
 	}
 
-	if (is_misc) {
+	if (needs_date) {
+		fields.push({
+			label: __("Do not schedule next service"),
+			fieldname: "skip_next_schedule",
+			fieldtype: "Check",
+			default: 0,
+		});
 		fields.push({
 			label: __("Next Scheduled Date"),
 			fieldname: "next_scheduled_date",
 			fieldtype: "Date",
-			reqd: 1,
 			default: default_next_date,
-			description: __("Date for the next scheduled Misc work order (pre-filled from settings)"),
+			depends_on: "eval:!doc.skip_next_schedule",
+			mandatory_depends_on: "eval:!doc.skip_next_schedule",
+			description: __("Pre-filled from contract frequency. Modify if needed."),
 		});
 	}
 
@@ -340,8 +375,11 @@ function _show_finish_repair_dialog(frm, needs_hours, is_misc, default_next_date
 			if (needs_hours) {
 				frm.set_value("hours_worked", values.hours_worked);
 			}
-			if (is_misc) {
-				frm.set_value("next_scheduled_date", values.next_scheduled_date);
+			if (needs_date) {
+				frm.set_value("skip_next_schedule", values.skip_next_schedule ? 1 : 0);
+				if (!values.skip_next_schedule && values.next_scheduled_date) {
+					frm.set_value("next_scheduled_date", values.next_scheduled_date);
+				}
 			}
 			close_last_time_log(frm, values.description, "Repair Session");
 			frm.set_value("status", "Staged");

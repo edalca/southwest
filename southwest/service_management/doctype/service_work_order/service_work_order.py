@@ -16,7 +16,7 @@ class ServiceWorkOrder(Document):
 
 	def validate(self):
 		self._validate_signature()
-		self._validate_misc_next_date()
+		self._validate_next_schedule_date()
 		self._recalculate_total_repair_time()
 		self._calculate_service_cost()
 
@@ -52,15 +52,25 @@ class ServiceWorkOrder(Document):
 			if not self.signature_skipped and not self.customer_signature:
 				frappe.throw(_("Customer Signature is required to complete the work order."))
 
-	def _validate_misc_next_date(self):
-		"""Require next_scheduled_date when a Misc order transitions to Staged."""
-		if (
-			self.service_type == "Misc"
-			and self.has_value_changed("status")
-			and self.status == "Staged"
-			and not self.next_scheduled_date
-		):
+	def _validate_next_schedule_date(self):
+		"""Require next_scheduled_date when a PM or Misc order transitions to Staged.
+
+		Skipped when skip_next_schedule is set (user opted out of scheduling).
+		For PM orders, also skipped when next_pm_generated is already set (order
+		was created at start-of-repair via the 'On Start Repair' trigger).
+		"""
+		if not self.has_value_changed("status") or self.status != "Staged":
+			return
+		if self.skip_next_schedule:
+			return
+		if self.service_type == "Misc" and not self.next_scheduled_date:
 			frappe.throw(_("Next Scheduled Date is required to finish a Misc work order."))
+		if (
+			self.service_type == "PM Frequency"
+			and not self.next_scheduled_date
+			and not self.next_pm_generated
+		):
+			frappe.throw(_("Next Scheduled Date is required to finish a PM Frequency work order."))
 
 	def _recalculate_total_repair_time(self):
 		total = sum(row.duration_in_hours or 0 for row in (self.time_logs or []))
@@ -68,15 +78,20 @@ class ServiceWorkOrder(Document):
 
 	def _handle_next_pm_automation(self):
 		"""
-		Automates the creation of the next Preventive Maintenance (PM) work order
-		based on the trigger configured in Service Manager Settings.
+		Automates the creation of the next Preventive Maintenance (PM) work order.
 
 		Rules:
 		- Applies ONLY to 'PM Frequency' service type.
 		- Triggered only once per document (next_pm_generated = 1).
-		- Calculates next_date by adding pm_frequency (from active assignment).
+		- Aborts silently when skip_next_schedule is set.
+		- Uses next_scheduled_date from the document when provided (set by the
+		  technician via the mobile app or Desk dialog); falls back to calculating
+		  the date from the active assignment's pm_frequency.
 		"""
 		if self.service_type != "PM Frequency" or self.next_pm_generated:
+			return
+
+		if self.skip_next_schedule:
 			return
 
 		# ─── Load configuration ──────────────────────────────────────────────────
@@ -98,29 +113,31 @@ class ServiceWorkOrder(Document):
 			return
 
 		# ─── Resolve next date ───────────────────────────────────────────────────
-		if not self.equipment_selection or not self.equipment_selection[0].equipment:
-			return
+		if self.next_scheduled_date:
+			next_date = self.next_scheduled_date
+		else:
+			if not self.equipment_selection or not self.equipment_selection[0].equipment:
+				return
 
-		equipment = self.equipment_selection[0].equipment
-		ref_date = self.scheduled_date or frappe.utils.today()
+			equipment = self.equipment_selection[0].equipment
+			ref_date = self.scheduled_date or frappe.utils.today()
 
-		frequency = frappe.db.get_value(
-			"Service Equipment Assignment",
-			{
-				"equipment": equipment,
-				"customer": self.customer,
-				"status": "Active",
-				"valid_from": ["<=", ref_date],
-			},
-			"pm_frequency",
-			order_by="valid_from desc",
-		)
+			frequency = frappe.db.get_value(
+				"Service Equipment Assignment",
+				{
+					"equipment": equipment,
+					"customer": self.customer,
+					"status": "Active",
+					"valid_from": ["<=", ref_date],
+				},
+				"pm_frequency",
+				order_by="valid_from desc",
+			)
 
-		if not frequency:
-			# If no specific frequency found in assignment, fallback to 90 days
-			frequency = 90
+			if not frequency:
+				frequency = 90
 
-		next_date = frappe.utils.add_days(ref_date, frequency)
+			next_date = frappe.utils.add_days(ref_date, frequency)
 
 		# ─── Create Next Order ───────────────────────────────────────────────────
 		create_programmed_order(self.name, next_date)
@@ -135,14 +152,17 @@ class ServiceWorkOrder(Document):
 	def _handle_next_misc_automation(self):
 		"""
 		Creates the next Misc work order when status transitions to Staged,
-		using next_scheduled_date provided by the technician via the mobile app.
+		using next_scheduled_date provided by the technician via the mobile app or Desk.
 
 		Rules:
 		- Applies ONLY to 'Misc' service type.
-		- Requires next_scheduled_date to be set (validated in _validate_misc_next_date).
+		- Requires next_scheduled_date to be set (validated in _validate_next_schedule_date).
+		- Aborts silently when skip_next_schedule is set.
 		- Runs only when status changes to 'Staged'.
 		"""
 		if self.service_type != "Misc" or not self.next_scheduled_date:
+			return
+		if self.skip_next_schedule:
 			return
 		if not self.has_value_changed("status") or self.status != "Staged":
 			return

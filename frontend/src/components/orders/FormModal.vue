@@ -259,28 +259,48 @@
 
                     <div v-if="showHoursInput"
                         class="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-4 shadow-sm">
-                        <p class="text-sm font-semibold text-amber-800">{{ __('Enter hours worked to finish the repair')
-                        }}</p>
-                        <ion-item class="custom-ion-item" style="--background: transparent; --border-color: #fde68a;">
-                            <ion-input :label="__('Hours Worked') + ' *'" label-placement="stacked" v-model="hoursInput"
-                                type="number" step="0.1" placeholder="e.g. 2.5" class="hour-input" />
-                        </ion-item>
-                        <p v-if="hoursError" class="mt-1 text-xs text-red-500 font-medium px-2">{{ hoursError }}</p>
+                        <p class="text-sm font-semibold text-amber-800">
+                            {{ swo?.service_type === 'PM Frequency'
+                                ? __('Schedule the next service')
+                                : swo?.service_type === 'Misc'
+                                    ? __('Enter hours worked and schedule the next service')
+                                    : __('Enter hours worked to finish the repair') }}
+                        </p>
 
-                        <!-- Next Scheduled Date — only for Misc orders -->
-                        <template v-if="swo?.service_type === 'Misc'">
+                        <!-- Hours input — Labor Rate and Misc only -->
+                        <template v-if="['Labor Rate', 'Misc'].includes(swo?.service_type ?? '')">
+                            <ion-item class="custom-ion-item" style="--background: transparent; --border-color: #fde68a;">
+                                <ion-input :label="__('Hours Worked') + ' *'" label-placement="stacked"
+                                    v-model="hoursInput" type="number" step="0.1" placeholder="e.g. 2.5"
+                                    class="hour-input" />
+                            </ion-item>
+                            <p v-if="hoursError" class="mt-1 text-xs text-red-500 font-medium px-2">{{ hoursError }}</p>
+                        </template>
+
+                        <!-- Skip scheduling toggle — PM Frequency and Misc -->
+                        <template v-if="['PM Frequency', 'Misc'].includes(swo?.service_type ?? '')">
+                            <div class="flex items-center gap-3 py-1">
+                                <ion-checkbox
+                                    v-model="skipScheduling"
+                                    class="flex-shrink-0"
+                                />
+                                <span class="text-sm text-amber-900">{{ __('Finish without scheduling next service') }}</span>
+                            </div>
+                        </template>
+
+                        <!-- Next Scheduled Date — PM Frequency and Misc, hidden when skipping -->
+                        <template v-if="['PM Frequency', 'Misc'].includes(swo?.service_type ?? '') && !skipScheduling">
                             <ion-item class="custom-ion-item"
                                 style="--background: transparent; --border-color: #fde68a;">
                                 <ion-input :label="__('Next Scheduled Date') + ' *'" label-placement="stacked"
                                     v-model="nextScheduledDate" type="date" class="hour-input" />
                             </ion-item>
-                            <p v-if="nextDateError" class="mt-1 text-xs text-red-500 font-medium px-2">{{ nextDateError
-                            }}</p>
+                            <p v-if="nextDateError" class="mt-1 text-xs text-red-500 font-medium px-2">{{ nextDateError }}</p>
                         </template>
 
                         <div class="flex gap-2">
                             <ion-button fill="outline" color="medium" class="flex-1"
-                                @click="showHoursInput = false; hoursInput = ''; hoursError = ''; nextScheduledDate = ''; nextDateError = ''">
+                                @click="showHoursInput = false; hoursInput = ''; hoursError = ''; nextScheduledDate = ''; nextDateError = ''; skipScheduling = false">
                                 {{ __('Cancel') }}
                             </ion-button>
                             <ion-button color="success" class="flex-1" :disabled="acting" @click="confirmFinishRepair">
@@ -780,12 +800,13 @@ import {
     IonModal, IonHeader, IonToolbar, IonTitle, IonButtons, IonButton,
     IonContent, IonFooter, IonItem, IonLabel,
     IonSelect, IonSelectOption, IonInput, IonTextarea, IonSpinner, IonChip,
+    IonCheckbox,
     alertController,
 } from '@ionic/vue'
 import {
     getCustomers, getCompanies, getCustomerEquipment, createSWO, getSWO,
     updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
-    getMiscDefaultDays, pauseRepair,
+    getMiscDefaultDays, getSuggestedPMDate, pauseRepair,
     checkResponsibleUser, getActiveCustomerPO, getSWOWorkOrderNumber,
     type Customer, type Equipment, type Company,
     type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
@@ -901,12 +922,13 @@ const partSheetError = ref('')
 const partForm = ref(blankPartForm())
 let _sheetSearchTimer: ReturnType<typeof setTimeout> | null = null
 
-// Hours inline input
+// Hours / finish panel
 const showHoursInput = ref(false)
 const hoursInput = ref('')
 const hoursError = ref('')
 const nextScheduledDate = ref('')
 const nextDateError = ref('')
+const skipScheduling = ref(false)
 let _finishPayload: Record<string, unknown> = {}
 
 // Previous work order display
@@ -1309,8 +1331,9 @@ async function onFinishRepair() {
         service_items: localItems.value,
     }
 
-    if (!['Labor Rate', 'Misc'].includes(swo.value.service_type)) {
-        // PM Frequency: no hours needed — transition directly to Staged
+    const needsPanel = ['Labor Rate', 'Misc', 'PM Frequency'].includes(swo.value.service_type)
+    if (!needsPanel) {
+        // Unknown service types: transition directly to Staged
         acting.value = true
         try {
             await updateSWO(swoName.value!, _finishPayload)
@@ -1326,20 +1349,29 @@ async function onFinishRepair() {
         return
     }
 
-    // Labor Rate / Misc: prompt for hours worked
+    // Reset panel state
     hoursInput.value = ''
     hoursError.value = ''
     nextScheduledDate.value = ''
     nextDateError.value = ''
+    skipScheduling.value = false
 
-    if (swo.value?.service_type === 'Misc') {
+    // Pre-fill suggested date based on service type
+    if (swo.value.service_type === 'PM Frequency') {
+        try {
+            const result = await getSuggestedPMDate(swoName.value!)
+            nextScheduledDate.value = result.suggested_date || ''
+        } catch {
+            // leave empty for manual entry
+        }
+    } else if (swo.value.service_type === 'Misc') {
         try {
             const days = await getMiscDefaultDays()
             const d = new Date()
             d.setDate(d.getDate() + days)
             nextScheduledDate.value = d.toISOString().split('T')[0]
         } catch {
-            // fallback: leave empty for manual entry
+            // leave empty for manual entry
         }
     }
 
@@ -1350,23 +1382,37 @@ async function confirmFinishRepair() {
     hoursError.value = ''
     nextDateError.value = ''
 
-    const hours = parseFloat(hoursInput.value)
-    if (!hours || hours <= 0) {
-        hoursError.value = __('Please enter a valid number of hours.')
-        return
+    const serviceType = swo.value?.service_type ?? ''
+    const needsHours = ['Labor Rate', 'Misc'].includes(serviceType)
+    const needsDate = ['PM Frequency', 'Misc'].includes(serviceType)
+
+    if (needsHours) {
+        const hours = parseFloat(hoursInput.value)
+        if (!hours || hours <= 0) {
+            hoursError.value = __('Please enter a valid number of hours.')
+            return
+        }
     }
 
-    if (swo.value?.service_type === 'Misc' && !nextScheduledDate.value) {
-        nextDateError.value = __('Next Scheduled Date is required for Misc work orders.')
+    if (needsDate && !skipScheduling.value && !nextScheduledDate.value) {
+        nextDateError.value = __('Next Scheduled Date is required, or enable "Finish without scheduling".')
         return
     }
 
     acting.value = true
     try {
-        const payload: Record<string, unknown> = { ..._finishPayload, hours_worked: hours }
-        if (swo.value?.service_type === 'Misc') {
-            payload.next_scheduled_date = nextScheduledDate.value
+        const payload: Record<string, unknown> = { ..._finishPayload }
+
+        if (needsHours) {
+            payload.hours_worked = parseFloat(hoursInput.value)
         }
+        if (needsDate) {
+            payload.skip_next_schedule = skipScheduling.value ? 1 : 0
+            if (!skipScheduling.value && nextScheduledDate.value) {
+                payload.next_scheduled_date = nextScheduledDate.value
+            }
+        }
+
         await updateSWO(swoName.value!, payload)
         isDirty.value = false
         showHoursInput.value = false

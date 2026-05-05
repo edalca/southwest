@@ -13,7 +13,7 @@ def before_insert(doc, method=None):
 def validate(doc, method=None):
 	if doc.custom_source_doctype != "Service Work Order":
 		return
-	has_labor = any(item.custom_is_labor_item for item in doc.items)
+	has_labor = any(getattr(item, "custom_is_labor_item", 0) for item in doc.items)
 	if not has_labor:
 		frappe.throw("A Sales Invoice from a Service Work Order must have at least one labor item.")
 

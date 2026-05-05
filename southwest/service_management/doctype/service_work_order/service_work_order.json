@@ -40,6 +40,7 @@
   "signature_token",
   "signature_link",
   "next_pm_generated",
+  "skip_next_schedule",
   "amended_from"
  ],
  "fields": [
@@ -133,7 +134,7 @@
    "label": "Scheduled Date"
   },
   {
-   "description": "Date for the next Misc work order. Required when finishing a Misc repair.",
+   "description": "Date for the next scheduled work order. Required when finishing a PM or Misc repair unless Skip Next Schedule is set.",
    "fieldname": "next_scheduled_date",
    "fieldtype": "Date",
    "label": "Next Scheduled Date",
@@ -280,6 +281,15 @@
    "label": "Next PM Generated",
    "no_copy": 1,
    "read_only": 1
+  },
+  {
+   "default": "0",
+   "description": "When checked, finishing this order will not generate a follow-up scheduled work order.",
+   "fieldname": "skip_next_schedule",
+   "fieldtype": "Check",
+   "hidden": 1,
+   "label": "Skip Next Schedule",
+   "no_copy": 1
   },
   {
    "fieldname": "amended_from",

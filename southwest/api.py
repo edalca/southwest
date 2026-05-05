@@ -407,6 +407,38 @@ def get_misc_default_days():
 
 
 @frappe.whitelist()
+def get_suggested_pm_date(doc_name):
+	"""
+	Returns the suggested next PM date for a given Service Work Order based on
+	the active Service Equipment Assignment's pm_frequency. Falls back to 90 days
+	when no active assignment or frequency is found.
+	"""
+	doc = frappe.get_doc("Service Work Order", doc_name)
+
+	if not doc.equipment_selection or not doc.equipment_selection[0].equipment:
+		suggested = frappe.utils.add_days(doc.scheduled_date or frappe.utils.today(), 90)
+		return {"suggested_date": str(suggested)}
+
+	equipment = doc.equipment_selection[0].equipment
+	ref_date = doc.scheduled_date or frappe.utils.today()
+
+	frequency = frappe.db.get_value(
+		"Service Equipment Assignment",
+		{
+			"equipment": equipment,
+			"customer": doc.customer,
+			"status": "Active",
+			"valid_from": ["<=", ref_date],
+		},
+		"pm_frequency",
+		order_by="valid_from desc",
+	)
+
+	next_date = frappe.utils.add_days(ref_date, int(frequency or 90))
+	return {"suggested_date": str(next_date)}
+
+
+@frappe.whitelist()
 def get_swo_pdf_url(name):
 	"""
 	Return Frappe's built-in download_pdf URL for the SWO with the configured letter head.
