@@ -11,6 +11,9 @@ class ServiceContract(Document):
     def on_submit(self):
         self._create_equipment_assignments()
 
+    def before_cancel(self):
+        self._block_if_active_swos()
+
     def on_cancel(self):
         self._deactivate_equipment_assignments()
 
@@ -44,6 +47,45 @@ class ServiceContract(Document):
             indicator="green",
             alert=True,
         )
+
+    def _block_if_active_swos(self):
+        """Prevent cancellation when active Work Orders exist for any equipment in this contract."""
+        equipments = [row.equipment for row in self.equipment_details if row.equipment]
+        if not equipments:
+            return
+
+        active_statuses = ("New", "Programmed", "Repairing", "Partial Repair", "Staged")
+
+        rows = frappe.db.sql(
+            """
+            SELECT DISTINCT swo.name, swo.work_order_number, swo.status, swoe.equipment
+            FROM `tabService Work Order` swo
+            INNER JOIN `tabService Work Order Equipment` swoe ON swoe.parent = swo.name
+            WHERE swo.customer = %(customer)s
+                AND swoe.equipment IN %(equipments)s
+                AND swo.status IN %(statuses)s
+                AND swo.docstatus = 0
+            """,
+            {
+                "customer": self.customer,
+                "equipments": equipments,
+                "statuses": active_statuses,
+            },
+            as_dict=True,
+        )
+
+        if rows:
+            detail = "<br>".join(
+                "• {0} ({1}) — {2}".format(r.work_order_number or r.name, r.equipment, _(r.status))
+                for r in rows
+            )
+            frappe.throw(
+                _(
+                    "Cannot cancel this contract. The following active Work Orders must be "
+                    "cancelled first:<br><br>{0}"
+                ).format(detail),
+                title=_("Active Work Orders Exist"),
+            )
 
     def _deactivate_equipment_assignments(self):
         """

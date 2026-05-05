@@ -241,7 +241,12 @@ class ServiceWorkOrder(Document):
 
 		if not assignments:
 			self.service_cost = 0
-			return
+			frappe.throw(
+				_(
+					"No active Service Equipment Assignment found for {0} on {1}. "
+					"The Scheduled Date must fall within the assignment's validity period."
+				).format(first_equipment, ref_date)
+			)
 
 		assignment = assignments[0]
 
@@ -916,6 +921,17 @@ def resolve_and_create_invoice(doc_name):
 
 	for line in invoice_lines:
 		sinv.append("items", line)
+
+	# ── Guard: service cost must be resolvable ───────────────────────────────
+	if not doc.service_cost and doc.service_type in ("PM Frequency", "Labor Rate", "Misc"):
+		equipment = doc.equipment_selection[0].equipment if doc.equipment_selection else "—"
+		frappe.throw(
+			_(
+				"Cannot create invoice: service cost is zero for {0} on {1}. "
+				"No active Service Equipment Assignment was found for that date. "
+				"Correct the Scheduled Date and save the work order before invoicing."
+			).format(equipment, doc.scheduled_date)
+		)
 
 	# ── Labor line from Service Manager Settings ──────────────────────────────
 	if doc.service_cost:
