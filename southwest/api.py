@@ -538,6 +538,50 @@ def _generate_swo_pdf_job(name, cache_key):
 
 
 @frappe.whitelist()
+def get_swo_equipment_search(doctype, txt, searchfield, start, page_len, filters):
+	"""Link field search for Equipment filtered to those on a specific Service Work Order."""
+	work_order = (filters or {}).get("work_order") if isinstance(filters, dict) else None
+	if not work_order:
+		return []
+
+	equipment_list = frappe.db.get_all(
+		"Service Work Order Equipment",
+		filters={"parent": work_order},
+		pluck="equipment",
+	)
+	if not equipment_list:
+		return []
+
+	return frappe.db.sql(
+		"""
+		SELECT name, COALESCE(serial_no, ''), COALESCE(customer_unit_id_number, '')
+		FROM `tabEquipment`
+		WHERE name IN %(equipment_list)s
+		  AND (name LIKE %(txt)s OR serial_no LIKE %(txt)s OR customer_unit_id_number LIKE %(txt)s)
+		ORDER BY name
+		LIMIT %(page_len)s OFFSET %(start)s
+		""",
+		{"equipment_list": equipment_list, "txt": f"%{txt}%", "page_len": page_len, "start": start},
+	)
+
+
+@frappe.whitelist()
+def get_swo_info(swo_name):
+	"""Return service_type and equipment list for a Service Work Order."""
+	if not swo_name:
+		return {}
+	swo = frappe.db.get_value("Service Work Order", swo_name, "service_type", as_dict=True)
+	if not swo:
+		return {}
+	equipment_list = frappe.db.get_all(
+		"Service Work Order Equipment",
+		filters={"parent": swo_name},
+		pluck="equipment",
+	)
+	return {"service_type": swo.service_type, "equipment": equipment_list}
+
+
+@frappe.whitelist()
 def get_swo_pdf_status(cache_key):
 	"""Poll whether a background PDF job has finished."""
 	result = frappe.cache().get_value(cache_key)

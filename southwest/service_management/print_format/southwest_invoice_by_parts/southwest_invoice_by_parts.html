@@ -1,0 +1,175 @@
+{% set company_doc = frappe.get_doc("Company", doc.company) %}
+{% set c_addr_rows = frappe.db.sql("SELECT a.name FROM `tabAddress` a JOIN `tabDynamic Link` dl ON dl.parent=a.name WHERE dl.link_doctype='Company' AND dl.link_name=%s AND a.is_primary_address=1 LIMIT 1", doc.company) %}
+{% set c_addr = frappe.get_doc("Address", c_addr_rows[0][0]) if c_addr_rows else None %}
+{% set bill_addr = frappe.get_doc("Address", doc.customer_address) if doc.customer_address else None %}
+{% set cust_email = doc.contact_email or "" %}
+{% set _sms = frappe.get_doc("Service Manager Settings", "Service Manager Settings") %}
+{% set price_each_threshold = (_sms.invoice_price_each_threshold or 0) %}
+{% set item_display_field = _sms.invoice_item_display_field or "" %}
+{% set item_desc_field = _sms.invoice_item_description_field or "" %}
+
+<style>
+	* { margin: 0; padding: 0; box-sizing: border-box; }
+	body, .sw-invoice {
+		font-family: Arial, Helvetica, sans-serif;
+		font-size: 11px;
+		color: #000;
+	}
+	.sw-invoice {
+		padding: 20px;
+		max-width: 820px;
+		margin: 0 auto;
+	}
+	table { border-collapse: collapse; width: 100%; }
+	td {
+		border-left: 1px solid #000;
+		border-right: 1px solid #000;
+		font-size: 10.5px;
+		vertical-align: top;
+		color: #000;
+	}
+	th {
+		border: 1px solid #000;
+		font-size: 10.5px;
+		font-weight: bold;
+		text-align: center;
+		color: #000 !important;
+	}
+	.section-label {
+		font-weight: bold;
+		font-size: 10px;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		padding-bottom: 3px;
+		margin-bottom: 4px;
+		border-bottom: 1px solid #000;
+	}
+</style>
+
+<div class="sw-invoice">
+
+	<!-- ═══ HEADER: Letter Head (left) + Invoice title + Date/Invoice#/PO (right) ═══ -->
+	<table style="width: 100%; border: none; margin-bottom: 14px">
+		<tr>
+			<td style="border: none; vertical-align: top; padding: 0; width: 55%">
+				{{letter_head}}
+			</td>
+			<td style="border: none; vertical-align: top; padding: 0; text-align: right">
+				<div class="bold" style="font-size: 22px; margin-bottom: 8px">Invoice</div>
+				<table style="border: 1px solid #000">
+					<tr>
+						<th>Date</th>
+						<th>Invoice Number</th>
+					</tr>
+					<tr>
+						<td>{{ frappe.format(doc.posting_date, {"fieldtype": "Date"}) }}</td>
+						<td>{{ doc.name }}</td>
+					</tr>
+					<tr>
+						<th colspan="2">P.O Number</th>
+					</tr>
+					<tr>
+						<td colspan="2" style="text-align: center">{{ doc.custom_po_number or "" }}</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+	</table>
+
+	<!-- ═══ BILL TO / SHIP TO ═══ -->
+	<table style="width: 100%; margin-bottom: 0">
+		<tr>
+			<td style="width: 50%; vertical-align: top; border: 1px solid #000; padding: 8px">
+				<div class="section-label">Bill To</div>
+				<div class="bold">{{ doc.customer_name }}</div>
+				{% if cust_email %}<div>{{ cust_email }}</div>{% endif %}
+				{% if bill_addr %}
+				<div>{{ bill_addr.address_line1 }}{% if bill_addr.address_line2 %}, {{ bill_addr.address_line2 }}{% endif %}</div>
+				<div>{{ bill_addr.city }}{% if bill_addr.state %}, {{ bill_addr.state }}{% endif %}{% if bill_addr.pincode %} {{ bill_addr.pincode }}{% endif %}</div>
+				{% endif %}
+			</td>
+			<td style="width: 50%; vertical-align: top; border: 1px solid #000; padding: 8px">
+				<div class="section-label">Ship To</div>
+				<div class="bold">{{ doc.company }}</div>
+				{% if c_addr %}
+				<div>{{ c_addr.address_line1 }}{% if c_addr.address_line2 %}, {{ c_addr.address_line2 }}{% endif %}</div>
+				<div>{{ c_addr.city }}{% if c_addr.state %}, {{ c_addr.state }}{% endif %}{% if c_addr.pincode %} {{ c_addr.pincode }}{% endif %}</div>
+				{% endif %}
+				{% if company_doc.phone_no %}<div>{{ company_doc.phone_no }}</div>{% endif %}
+				{% if company_doc.email %}<div>{{ company_doc.email }}</div>{% endif %}
+				{% if company_doc.website %}<div>{{ company_doc.website }}</div>{% endif %}
+			</td>
+		</tr>
+	</table>
+
+	<!-- ═══ LINE ITEMS ═══ -->
+	<table style="width: 100%; margin-top: -1px">
+		<tr>
+			<th style="width: 7%">Quantity</th>
+			<th style="width: 11%">Item Code</th>
+			<th>Name</th>
+			<th style="width: 10%; text-align: right">Price Each</th>
+			<th style="width: 11%">Work Order (WO)</th>
+			<th style="width: 9%">Unidad ID</th>
+			<th style="width: 9%">Type</th>
+			<th style="width: 10%; text-align: right">Amount</th>
+		</tr>
+		{% for item in doc.items %}
+		{% set _swo = frappe.db.get_value("Service Work Order", item.custom_work_order, ["service_type", "work_order_number"], as_dict=True) if item.custom_work_order else None %}
+		{% set _unit_id = frappe.db.get_value("Equipment", item.custom_equipment, "customer_unit_id_number") or "" if item.custom_equipment else "" %}
+		<tr>
+			<td style="text-align: center; vertical-align: top">
+				{% if not item.custom_is_labor_item %}{% if item.qty %}{{ item.qty | int }}{% endif %}{% else %}1{% endif %}
+			</td>
+			<td style="vertical-align: top">
+				{% if item.custom_is_labor_item %}{{ item.item_code }}
+				{% elif item_display_field %}{{ frappe.db.get_value("Item", item.item_code, item_display_field) or item.item_code }}
+				{% else %}{{ item.item_code }}{% endif %}
+			</td>
+			<td style="vertical-align: top">
+				{% if item.custom_is_labor_item %}{{ item.description or "" }}
+				{% elif item_desc_field %}{{ frappe.db.get_value("Item", item.item_code, item_desc_field) or item.description or "" }}
+				{% else %}{{ item.description or "" }}{% endif %}
+			</td>
+			<td style="text-align: right; vertical-align: top">
+				{% if not item.custom_is_labor_item and (not price_each_threshold or item.qty >= price_each_threshold) %}{% if item.rate %}$ {{ "{:,.2f}".format(item.rate) }}{% endif %}{% endif %}
+			</td>
+			<td style="vertical-align: top">{{ (_swo.work_order_number or item.custom_work_order) if _swo else "" }}</td>
+			<td style="vertical-align: top">{{ _unit_id }}</td>
+			<td style="vertical-align: top">{{ _swo.service_type if _swo else "" }}</td>
+			<td style="text-align: right; vertical-align: top">$ {{ "{:,.2f}".format(item.amount) }}</td>
+		</tr>
+		{% endfor %}
+		{% for tax in doc.taxes %}
+		<tr>
+			<td></td>
+			<td></td>
+			<td style="vertical-align: top">{{ tax.description or "" }}</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td style="text-align: right; vertical-align: top">$ {{ "{:,.2f}".format(tax.tax_amount or 0) }}</td>
+		</tr>
+		{% endfor %}
+		{% set filler = [0, 10 - doc.items | length - doc.taxes | length] | max %}
+		{% for i in range(filler) %}
+		<tr style="height: 22px">
+			<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+		</tr>
+		{% endfor %}
+	</table>
+
+	<!-- ═══ TOTAL ROW ═══ -->
+	<table style="width: 100%; margin-top: -1px">
+		<tr>
+			<td style="border: 1px solid #000; text-align: right; font-weight: bold; padding: 7px 12px; font-size: 12px">
+				Total
+			</td>
+			<td style="border: 1px solid #000; text-align: right; font-weight: bold; padding: 7px 14px; font-size: 12px; width: 16%">
+				$ {{ "{:,.2f}".format(doc.grand_total) }}
+			</td>
+		</tr>
+	</table>
+
+</div>

@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "16.5.12",
+  "version": "16.5.13",
   "type": "module",
   "scripts": {
     "serve": "npx @ionic/cli serve --external",

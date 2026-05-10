@@ -8,6 +8,7 @@ app_license = "mit"
 app_version = "16.5.5"
 # Installation hooks
 after_install = "southwest.setup.after_install"
+after_migrate = "southwest.setup.after_install"
 before_uninstall = "southwest.setup.before_uninstall"
 
 # Global JS bundle loaded on every desk page
