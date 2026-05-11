@@ -251,6 +251,36 @@ The selected Customer does not have a Customer Code defined.,El cliente seleccio
 The selected Company does not have an abbreviation defined.,La empresa seleccionada no tiene una abreviatura definida.
 Billed,Facturado
 Issued,Emitido
+Work Order,Orden de Trabajo
+From Date,Fecha Desde
+To Date,Fecha Hasta
+Equipment Type,Tipo de Equipo
+Equipment Type Name,Nombre de Tipo de Equipo
+Model,Modelo
+Operational Settings,Configuración Operacional
+PM Labor Item,Artículo de Mano de Obra PM
+Labor Rate Item,Artículo de Labor Rate
+Misc Labor Item,Artículo de Mano de Obra Misc
+Misc Default Days,Días por Defecto para Misc
+Print Equipment Type For,Imprimir Tipo de Equipo Para
+Invoice Price Each Min Quantity,Cantidad Mínima para Precio Unitario en Factura
+Invoice Item Display Field,Campo de Artículo en Factura (Código)
+Invoice Item Description Field,Campo de Artículo en Factura (Descripción)
+Inventory,Inventario
+Default SWO Stock Entry Type,Tipo de Movimiento de Inventario Predeterminado
+System & Automation,Sistema y Automatización
+Next PM Generation Trigger,Disparador de Generación de Próximo PM
+Dashboard Configuration,Configuración del Dashboard
+Calendar Months Before,Meses Anteriores en el Calendario
+Calendar Months After,Meses Posteriores en el Calendario
+App Settings,Configuración de la App
+Recent Orders Hours Limit,Límite de Horas para Órdenes Recientes
+Allow Skip Signature,Permitir Omitir Firma
+Pause Reason Mandatory,Motivo de Pausa Obligatorio
+App PDF Letter Head,Membrete para PDF de la App
+Item field (Data type) to show in the Item Code column. Leave blank to use name.,Campo del artículo (tipo Dato) que se mostrará en la columna Código. Deje en blanco para usar el nombre.
+Item field (Data type) to show in the Description column. Leave blank to use the invoice line description.,Campo del artículo (tipo Dato) que se mostrará en la columna Descripción. Deje en blanco para usar la descripción de la línea.
+"Duplicate service type '{0}' in Print Equipment Type For. Each type can only appear once.","Tipo de servicio duplicado '{0}' en Imprimir Tipo de Equipo Para. Cada tipo solo puede aparecer una vez."
 New,Nuevo
 Completed,Completado
 Closed,Cerrado
