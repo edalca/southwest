@@ -15,8 +15,11 @@
             <!-- Segment Filter -->
             <ion-toolbar class="bg-amber-500 px-2 pb-2">
                 <ion-segment v-model="selectedSegment" mode="ios">
-                    <ion-segment-button value="active">
-                        <ion-label class="text-[11px] font-bold">{{ __('ACTIVE') }}</ion-label>
+                    <ion-segment-button value="repairing">
+                        <ion-label class="text-[11px] font-bold">{{ __('REPAIRING') }}</ion-label>
+                    </ion-segment-button>
+                    <ion-segment-button value="staged">
+                        <ion-label class="text-[11px] font-bold">{{ __('STAGED') }}</ion-label>
                     </ion-segment-button>
                     <ion-segment-button value="programmed">
                         <ion-label class="text-[11px] font-bold">{{ __('PROGRAMMED') }}</ion-label>
@@ -25,6 +28,29 @@
                         <ion-label class="text-[11px] font-bold">{{ __('ALL') }}</ion-label>
                     </ion-segment-button>
                 </ion-segment>
+            </ion-toolbar>
+
+            <!-- Search Bar -->
+            <ion-toolbar class="px-3 pb-2" style="--background: #f8fafc; --border-width: 0;">
+                <div class="relative flex items-center">
+                    <svg class="absolute left-3 text-slate-400 pointer-events-none" width="15" height="15"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                    <input v-model="searchQuery" type="search"
+                        :placeholder="__('Search by customer, order #...')"
+                        class="w-full rounded-xl border-0 bg-white py-2.5 pl-9 pr-8 text-sm text-slate-700 shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                    <button v-if="searchQuery" @click="searchQuery = ''"
+                        class="absolute right-3 text-slate-400 hover:text-slate-600">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                    </button>
+                </div>
             </ion-toolbar>
         </ion-header>
 
@@ -70,9 +96,11 @@
                 <p class="text-sm text-slate-400">
                     {{ selectedSegment === 'all'
                         ? __('No work orders assigned to you.')
-                        : selectedSegment === 'active'
+                        : selectedSegment === 'repairing'
                             ? __('No active repairs found.')
-                            : __('No maintenance programmed.')
+                            : selectedSegment === 'staged'
+                                ? __('No staged or completed orders found.')
+                                : __('No maintenance programmed.')
                     }}
                 </p>
             </div>
@@ -156,18 +184,30 @@ import { open } from '@/components/orders/FormModal.vue'
 const __ = inject<(t: string) => string>('$translate', (t) => t)
 
 // ── Segment Navigation ────────────────────────────────────────────────────────
-const selectedSegment = ref<'active' | 'programmed' | 'all'>('active')
+const selectedSegment = ref<'repairing' | 'staged' | 'programmed' | 'all'>('repairing')
+const searchQuery = ref('')
 
 const filteredOrders = computed(() => {
-    const data = swoList.data || []
-    if (selectedSegment.value === 'all') return data
+    let data: ServiceWorkOrder[] = swoList.data || []
 
-    const activeStatuses = ['New', 'Repairing', 'Partial Repair']
-    if (selectedSegment.value === 'active') {
-        return data.filter((o: ServiceWorkOrder) => activeStatuses.includes(o.status))
-    } else {
-        return data.filter((o: ServiceWorkOrder) => o.status === 'Programmed')
+    if (selectedSegment.value === 'repairing') {
+        data = data.filter((o) => ['New', 'Repairing', 'Partial Repair'].includes(o.status))
+    } else if (selectedSegment.value === 'staged') {
+        data = data.filter((o) => ['Staged', 'Completed'].includes(o.status))
+    } else if (selectedSegment.value === 'programmed') {
+        data = data.filter((o) => o.status === 'Programmed')
     }
+
+    const q = searchQuery.value.trim().toLowerCase()
+    if (q) {
+        data = data.filter((o) =>
+            (o.work_order_number || o.name).toLowerCase().includes(q) ||
+            (o.customer || '').toLowerCase().includes(q) ||
+            (o.service_type || '').toLowerCase().includes(q)
+        )
+    }
+
+    return data
 })
 
 // ── Data ──────────────────────────────────────────────────────────────────────
@@ -187,12 +227,12 @@ async function onRefresh(event: CustomEvent) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function statusClass(status: string): string {
     const map: Record<string, string> = {
-        New: 'bg-slate-100 text-slate-600',
+        New: 'bg-cyan-100 text-cyan-700',
         Programmed: 'bg-blue-100 text-blue-800',
         Repairing: 'bg-amber-100 text-amber-800',
         'Partial Repair': 'bg-amber-100 text-amber-800',
-        Staged: 'bg-blue-100 text-blue-800',
-        Completed: 'bg-emerald-100 text-emerald-800',
+        Staged: 'bg-purple-100 text-purple-800',
+        Completed: 'bg-green-100 text-green-700',
         Billed: 'bg-emerald-100 text-emerald-800',
         Issued: 'bg-emerald-100 text-emerald-800',
         Closed: 'bg-emerald-100 text-emerald-800',

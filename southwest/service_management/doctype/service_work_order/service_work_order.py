@@ -28,6 +28,9 @@ class ServiceWorkOrder(Document):
 	def on_submit(self):
 		_create_part_assignments(self)
 
+	def on_cancel(self):
+		self.db_set("status", "Cancelled")
+
 	def _check_and_submit_if_completed(self):
 		"""Automatically submits the document when it reaches 'Completed' status (after signature)."""
 		if self.status == "Completed" and self.docstatus == 0:
@@ -265,6 +268,22 @@ class ServiceWorkOrder(Document):
 
 		else:
 			self.service_cost = 0
+
+
+@frappe.whitelist()
+def cancel_draft_swo(swo_name):
+	"""Cancel a draft (docstatus=0) Service Work Order that is in New or Programmed status."""
+	doc = frappe.get_doc("Service Work Order", swo_name)
+	frappe.has_permission("Service Work Order", "cancel", doc=doc, throw=True)
+
+	if doc.docstatus != 0:
+		frappe.throw(_("Only draft work orders can be cancelled this way."))
+
+	frappe.db.set_value(
+		"Service Work Order",
+		swo_name,
+		{"status": "Cancelled", "docstatus": 2},
+	)
 
 
 @frappe.whitelist()
@@ -635,6 +654,19 @@ def update_po_number(doc_name, po_number):
 
 
 @frappe.whitelist()
+def update_hours_worked(doc_name, hours_worked):
+	"""Updates hours_worked on a Completed work order without triggering full validation."""
+	doc = frappe.get_doc("Service Work Order", doc_name)
+	frappe.has_permission("Service Work Order", "write", doc=doc, throw=True)
+	if doc.status not in ("Staged", "Completed", "Billed", "Issued"):
+		frappe.throw(_("Hours can only be updated from Staged onwards."))
+	if doc.service_type not in ("Misc", "Labor Rate"):
+		frappe.throw(_("Hours worked only apply to Misc and Labor Rate orders."))
+	frappe.db.set_value("Service Work Order", doc_name, "hours_worked", float(hours_worked or 0))
+	frappe.db.commit()
+
+
+@frappe.whitelist()
 def complete_work_order(doc_name, signature):
 	"""
 	Sets customer_signature, moves status to Completed, and creates
@@ -745,6 +777,26 @@ def _get_exception_item_codes(customer, service_type):
 		fields=["item_code"],
 	)
 	return {r.item_code for r in rows if r.item_code}
+
+
+@frappe.whitelist()
+def swo_requires_stock_entry(swo_name):
+	"""Returns True if any SWO service item matches the customer's exception codes and no stock entry exists yet."""
+	doc = frappe.get_doc("Service Work Order", swo_name)
+	exception_codes = _get_exception_item_codes(doc.customer, doc.service_type)
+	if not exception_codes:
+		return False
+	has_match = any(
+		item.item_code and item.item_code in exception_codes
+		for item in (doc.service_items or [])
+	)
+	if not has_match:
+		return False
+	already_exists = frappe.db.exists(
+		"Stock Entry",
+		{"custom_source_doctype": "Service Work Order", "custom_source_document": swo_name, "docstatus": ["<", 2]},
+	)
+	return not already_exists
 
 
 @frappe.whitelist()
@@ -918,6 +970,7 @@ def resolve_and_create_invoice(doc_name):
 	sinv.custom_source_doctype = "Service Work Order"
 	sinv.custom_source_document = doc_name
 	sinv.custom_work_order_number = doc.work_order_number or doc_name
+	sinv.custom_service_type = doc.service_type or ""
 
 	for line in invoice_lines:
 		sinv.append("items", line)

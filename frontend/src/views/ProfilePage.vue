@@ -30,7 +30,7 @@
           </div>
           <div class="flex items-center justify-between px-4 py-3.5">
             <span class="text-sm text-gray-500">{{ __('Version') }}</span>
-            <span class="text-sm font-semibold text-gray-900">1.0</span>
+            <span class="text-sm font-semibold text-gray-900">{{ appVersion.data ?? '…' }}</span>
           </div>
         </div>
 
@@ -70,9 +70,15 @@ import { IonPage, IonHeader, IonContent,
   IonButton, IonSpinner, IonList, IonItem,
   onIonViewWillEnter,
 } from '@ionic/vue'
+import { createResource } from 'frappe-ui'
 import { session } from '@/data/session'
 
 const __ = inject<(t: string) => string>('$translate', (t) => t)
+
+const appVersion = createResource({
+  url: 'southwest.api.get_app_version',
+  auto: true,
+})
 
 const loggingOut = ref(false)
 

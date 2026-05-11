@@ -303,7 +303,7 @@
  ],
  "is_submittable": 1,
  "links": [],
- "modified": "2026-04-26 02:37:41.775757",
+ "modified": "2026-05-11 01:30:59.100476",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Work Order",
@@ -331,7 +331,7 @@
  "sort_order": "DESC",
  "states": [
   {
-   "color": "Gray",
+   "color": "Cyan",
    "title": "New"
   },
   {
@@ -363,7 +363,7 @@
    "title": "Issued"
   },
   {
-   "color": "Green",
+   "color": "Gray",
    "title": "Closed"
   },
   {

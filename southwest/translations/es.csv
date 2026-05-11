@@ -63,3 +63,220 @@ Service Contract,Contrato de Servicio
 Equipment Number,No. Equipo
 Work Order Number,No. Orden de Trabajo
 Owner Type,Tipo de Propietario
+Actions,Acciones
+"Are you sure you want to cancel this work order? This cannot be undone.","¿Está seguro de que desea cancelar esta orden de trabajo? Esta acción no se puede deshacer."
+"Are you sure you want to complete this work order without a customer signature?","¿Está seguro de que desea completar esta orden de trabajo sin la firma del cliente?"
+Change Responsible,Cambiar Responsable
+Completing work order...,Completando orden de trabajo...
+Copy Link,Copiar Enlace
+Creating invoice...,Creando factura...
+Creating programmed order...,Creando orden programada...
+Creating stock entry...,Creando movimiento de inventario...
+Current Responsible,Responsable Actual
+Customer Signature is required.,La firma del cliente es obligatoria.
+Do not schedule next service,No programar próximo servicio
+Generate Signature Link,Generar Enlace de Firma
+Generating signature link...,Generando enlace de firma...
+New Responsible User,Nuevo Usuario Responsable
+Next Scheduled Date,Próxima Fecha Programada
+"Next service order created: {0}","Próxima orden de servicio creada: {0}"
+Only one equipment is allowed for PM Frequency and Labor Rate orders.,Solo se permite un equipo para órdenes de tipo PM Frecuencia y Labor Rate.
+Open Link,Abrir Enlace
+Please select a user.,Por favor seleccione un usuario.
+"Pre-filled from contract frequency. Modify if needed.","Completado desde la frecuencia del contrato. Modifique si es necesario."
+Problem With Equipment is required before finishing the repair.,El problema con el equipo es obligatorio antes de finalizar la reparación.
+Regenerate Link,Regenerar Enlace
+Repair Description is required before finishing the repair.,La descripción de la reparación es obligatoria antes de finalizar la reparación.
+Resetting signature status...,Restableciendo estado de firma...
+"Responsible user updated to {0}.","Responsable actualizado a {0}."
+Return to Signature,Volver a Firma
+Sales Invoice,Factura de Venta
+Scheduled WO,OT Programada
+Signature link copied to clipboard.,Enlace de firma copiado al portapapeles.
+Skip Signature,Omitir Firma
+Skipping signature...,Omitiendo firma...
+"Stock Entry created: {0}","Movimiento de inventario creado: {0}"
+Stock Entry,Movimiento de Inventario
+Update Hours Worked,Actualizar Horas Trabajadas
+Update Hours,Actualizar Horas
+Update PO Number,Actualizar Número de OC
+Updating responsible user…,Actualizando responsable...
+View Scheduled WO,Ver OT Programada
+Assign Item,Asignar Producto
+Assign product to this part,Asignar producto a esta parte
+Assigned successfully,Asignado exitosamente
+Assignment ID,ID de Asignación
+Backfill Part Assignments,Rellenar Asignaciones de Partes
+Billing & Processing,Facturación y Procesamiento
+Calendar,Calendario
+Copy Signature Link,Copiar Enlace de Firma
+Create Assignment,Crear Asignación
+Customer Code,Código de Cliente
+Customer PO Assignments,Asignaciones de OC de Clientes
+Generated,Generado
+Go to Record,Ir al Registro
+Go to Signature Link,Ir al Enlace de Firma
+Is Active,Está Activo
+Line #,Línea #
+Link Status,Estado del Enlace
+Link copied to clipboard,Enlace copiado al portapapeles
+Loading…,Cargando...
+Missing,Faltante
+New Customer PO Assignment,Nueva Asignación de OC de Cliente
+New PO Assignment,Nueva Asignación de OC
+No active assignment,Sin asignación activa
+No customers found.,No se encontraron clientes.
+No missing assignments found.,No se encontraron asignaciones faltantes.
+"No pending part assignments — all items are assigned.","No hay asignaciones de partes pendientes — todos los ítems están asignados."
+No work orders are currently awaiting signatures.,No hay órdenes de trabajo esperando firmas en este momento.
+No work orders are currently ready for invoicing.,No hay órdenes de trabajo listas para facturar en este momento.
+PO Assignment created successfully,Asignación de OC creada exitosamente
+PO Assignment,Asignación de OC
+PO Assignments,Asignaciones de OC
+Part Assignments,Asignaciones de Partes
+Pending Customer Signatures,Firmas Pendientes de Clientes
+Pending Part Assignments,Asignaciones de Partes Pendientes
+Pending Signatures,Firmas Pendientes
+Prev. WO,OT Anterior
+Process Billing & Stock,Procesar Facturación y Stock
+"Process Billing and Stock for {0}?","¿Procesar facturación y stock para {0}?"
+Processed successfully.,Procesado exitosamente.
+Processing...,Procesando...
+Product (Item),Producto (Artículo)
+Ready to Invoice & Process,Listo para Facturar y Procesar
+Ready to Invoice,Listo para Facturar
+Regenerate Signature Link,Regenerar Enlace de Firma
+Responsible,Responsable
+Save & Assign,Guardar y Asignar
+Scan all completed work orders and create missing Part Assignment records?,¿Escanear todas las órdenes completadas y crear registros de asignación faltantes?
+Scanning work orders…,Escaneando órdenes de trabajo...
+Scheduled Date,Fecha Programada
+Service Manager Dashboard,Panel de Administración de Servicio
+Signature link regenerated successfully,Enlace de firma regenerado exitosamente
+Staged (Signature),Preparado (Firma)
+Valid From,Válido Desde
+View Invoice,Ver Factura
+View PO History,Ver Historial de OC
+View Stock Entry,Ver Movimiento de Inventario
+Waiting for Signature,Esperando Firma
+Work Order ID,ID de Orden de Trabajo
+Work Order #,# Orden de Trabajo
+"{0} assignment(s) created.","{0} asignación(es) creada(s)."
+"{0} line number(s) fixed.","{0} número(s) de línea corregido(s)."
+"A Sales Invoice ({0}) already exists for this work order.","Ya existe una Factura de Venta ({0}) para esta orden de trabajo."
+"A Stock Entry ({0}) already exists for this work order.","Ya existe un Movimiento de Inventario ({0}) para esta orden de trabajo."
+Customer Signature is required to complete the work order.,La firma del cliente es obligatoria para completar la orden de trabajo.
+Document name and new user are required.,El nombre del documento y el nuevo usuario son obligatorios.
+"Generated from Service Work Order {0}","Generado desde la Orden de Trabajo de Servicio {0}"
+Hours can only be updated from Staged onwards.,Las horas solo se pueden actualizar desde el estado Preparado en adelante.
+Hours worked only apply to Misc and Labor Rate orders.,Las horas trabajadas solo aplican para órdenes de tipo Misc y Labor Rate.
+Invalid token.,Token inválido.
+Labor — {0},Mano de Obra — {0}
+"Next Misc Work Order has been automatically scheduled for {0}.","La próxima Orden de Trabajo Misc ha sido programada automáticamente para {0}."
+"Next PM Work Order has been automatically generated for {0}.","La próxima Orden de Trabajo PM ha sido generada automáticamente para {0}."
+Next Scheduled Date is required to finish a Misc work order.,La próxima fecha programada es obligatoria para finalizar una orden de trabajo Misc.
+Next Scheduled Date is required to finish a PM Frequency work order.,La próxima fecha programada es obligatoria para finalizar una orden de trabajo PM Frecuencia.
+No service exception items are configured for this customer and service type.,No hay ítems de excepción de servicio configurados para este cliente y tipo de servicio.
+None of the items in this work order match the customer's service exceptions.,Ninguno de los ítems de esta orden de trabajo coincide con las excepciones de servicio del cliente.
+Only draft work orders can be cancelled this way.,Solo las órdenes de trabajo en borrador pueden ser canceladas de esta manera.
+Signature is required.,La firma es obligatoria.
+"The following parts still need an Item assigned before invoicing: {0}","Las siguientes partes aún necesitan un Artículo asignado antes de facturar: {0}"
+This signature link is invalid or has already been used.,Este enlace de firma es inválido o ya fue utilizado.
+This work order is no longer awaiting a signature.,Esta orden de trabajo ya no está esperando una firma.
+Token is required.,El token es obligatorio.
+"User {0} does not exist or is disabled.","El usuario {0} no existe o está deshabilitado."
+"Work Order {0} status updated to {1}.","El estado de la Orden de Trabajo {0} fue actualizado a {1}."
+Work order must be in Staged status to skip signature.,La orden de trabajo debe estar en estado Preparado para omitir la firma.
+REPAIRING,EN REPARACIÓN
+STAGED,PREPARADO
+PROGRAMMED,PROGRAMADO
+ALL,TODOS
+Work Orders,Órdenes de Trabajo
+"Search by customer, order #...","Buscar por cliente, # de orden..."
+Retry,Reintentar
+No work orders assigned to you.,No hay órdenes de trabajo asignadas a usted.
+No active repairs found.,No se encontraron reparaciones activas.
+No staged or completed orders found.,No se encontraron órdenes preparadas o completadas.
+No maintenance programmed.,No hay mantenimiento programado.
+Select customer,Seleccionar cliente
+Select type,Seleccionar tipo
+Select a service type first,Seleccione primero el tipo de servicio
+Select a customer first,Seleccione primero un cliente
+No active equipment found for this customer on the selected date,No se encontró equipo activo para este cliente en la fecha seleccionada
+No equipment selected,Sin equipo seleccionado
+Manage Equipment,Administrar Equipo
+Loading...,Cargando...
+Could not load equipment,No se pudo cargar el equipo
+Select Equipment,Seleccionar Equipo
+Change Equipment,Cambiar Equipo
+e.g. 1234,ej. 1234
+Customer purchase order,Orden de compra del cliente
+Previous Work Order,Orden de Trabajo Anterior
+Problem With Equipment,Problema con el Equipo
+Describe the reported problem...,Describa el problema reportado...
+Describe the work performed...,Describa el trabajo realizado...
+Parts / Items,Partes / Artículos
+No items added yet.,No se han agregado artículos aún.
+All Types,Todos los Tipos
+Available,Disponibles
+"Search by name or unit ID...","Buscar por nombre o ID de unidad..."
+No equipment available,Sin equipo disponible
+None selected,Ninguno seleccionado
+Confirm Pause,Confirmar Pausa
+Reason (optional),Razón (opcional)
+Describe why you are pausing...,Describa por qué está pausando...
+New Work Order,Nueva Orden de Trabajo
+Select customer & type first,Seleccione cliente y tipo primero
+Select equipment,Seleccionar equipo
+Unsaved Changes,Cambios sin guardar
+Exit without saving changes?,¿Salir sin guardar los cambios?
+Exit,Salir
+Customer is required.,El cliente es obligatorio.
+Scheduled date is required.,La fecha programada es obligatoria.
+Service type is required.,El tipo de servicio es obligatorio.
+Equipment is required.,El equipo es obligatorio.
+No company configured.,No hay empresa configurada.
+"This order has been reassigned. Please reload your list before acting.","Esta orden fue reasignada. Por favor recargue la lista antes de actuar."
+"Are you sure you want to complete this order without a customer signature?","¿Está seguro de que desea completar esta orden sin la firma del cliente?"
+Failed to skip signature.,Error al omitir la firma.
+Please enter a valid number of hours.,Por favor ingrese un número válido de horas.
+"Next Scheduled Date is required, or enable ""Finish without scheduling"".","La próxima fecha programada es obligatoria, o habilite ""Finalizar sin programar""."
+Pause reason is required.,El motivo de la pausa es obligatorio.
+Item code is required.,El código del artículo es obligatorio.
+Part number or description is required.,El número de parte o la descripción es obligatorio.
+Qty must be greater than 0.,La cantidad debe ser mayor que 0.
+Action failed. Please try again.,Acción fallida. Por favor intente de nuevo.
+Please select an Owner Type and Owner before generating the code.,Por favor seleccione un Tipo de Propietario y un Propietario antes de generar el código.
+The selected Customer does not have a Customer Code defined.,El cliente seleccionado no tiene un Código de Cliente definido.
+The selected Company does not have an abbreviation defined.,La empresa seleccionada no tiene una abreviatura definida.
+Billed,Facturado
+Issued,Emitido
+New,Nuevo
+Completed,Completado
+Closed,Cerrado
+Cancelled,Cancelado
+Good morning,Buenos días
+Good afternoon,Buenas tardes
+Good evening,Buenas noches
+Getting your location...,Obteniendo su ubicación...
+Location unavailable — tap to retry,Ubicación no disponible — toque para reintentar
+Check In,Marcar Entrada
+Check Out,Marcar Salida
+Confirm Check In,Confirmar Entrada
+Confirm Check Out,Confirmar Salida
+Attendance update failed.,Error al registrar asistencia.
+Last check-in was at,Último registro de entrada a las
+Last check-out was at,Último registro de salida a las
+Recent Orders,Órdenes Recientes
+View List,Ver Lista
+View All,Ver Todo
+No recent orders.,No hay órdenes recientes.
+No activity found in the last,No hay actividad en las últimas
+hours.,horas.
+Install App,Instalar Aplicación
+Add to your home screen,Agregar a la pantalla de inicio
+Install,Instalar
+How to Install,Cómo instalar
+To install on iPhone:,Para instalar en iPhone:
+"1. Tap the Share button (↑)","1. Toque el botón Compartir (↑)"
+"2. Select ""Add to Home Screen""","2. Seleccione ""Agregar a pantalla de inicio"""

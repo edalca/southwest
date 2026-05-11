@@ -121,6 +121,33 @@ def get_dashboard_data():
 
 
 @frappe.whitelist()
+def get_swo_calendar_detail(swo_name):
+	"""Returns the fields needed for the calendar event popover."""
+	doc = frappe.db.get_value(
+		"Service Work Order",
+		swo_name,
+		[
+			"work_order_number", "customer", "company", "service_type",
+			"responsible_user", "po_number", "hour_meter", "service_cost",
+			"status", "scheduled_date", "previous_work_order",
+		],
+		as_dict=True,
+	)
+	if not doc:
+		return {}
+
+	equipment_rows = frappe.db.get_all(
+		"Service Work Order Equipment",
+		filters={"parent": swo_name},
+		fields=["equipment"],
+		order_by="idx asc",
+	)
+	doc["equipment"] = [r.equipment for r in equipment_rows if r.equipment]
+	doc["name"] = swo_name
+	return doc
+
+
+@frappe.whitelist()
 def get_customer_po_summary():
 	"""
 	Returns a list of all customers with their ID, Name, and current active PO.

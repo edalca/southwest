@@ -5,6 +5,23 @@ from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
 
 def create_fields():
 	create_custom_fields(get_custom_fields(), ignore_validate=True)
+	_sync_properties()
+
+
+def _sync_properties():
+	"""
+	create_custom_fields skips existing fields, so property changes (in_list_view,
+	read_only, etc.) never propagate after the first install. Force-sync here.
+	"""
+	for doctype, fields in get_custom_fields().items():
+		for field in fields:
+			cf_name = frappe.db.get_value(
+				"Custom Field", {"dt": doctype, "fieldname": field["fieldname"]}
+			)
+			if not cf_name:
+				continue
+			props = {k: v for k, v in field.items() if k not in ("fieldname", "fieldtype", "options")}
+			frappe.db.set_value("Custom Field", cf_name, props, update_modified=False)
 
 
 def delete_fields():
@@ -88,6 +105,16 @@ def get_custom_fields():
 				"fieldtype": "Data",
 				"insert_after": "customer_name",
 				"no_copy": 0,
+			},
+			{
+				"fieldname": "custom_service_type",
+				"label": _("Service Type"),
+				"fieldtype": "Data",
+				"insert_after": "custom_po_number",
+				"read_only": 1,
+				"no_copy": 1,
+				"in_list_view": 1,
+				"print_hide": 1,
 			},
 			{
 				"fieldname": "custom_company_sequence",

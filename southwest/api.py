@@ -341,6 +341,7 @@ def process_billing_and_stock(swo_name):
 			sinv.custom_source_doctype = "Service Work Order"
 			sinv.custom_source_document = swo_name
 			sinv.custom_work_order_number = doc.work_order_number or swo_name
+			sinv.custom_service_type = doc.service_type or ""
 			for line in invoice_lines:
 				sinv.append("items", line)
 			sinv.insert(ignore_permissions=True)
@@ -639,3 +640,9 @@ def stream_swo_pdf(name):
 	frappe.local.response.type = "pdf"
 	frappe.local.response.filecontent = pdf
 	frappe.local.response.filename = f"Work-Order-{name}.pdf"
+
+
+@frappe.whitelist()
+def get_app_version():
+	import southwest
+	return southwest.__version__

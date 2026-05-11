@@ -114,21 +114,35 @@
                             </div>
                         </template>
 
-                        <!-- Single select -->
+                        <!-- Single select (PM / Labor Rate) — bottom sheet with search -->
                         <template v-else>
-                            <ion-item class="custom-ion-item">
-                                <ion-select :label="__('Equipment') + ' *'" label-placement="stacked"
-                                    v-model="singleEquipment" :disabled="equipmentDisabled"
-                                    :placeholder="equipmentPlaceholder" interface="action-sheet">
-                                    <ion-select-option v-for="e in equipment" :key="e.name" :value="e.name">
-                                        {{ e.customer_unit_id_number }} — {{ e.name }}
-                                    </ion-select-option>
-                                </ion-select>
-                            </ion-item>
-                            <p v-if="loadingEquipment" class="mt-1 text-xs text-slate-400 px-4">
-                                {{ __('Loading equipment...') }}</p>
-                            <p v-else-if="equipmentError" class="mt-1 text-xs text-red-500 px-4">
-                                {{ __('Could not load equipment') }}</p>
+                            <div v-if="loadingEquipment" class="flex items-center gap-2 text-sm text-slate-400 py-2">
+                                <ion-spinner name="crescent" class="spinner-small" />
+                                {{ __('Loading...') }}
+                            </div>
+                            <p v-else-if="equipmentError" class="text-xs text-red-500">
+                                {{ __('Could not load equipment') }}
+                            </p>
+                            <p v-else-if="!createForm.customer || !createForm.service_type"
+                                class="text-sm text-slate-400">
+                                {{ !createForm.service_type ? __('Select a service type first') :
+                                    __('Select a customer first') }}
+                            </p>
+                            <p v-else-if="equipment.length === 0" class="text-sm text-amber-600">
+                                {{ __('No active equipment found for this customer on the selected date') }}
+                            </p>
+                            <div v-else>
+                                <div v-if="singleEquipment" class="mb-2">
+                                    <ion-chip
+                                        style="--background:#eff6ff; color:#1e3a8a; border:1px solid #bfdbfe; margin:0; width:100%;">
+                                        {{ equipmentLabel(singleEquipment) }}
+                                    </ion-chip>
+                                </div>
+                                <button @click="openSingleEquipSheet"
+                                    class="w-full text-sm font-semibold text-blue-950 border border-blue-950 rounded-lg py-2.5 bg-white shadow-sm active:opacity-70 transition-opacity">
+                                    {{ singleEquipment ? __('Change Equipment') : __('Select Equipment') }}
+                                </button>
+                            </div>
                         </template>
                     </div>
 
@@ -743,6 +757,56 @@
             </ion-content>
         </ion-modal>
 
+        <!-- ── Single Equipment bottom sheet (PM / Labor Rate) ─────────────── -->
+        <ion-modal :is-open="showSingleEquipSheet" :initial-breakpoint="0.85" :breakpoints="[0, 0.85, 1]"
+            style="--border-radius: 16px;" @did-dismiss="closeSingleEquipSheet">
+            <ion-header class="ion-no-border">
+                <ion-toolbar style="--background: #fff; --min-height: 56px;">
+                    <ion-title style="font-size:15px; font-weight:700; color:#0f172a; text-align:center;">
+                        {{ __('Select Equipment') }}
+                    </ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button @click="closeSingleEquipSheet" style="--color: #ef4444;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+                <div style="padding: 4px 16px 12px; border-top: 1px solid #f1f5f9;">
+                    <input v-model="singleEquipSearch" type="text"
+                        :placeholder="__('Search by name or unit ID...')"
+                        class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-950 shadow-sm transition duration-300" />
+                </div>
+            </ion-header>
+            <ion-content style="--background: #f8fafc;">
+                <div class="px-4 pt-2 pb-10 max-w-lg mx-auto space-y-2">
+                    <p v-if="filteredSingleEquip.length === 0" class="text-sm text-slate-400 py-2">
+                        {{ __('No equipment available') }}
+                    </p>
+                    <button v-for="e in filteredSingleEquip" :key="e.name" type="button"
+                        @click="selectSingleEquip(e.name)"
+                        :class="['flex items-center justify-between w-full rounded-xl px-3 py-2.5 border shadow-sm text-left active:opacity-70 transition-opacity',
+                            singleEquipment === e.name
+                                ? 'bg-blue-50 border-blue-300'
+                                : 'bg-white border-slate-200']">
+                        <div>
+                            <p class="text-sm font-semibold text-slate-700">{{ e.name }}</p>
+                            <p class="text-xs text-slate-400">{{ e.customer_unit_id_number }}<span
+                                    v-if="e.equipment_type"> · {{ e.equipment_type }}</span></p>
+                        </div>
+                        <svg v-if="singleEquipment === e.name" width="18" height="18" viewBox="0 0 24 24"
+                            fill="none" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"
+                            stroke-linejoin="round" class="flex-shrink-0">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </button>
+                </div>
+            </ion-content>
+        </ion-modal>
+
         <!-- ── Pause Repair bottom sheet ─────────────────────────────────────── -->
         <ion-modal :is-open="showPauseSheet" :initial-breakpoint="0.5" :breakpoints="[0, 0.5, 1]"
             style="--border-radius: 16px;" @did-dismiss="closePauseSheet">
@@ -939,11 +1003,38 @@ const showPauseSheet = ref(false)
 const pauseReasonInput = ref('')
 const pauseReasonError = ref('')
 
-// Equipment sheet
+// Equipment sheet (Misc — multi-select)
 const showEquipmentSheet = ref(false)
 const draftSelection = ref<string[]>([])
 const equipmentTypeFilter = ref('')
 const equipmentSearch = ref('')
+
+// Single equipment sheet (PM / Labor Rate)
+const showSingleEquipSheet = ref(false)
+const singleEquipSearch = ref('')
+
+const filteredSingleEquip = computed(() => {
+    const q = singleEquipSearch.value.toLowerCase()
+    if (!q) return equipment.value
+    return equipment.value.filter(e =>
+        e.name.toLowerCase().includes(q) ||
+        (e.customer_unit_id_number ?? '').toLowerCase().includes(q)
+    )
+})
+
+function openSingleEquipSheet() {
+    singleEquipSearch.value = ''
+    showSingleEquipSheet.value = true
+}
+
+function closeSingleEquipSheet() {
+    showSingleEquipSheet.value = false
+}
+
+function selectSingleEquip(name: string) {
+    singleEquipment.value = name
+    showSingleEquipSheet.value = false
+}
 
 const equipmentTypeOptions = computed(() =>
     [...new Set(equipment.value.map(e => e.equipment_type).filter(Boolean))]
@@ -1591,12 +1682,12 @@ function extractError(err: unknown): string {
 
 function statusClass(s: string): string {
     const map: Record<string, string> = {
-        New: 'bg-slate-100 text-slate-600',
+        New: 'bg-cyan-100 text-cyan-700',
         Programmed: 'bg-blue-100 text-blue-800',
         Repairing: 'bg-amber-100 text-amber-800',
         'Partial Repair': 'bg-amber-100 text-amber-800',
-        Staged: 'bg-blue-100 text-blue-800',
-        Completed: 'bg-emerald-100 text-emerald-800',
+        Staged: 'bg-purple-100 text-purple-800',
+        Completed: 'bg-green-100 text-green-700',
         Billed: 'bg-emerald-100 text-emerald-800',
         Issued: 'bg-emerald-100 text-emerald-800',
         Closed: 'bg-emerald-100 text-emerald-800',

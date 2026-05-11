@@ -500,7 +500,7 @@ function render_invoice_table(wrapper, rows) {
 		var cust = frappe.utils.escape_html(row.customer_name || row.customer || "—");
 		var date = row.scheduled_date ? frappe.datetime.str_to_user(row.scheduled_date) : "—";
 		var po = frappe.utils.escape_html(row.po_number || "—");
-		var status = frappe.utils.escape_html(row.status || "—");
+		var status = frappe.utils.escape_html(__(row.status || "—"));
 		var display_name = row.work_order_number
 			? row.name + " (" + row.work_order_number + ")"
 			: row.name;
@@ -803,13 +803,33 @@ function inject_smd_styles() {
 		"#smd-calendar-wrapper .fc { flex: 1; overflow: hidden; }",
 		"#smd-calendar-wrapper .fc-view-harness { background: var(--bg-color); }",
 		".fc-scroller-harness { background: var(--bg-color); }",
+
+		/* Event Popover */
+		".smd-event-popover{position:fixed;z-index:9999;width:320px;background:var(--bg-color,#fff);border:1px solid var(--border-color,#e2e6ea);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.14);overflow:hidden;}",
+		".smd-ep-loading{display:flex;align-items:center;justify-content:center;height:120px;}",
+		".smd-ep-spinner{width:28px;height:28px;border:3px solid var(--border-color);border-top-color:var(--primary-color);border-radius:50%;animation:smd-spin .7s linear infinite;}",
+		"@keyframes smd-spin{to{transform:rotate(360deg)}}",
+		".smd-ep-header{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--border-color);}",
+		".smd-ep-title{font-size:14px;font-weight:700;color:var(--heading-color);margin-bottom:5px;}",
+		".smd-ep-badge{display:inline-block;font-size:11px;font-weight:600;color:#fff;padding:2px 10px;border-radius:999px;}",
+		".smd-ep-close{background:none;border:none;font-size:20px;line-height:1;color:var(--text-muted);cursor:pointer;padding:0 4px;margin-left:8px;flex-shrink:0;}",
+		".smd-ep-close:hover{color:var(--red);}",
+		".smd-ep-body{padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;}",
+		".smd-ep-row{display:flex;flex-direction:column;gap:2px;}",
+		".smd-ep-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);}",
+		".smd-ep-value{font-size:12px;color:var(--text-color);word-break:break-word;}",
+		".smd-ep-equip-section{padding:8px 16px 10px;border-top:1px solid var(--border-color);}",
+		".smd-ep-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;max-height:108px;overflow-y:auto;padding:2px 1px 4px;}",
+		".smd-ep-tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:999px;background:var(--blue-100,#dbeafe);color:var(--blue-800,#1e3a8a);border:1px solid var(--blue-200,#bfdbfe);}",
+		".smd-ep-footer{padding:10px 16px 14px;border-top:1px solid var(--border-color);}",
+		".smd-ep-goto{width:100%;font-size:13px !important;}",
 	].join("\n");
 	document.head.appendChild(el);
 }
 
 function get_smd_calendar_legend() {
 	var items = [
-		{ color: "var(--gray-500)", label: __("New") },
+		{ color: "var(--cyan-500)", label: __("New") },
 		{ color: "var(--blue-500)", label: __("Programmed") },
 		{ color: "var(--orange-500)", label: __("Repairing") },
 		{ color: "var(--yellow-600)", label: __("Partial Repair") },
@@ -862,7 +882,7 @@ function render_smd_calendar(wrapper, events) {
 			},
 			events: format_calendar_events(events),
 			eventClick: function (info) {
-				frappe.set_route("Form", "Service Work Order", info.event.id);
+				show_event_popover(info.event.id, info.jsEvent);
 			},
 			height: "100%",
 			stickyHeaderDates: true,
@@ -888,7 +908,7 @@ function format_calendar_events(events) {
 
 function get_status_color(status) {
 	var map = {
-		New: "var(--gray-500)",
+		New: "var(--cyan-500)",
 		Programmed: "var(--blue-500)",
 		Repairing: "var(--orange-500)",
 		"Partial Repair": "var(--yellow-600)",
@@ -900,6 +920,114 @@ function get_status_color(status) {
 		Cancelled: "var(--red-500)",
 	};
 	return map[status] || "var(--gray-500)";
+}
+
+// ---------------------------------------------------------------------------
+// Calendar event popover
+// ---------------------------------------------------------------------------
+function show_event_popover(swo_name, jsEvent) {
+	$(".smd-event-popover").remove();
+
+	var color = get_status_color("loading");
+	var $pop = $([
+		'<div class="smd-event-popover">',
+		'  <div class="smd-ep-loading">',
+		'    <div class="smd-ep-spinner"></div>',
+		'  </div>',
+		"</div>",
+	].join(""));
+
+	$("body").append($pop);
+	_position_popover($pop, jsEvent);
+
+	frappe.call({
+		method: "southwest.service_management.page.service_manager_dashboard.service_manager_dashboard.get_swo_calendar_detail",
+		args: { swo_name: swo_name },
+		callback: function (r) {
+			var d = r.message || {};
+			var statusColor = get_status_color(d.status || "");
+			var rows = [
+				[__("Company"),        d.company         || "—"],
+				[__("Service Type"),   d.service_type    || "—"],
+				[__("Service Cost"),   d.service_cost != null ? format_currency(d.service_cost) : "—"],
+				[__("Scheduled Date"), d.scheduled_date  ? frappe.datetime.str_to_user(d.scheduled_date) : "—"],
+				[__("Hour Meter"),     d.hour_meter      || "—"],
+				[__("PO Number"),      d.po_number       || "—"],
+				[__("Responsible"),    d.responsible_user || "—"],
+				[__("Prev. WO"),       d.previous_work_order || "—"],
+			];
+
+			var rowsHtml = rows.map(function (r) {
+				return (
+					'<div class="smd-ep-row">' +
+					'<span class="smd-ep-label">' + r[0] + "</span>" +
+					'<span class="smd-ep-value">' + frappe.utils.escape_html(String(r[1])) + "</span>" +
+					"</div>"
+				);
+			}).join("");
+
+			var equipment = Array.isArray(d.equipment) ? d.equipment : [];
+			var equipHtml = equipment.length
+				? equipment.map(function (e) {
+					return '<span class="smd-ep-tag">' + frappe.utils.escape_html(e) + "</span>";
+				}).join("")
+				: '<span class="smd-ep-value">—</span>';
+
+			var equipSection = [
+				'<div class="smd-ep-equip-section">',
+				'<span class="smd-ep-label">' + __("Equipment") + "</span>",
+				'<div class="smd-ep-tags">' + equipHtml + "</div>",
+				"</div>",
+			].join("");
+
+			$pop.html([
+				'<div class="smd-ep-header">',
+				'<div>',
+				'<div class="smd-ep-title">' + frappe.utils.escape_html(d.work_order_number || swo_name) + (d.customer ? " &mdash; " + frappe.utils.escape_html(d.customer) : "") + "</div>",
+				'<span class="smd-ep-badge" style="background:' + statusColor + '">' + frappe.utils.escape_html(__(d.status || "")) + "</span>",
+				"</div>",
+				'<button class="smd-ep-close" onclick="$(\'.smd-event-popover\').remove()">×</button>',
+				"</div>",
+				'<div class="smd-ep-body">',
+				rowsHtml,
+				"</div>",
+				equipSection,
+				'<div class="smd-ep-footer">',
+				'<button class="btn btn-primary btn-sm smd-ep-goto" data-name="' + frappe.utils.escape_html(swo_name) + '">' +
+				__("Go to Record") + " →" +
+				"</button>",
+				"</div>",
+			].join(""));
+
+			$pop.find(".smd-ep-goto").on("click", function () {
+				frappe.set_route("Form", "Service Work Order", $(this).data("name"));
+				$(".smd-event-popover").remove();
+			});
+
+			_position_popover($pop, jsEvent);
+		},
+	});
+
+	$(document).off("mousedown.smd_popover").on("mousedown.smd_popover", function (e) {
+		if (!$(e.target).closest(".smd-event-popover").length) {
+			$(".smd-event-popover").remove();
+			$(document).off("mousedown.smd_popover");
+		}
+	});
+}
+
+function format_currency(value) {
+	var symbol = frappe.boot.sysdefaults.currency_symbol || "$";
+	return symbol + " " + parseFloat(value || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function _position_popover($pop, jsEvent) {
+	var pw = 320, ph = 420;
+	var x = jsEvent.clientX + 12;
+	var y = jsEvent.clientY + 12;
+	if (x + pw > window.innerWidth - 16) x = jsEvent.clientX - pw - 12;
+	if (y + ph > window.innerHeight - 16) y = Math.max(16, window.innerHeight - ph - 16);
+	$pop.css({ left: x, top: y });
 }
 
 // ---------------------------------------------------------------------------
