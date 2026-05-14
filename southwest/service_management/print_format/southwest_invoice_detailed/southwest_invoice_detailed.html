@@ -187,8 +187,20 @@ select("string") | list) %} {% set price_each_threshold = (_sms.invoice_price_ea
 				$ {{ "{:,.2f}".format(item.amount) }}
 			</td>
 		</tr>
-		{% endfor %} {% set filler = [0, 12 - doc.items | length] | max %} {% for i in
-		range(filler) %}
+		{% endfor %}
+		{% if _sms.include_remarks_in_print and doc.remarks %}
+		<tr style="height: 22px"><td></td><td></td><td></td><td></td><td></td></tr>
+		<tr>
+			<td></td>
+			<td></td>
+			<td style="vertical-align: top">{{ doc.remarks }}</td>
+			<td></td>
+			<td></td>
+		</tr>
+		{% endif %}
+		{% set remarks_rows = 2 if (_sms.include_remarks_in_print and doc.remarks) else 0 %}
+		{% set filler = [0, 12 - doc.items | length - remarks_rows] | max %}
+		{% for i in range(filler) %}
 		<tr style="height: 22px">
 			<td></td>
 			<td></td>

@@ -51,4 +51,13 @@ def get_property_setters():
 			"value": "1",
 			"property_type": "Check",
 		},
+		# Allow editing Remarks on submitted Sales Invoices
+		{
+			"doctype": "Sales Invoice",
+			"fieldname": "remarks",
+			"doctype_or_field": "DocField",
+			"property": "allow_on_submit",
+			"value": "1",
+			"property_type": "Check",
+		},
 	]

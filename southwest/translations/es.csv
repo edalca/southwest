@@ -278,6 +278,8 @@ Recent Orders Hours Limit,Límite de Horas para Órdenes Recientes
 Allow Skip Signature,Permitir Omitir Firma
 Pause Reason Mandatory,Motivo de Pausa Obligatorio
 App PDF Letter Head,Membrete para PDF de la App
+Print Settings,Configuración de Impresión
+Include Remarks in Print,Incluir Observaciones en la Impresión
 Item field (Data type) to show in the Item Code column. Leave blank to use name.,Campo del artículo (tipo Dato) que se mostrará en la columna Código. Deje en blanco para usar el nombre.
 Item field (Data type) to show in the Description column. Leave blank to use the invoice line description.,Campo del artículo (tipo Dato) que se mostrará en la columna Descripción. Deje en blanco para usar la descripción de la línea.
 "Duplicate service type '{0}' in Print Equipment Type For. Each type can only appear once.","Tipo de servicio duplicado '{0}' en Imprimir Tipo de Equipo Para. Cada tipo solo puede aparecer una vez."
@@ -310,3 +312,5 @@ How to Install,Cómo instalar
 To install on iPhone:,Para instalar en iPhone:
 "1. Tap the Share button (↑)","1. Toque el botón Compartir (↑)"
 "2. Select ""Add to Home Screen""","2. Seleccione ""Agregar a pantalla de inicio"""
+Setting,Ajustes
+Service Manager Settings,Ajustes del Administrador de Servicio

@@ -11,11 +11,12 @@
   "misc_default_days",
   "inventory_column",
   "default_swo_stock_entry_type",
+  "print_settings_tab",
   "print_equipment_type_for",
-  "section_break_buog",
   "invoice_price_each_threshold",
   "invoice_item_display_field",
   "invoice_item_description_field",
+  "include_remarks_in_print",
   "system_automation_tab",
   "next_pm_generation_trigger",
   "dashboard_column",
@@ -62,6 +63,23 @@
    "label": "Misc Default Days"
   },
   {
+   "fieldname": "inventory_column",
+   "fieldtype": "Column Break",
+   "label": "Inventory"
+  },
+  {
+   "description": "Stock Entry Type used when creating inventory write-offs from Service Work Orders (typically Material Issue)",
+   "fieldname": "default_swo_stock_entry_type",
+   "fieldtype": "Link",
+   "label": "Default SWO Stock Entry Type",
+   "options": "Stock Entry Type"
+  },
+  {
+   "fieldname": "print_settings_tab",
+   "fieldtype": "Tab Break",
+   "label": "Print Settings"
+  },
+  {
    "description": "Service types that will include equipment type(s) in the printed Service Type field (e.g. 'Misc - Truck / Door').",
    "fieldname": "print_equipment_type_for",
    "fieldtype": "Table",
@@ -88,16 +106,11 @@
    "label": "Invoice Item Description Field"
   },
   {
-   "fieldname": "inventory_column",
-   "fieldtype": "Column Break",
-   "label": "Inventory"
-  },
-  {
-   "description": "Stock Entry Type used when creating inventory write-offs from Service Work Orders (typically Material Issue)",
-   "fieldname": "default_swo_stock_entry_type",
-   "fieldtype": "Link",
-   "label": "Default SWO Stock Entry Type",
-   "options": "Stock Entry Type"
+   "default": "0",
+   "description": "If enabled, the Remarks field from the Sales Invoice will be appended at the bottom of the Name column in all Southwest print formats.",
+   "fieldname": "include_remarks_in_print",
+   "fieldtype": "Check",
+   "label": "Include Remarks in Print"
   },
   {
    "fieldname": "system_automation_tab",
@@ -163,15 +176,11 @@
    "fieldtype": "Link",
    "label": "App PDF Letter Head",
    "options": "Letter Head"
-  },
-  {
-   "fieldname": "section_break_buog",
-   "fieldtype": "Section Break"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-04-29 17:13:03.515619",
+ "modified": "2026-05-11 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Manager Settings",
