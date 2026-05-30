@@ -8,11 +8,11 @@ else None %} {% set swo = frappe.get_doc("Service Work Order", doc.custom_source
 set equip_row = swo.equipment_selection[0] if swo and swo.equipment_selection else None %} {% set
 equip = frappe.get_doc("Equipment", equip_row.equipment) if equip_row and equip_row.equipment else
 None %} {% set po_number = swo.po_number if swo and swo.po_number else (doc.po_no or "") %} {% set
-is_misc = True if (swo and swo.service_type and swo.service_type|lower == 'misc') else False %} {%
+is_multi = True if (swo and swo.equipment_selection|length > 1) else False %} {%
 set swo_display = swo.get_service_type_display() if swo else "" %} {% set make = swo_display if
-is_misc else (equip.make or "" if equip else "") %} {% set model = swo_display if is_misc else
-(equip.model or "" if equip else "") %} {% set serial_no = swo_display if is_misc else (equip.serial_no
-or "" if equip else "") %} {% set unit_no = swo_display if is_misc else (equip.customer_unit_id_number
+is_multi else (equip.make or "" if equip else "") %} {% set model = swo_display if is_multi else
+(equip.model or "" if equip else "") %} {% set serial_no = swo_display if is_multi else (equip.serial_no
+or "" if equip else "") %} {% set unit_no = swo_display if is_multi else (equip.customer_unit_id_number
 or "" if equip else "") %} {% set hour_meter = swo.hour_meter if swo and swo.hour_meter else "" %} {% set
 cust_email = doc.contact_email or "" %} {% set _sms = frappe.get_doc("Service Manager Settings",
 "Service Manager Settings") %} {% set labor_item_codes = ([_sms.pm_labor_item,

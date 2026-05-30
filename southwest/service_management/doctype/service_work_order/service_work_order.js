@@ -31,6 +31,7 @@ frappe.ui.form.on("Service Work Order", {
 		set_status_indicator(frm);
 		set_form_state(frm);
 		set_status_buttons(frm);
+		unlock_service_cost_if_editable(frm);
 		// Replace the "Submit" primary action with "Save" — submission is handled internally.
 		if (frm.doc.docstatus === 0 && !frm.is_new()) {
 			frm.page.set_primary_action(__("Save"), () => frm.save());
@@ -52,18 +53,48 @@ frappe.ui.form.on("Service Work Order", {
 		}
 	},
 
+	service_type(frm) {
+		_enforce_equipment_limit(frm);
+	},
+
 	equipment_selection(frm) {
-		if (!["PM Frequency", "Labor Rate"].includes(frm.doc.service_type)) return;
-		const rows = frm.doc.equipment_selection || [];
-		if (rows.length > 1) {
-			frm.doc.equipment_selection = rows.slice(0, 1);
-			frm.refresh_field("equipment_selection");
-			frappe.msgprint(
-				__("Only one equipment is allowed for PM Frequency and Labor Rate orders."),
-			);
-		}
+		_enforce_equipment_limit(frm);
 	},
 });
+
+// ─── Multi-Equipment Guard ────────────────────────────────────────────────────
+
+let _multiEquipmentTypes = null;
+
+async function _get_multi_equipment_types() {
+	if (_multiEquipmentTypes !== null) return _multiEquipmentTypes;
+	const r = await frappe.db.get_value("Service Manager Settings", "Service Manager Settings", [
+		"multi_equip_pm_frequency",
+		"multi_equip_misc",
+		"multi_equip_labor_rate",
+	]);
+	const v = r.message || {};
+	_multiEquipmentTypes = [
+		v.multi_equip_pm_frequency && "PM Frequency",
+		v.multi_equip_misc && "Misc",
+		v.multi_equip_labor_rate && "Labor Rate",
+	].filter(Boolean);
+	return _multiEquipmentTypes;
+}
+
+async function _enforce_equipment_limit(frm) {
+	if (!frm.doc.service_type) return;
+	const allowed = await _get_multi_equipment_types();
+	if (allowed.includes(frm.doc.service_type)) return;
+	const rows = frm.doc.equipment_selection || [];
+	if (rows.length > 1) {
+		frm.doc.equipment_selection = rows.slice(0, 1);
+		frm.refresh_field("equipment_selection");
+		frappe.msgprint(
+			__("Only one equipment is allowed for {0} orders.", [__(frm.doc.service_type)]),
+		);
+	}
+}
 
 // ─── Status Indicator ─────────────────────────────────────────────────────────
 
@@ -99,10 +130,35 @@ const DETAIL_FIELDS = [
 
 function set_form_state(frm) {
 	const status = frm.doc.status;
-	if (["Staged", "Completed", "Billed", "Issued", "Closed", "Cancelled"].includes(status)) {
+	if (["Staged", "Billed", "Issued", "Closed", "Cancelled"].includes(status)) {
 		frm.disable_form();
+	} else if (status === "Completed") {
+		// Lock all fields individually so service_cost can be selectively re-enabled
+		// without frm.read_only=true blocking it.
+		frm.fields.forEach((f) => {
+			if (f.df.fieldname !== "service_cost") {
+				frm.set_df_property(f.df.fieldname, "read_only", 1);
+			}
+		});
 	} else if (["Repairing", "Partial Repair"].includes(status)) {
 		DETAIL_FIELDS.forEach((f) => frm.set_df_property(f, "read_only", 1));
+	}
+}
+
+// ─── Service Cost Override ────────────────────────────────────────────────────
+
+function unlock_service_cost_if_editable(frm) {
+	const status = frm.doc.status;
+
+	if (status === "Completed") {
+		frm.set_df_property("service_cost", "hidden", 0);
+		frm.refresh_field("service_cost");
+		frm.page.set_primary_action(__("Save"), () => frm.save());
+	} else if (["Billed", "Issued", "Closed"].includes(status)) {
+		frm.set_df_property("service_cost", "hidden", 0);
+		frm.refresh_field("service_cost");
+	} else {
+		frm.set_df_property("service_cost", "hidden", 1);
 	}
 }
 

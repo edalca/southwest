@@ -356,6 +356,11 @@ export async function getMiscDefaultDays(): Promise<number> {
   return res.misc_default_days ?? 90
 }
 
+export async function getMultiEquipSettings(): Promise<string[]> {
+  const res = await getMethod<string[]>('southwest.api.get_multi_equipment_settings')
+  return res ?? []
+}
+
 export async function getSuggestedPMDate(doc_name: string): Promise<{ suggested_date: string }> {
   return getMethod<{ suggested_date: string }>('southwest.api.get_suggested_pm_date', { doc_name })
 }

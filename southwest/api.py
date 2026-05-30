@@ -408,6 +408,21 @@ def get_misc_default_days():
 
 
 @frappe.whitelist()
+def get_multi_equipment_settings():
+	"""Returns the list of service types that allow selecting more than one equipment."""
+	field_map = {
+		"multi_equip_pm_frequency": "PM Frequency",
+		"multi_equip_misc": "Misc",
+		"multi_equip_labor_rate": "Labor Rate",
+	}
+	allowed = []
+	for field, service_type in field_map.items():
+		if frappe.db.get_single_value("Service Manager Settings", field):
+			allowed.append(service_type)
+	return allowed
+
+
+@frappe.whitelist()
 def get_suggested_pm_date(doc_name):
 	"""
 	Returns the suggested next PM date for a given Service Work Order based on

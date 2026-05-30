@@ -19,6 +19,7 @@ class ServiceWorkOrder(Document):
 		self._validate_next_schedule_date()
 		self._recalculate_total_repair_time()
 		self._calculate_service_cost()
+		self._validate_equipment_count()
 
 	def on_update(self):
 		self._handle_next_pm_automation()
@@ -49,6 +50,20 @@ class ServiceWorkOrder(Document):
 			"start_time": now_datetime(),
 			"type": "Repair Session",
 		})
+
+	def _validate_equipment_count(self):
+		if not self.service_type or not self.equipment_selection or len(self.equipment_selection) <= 1:
+			return
+		field_map = {
+			"PM Frequency": "multi_equip_pm_frequency",
+			"Misc": "multi_equip_misc",
+			"Labor Rate": "multi_equip_labor_rate",
+		}
+		field = field_map.get(self.service_type)
+		if field and not frappe.db.get_single_value("Service Manager Settings", field):
+			frappe.throw(
+				_("Only one equipment is allowed for {0} work orders.").format(self.service_type)
+			)
 
 	def _validate_signature(self):
 		if self.status == "Completed":
@@ -220,38 +235,17 @@ class ServiceWorkOrder(Document):
 			return
 
 		ref_date = self.scheduled_date or frappe.utils.today()
-		first_equipment = self.equipment_selection[0].equipment
 
+		if self.service_type == "PM Frequency" and len(self.equipment_selection) > 1:
+			self.service_cost = self._sum_pm_prices(ref_date)
+			return
+
+		first_equipment = self.equipment_selection[0].equipment
 		if not first_equipment:
 			self.service_cost = 0
 			return
 
-		assignments = frappe.db.sql(
-			"""
-			SELECT name, pm_price_per_visit, equipment_labor_rate, service_contract
-			FROM `tabService Equipment Assignment`
-			WHERE equipment = %(equipment)s
-				AND customer = %(customer)s
-				AND status = 'Active'
-				AND valid_from <= %(ref_date)s
-				AND (valid_to IS NULL OR valid_to >= %(ref_date)s)
-			ORDER BY valid_from DESC
-			LIMIT 1
-			""",
-			{"equipment": first_equipment, "customer": self.customer, "ref_date": ref_date},
-			as_dict=True,
-		)
-
-		if not assignments:
-			self.service_cost = 0
-			frappe.throw(
-				_(
-					"No active Service Equipment Assignment found for {0} on {1}. "
-					"The Scheduled Date must fall within the assignment's validity period."
-				).format(first_equipment, ref_date)
-			)
-
-		assignment = assignments[0]
+		assignment = self._get_assignment(first_equipment, ref_date)
 
 		if self.service_type == "PM Frequency":
 			self.service_cost = assignment.pm_price_per_visit or 0
@@ -266,8 +260,39 @@ class ServiceWorkOrder(Document):
 			misc_rate = contract.misc_rate or 0
 			self.service_cost = round((self.hours_worked or 0) * misc_rate, 2)
 
-		else:
-			self.service_cost = 0
+	def _get_assignment(self, equipment, ref_date):
+		assignments = frappe.db.sql(
+			"""
+			SELECT name, pm_price_per_visit, equipment_labor_rate, service_contract
+			FROM `tabService Equipment Assignment`
+			WHERE equipment = %(equipment)s
+				AND customer = %(customer)s
+				AND status = 'Active'
+				AND valid_from <= %(ref_date)s
+				AND (valid_to IS NULL OR valid_to >= %(ref_date)s)
+			ORDER BY valid_from DESC
+			LIMIT 1
+			""",
+			{"equipment": equipment, "customer": self.customer, "ref_date": ref_date},
+			as_dict=True,
+		)
+		if not assignments:
+			frappe.throw(
+				_(
+					"No active Service Equipment Assignment found for {0} on {1}. "
+					"The Scheduled Date must fall within the assignment's validity period."
+				).format(equipment, ref_date)
+			)
+		return assignments[0]
+
+	def _sum_pm_prices(self, ref_date):
+		total = 0
+		for sel in self.equipment_selection:
+			if not sel.equipment:
+				continue
+			assignment = self._get_assignment(sel.equipment, ref_date)
+			total += assignment.pm_price_per_visit or 0
+		return total
 
 
 @frappe.whitelist()

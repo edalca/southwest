@@ -79,8 +79,8 @@
                             {{ __('Equipment') }} <span class="text-red-500">*</span>
                         </label>
 
-                        <!-- Misc: tags + bottom sheet -->
-                        <template v-if="isMisc">
+                        <!-- Multi-select sheet (enabled per settings) -->
+                        <template v-if="allowsMultiEquip">
                             <div v-if="loadingEquipment" class="flex items-center gap-2 text-sm text-slate-400 py-2">
                                 <ion-spinner name="crescent" class="spinner-small" />
                                 {{ __('Loading...') }}
@@ -870,7 +870,7 @@ import {
 import {
     getCustomers, getCompanies, getCustomerEquipment, createSWO, getSWO,
     updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
-    getMiscDefaultDays, getSuggestedPMDate, pauseRepair,
+    getMiscDefaultDays, getSuggestedPMDate, getMultiEquipSettings, pauseRepair,
     checkResponsibleUser, getActiveCustomerPO, getSWOWorkOrderNumber,
     type Customer, type Equipment, type Company,
     type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
@@ -934,7 +934,8 @@ const createForm = ref({
     po_number: '',
 })
 
-const isMisc = computed(() => createForm.value.service_type === 'Misc')
+const multiEquipAllowed = ref<string[]>([])
+const allowsMultiEquip = computed(() => multiEquipAllowed.value.includes(createForm.value.service_type))
 
 const serviceTypeOptions = [
     { label: 'PM Frequency', value: 'PM Frequency' },
@@ -1135,9 +1136,10 @@ watch(isOpen, async (open) => {
     if (!isEditMode.value) {
         loading.value = true
         try {
-            const [c, co] = await Promise.all([getCustomers(), getCompanies()])
+            const [c, co, me] = await Promise.all([getCustomers(), getCompanies(), getMultiEquipSettings()])
             customers.value = c
             companies.value = co
+            multiEquipAllowed.value = me
         } finally {
             loading.value = false
         }
@@ -1275,7 +1277,7 @@ async function fetchEquipment() {
 async function handleCreate() {
     actionError.value = ''
 
-    if (!isMisc.value) {
+    if (!allowsMultiEquip.value) {
         createForm.value.equipment_selection = singleEquipment.value
             ? [singleEquipment.value]
             : []

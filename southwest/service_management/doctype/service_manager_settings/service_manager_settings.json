@@ -11,6 +11,10 @@
   "misc_default_days",
   "inventory_column",
   "default_swo_stock_entry_type",
+  "equipment_settings_column",
+  "multi_equip_pm_frequency",
+  "multi_equip_misc",
+  "multi_equip_labor_rate",
   "print_settings_tab",
   "print_equipment_type_for",
   "invoice_price_each_threshold",
@@ -73,6 +77,24 @@
    "fieldtype": "Link",
    "label": "Default SWO Stock Entry Type",
    "options": "Stock Entry Type"
+  },
+  {
+   "default": "0",
+   "fieldname": "multi_equip_pm_frequency",
+   "fieldtype": "Check",
+   "label": "PM Frequency"
+  },
+  {
+   "default": "0",
+   "fieldname": "multi_equip_misc",
+   "fieldtype": "Check",
+   "label": "Misc"
+  },
+  {
+   "default": "0",
+   "fieldname": "multi_equip_labor_rate",
+   "fieldtype": "Check",
+   "label": "Labor Rate"
   },
   {
    "fieldname": "print_settings_tab",
@@ -176,11 +198,17 @@
    "fieldtype": "Link",
    "label": "App PDF Letter Head",
    "options": "Letter Head"
+  },
+  {
+   "description": "Enable the checkboxes below for each service type that should allow selecting more than one equipment per work order. Unchecked types are limited to a single equipment.",
+   "fieldname": "equipment_settings_column",
+   "fieldtype": "Column Break",
+   "label": "Equipment Settings"
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-05-11 00:00:00.000000",
+ "modified": "2026-05-30 03:34:04.973540",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Manager Settings",
