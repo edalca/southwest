@@ -196,16 +196,18 @@ class ServiceWorkOrder(Document):
 	def get_service_type_display(self):
 		"""Returns a formatted service type string for print formats.
 
-		If self.service_type is listed in Service Manager Settings →
-		print_equipment_type_for, the unique equipment types from
-		equipment_selection are appended.
+		PM Frequency always uses 'PM' as label and always appends equipment types.
+		Other types append equipment types only when listed in print_equipment_type_for.
 
 		Examples:
-		  'Misc'          → 'Misc - Truck / Door'   (when Misc is configured)
-		  'PM Frequency'  → 'PM Frequency'           (when not configured)
+		  'PM Frequency'  → 'PM - Truck'             (always)
+		  'Misc'          → 'Misc - Truck / Door'     (when Misc is configured)
+		  'Labor Rate'    → 'Labor Rate'              (when not configured)
 		"""
 		if not self.service_type:
 			return ""
+
+		label = "PM" if self.service_type == "PM Frequency" else self.service_type
 
 		configured = frappe.get_all(
 			"Service Type Config",
@@ -213,8 +215,8 @@ class ServiceWorkOrder(Document):
 			pluck="service_type",
 		)
 
-		if self.service_type not in configured:
-			return self.service_type
+		if self.service_type not in configured and self.service_type != "PM Frequency":
+			return label
 
 		types = []
 		for row in self.equipment_selection or []:
@@ -225,9 +227,9 @@ class ServiceWorkOrder(Document):
 				types.append(eq_type)
 
 		if not types:
-			return self.service_type
+			return label
 
-		return "{} - {}".format(self.service_type, " / ".join(types))
+		return "{} - {}".format(label, " / ".join(types))
 
 	def _calculate_service_cost(self):
 		if not self.equipment_selection or not self.service_type:

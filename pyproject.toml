@@ -6,7 +6,7 @@ authors = [
 description = "Adaptacion Empresa southwest"
 requires-python = ">=3.14"
 readme = "README.md"
-version = "16.5.16"
+version = "16.5.17"
 dependencies = [
     # "frappe~=16.0.0" # Installed and managed by bench.
 ]

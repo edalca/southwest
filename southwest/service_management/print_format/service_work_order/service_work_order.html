@@ -151,16 +151,16 @@
     <table style="width:100%; border-collapse:collapse; margin-bottom:10px; border-top:1px solid #ddd;">
       <tr>
         <td style="width:25%; padding:5px 8px 5px 0; vertical-align:top;">
-          <div class="swo-field"><label>Make</label><span>{{ doc.service_type }}</span></div>
+          <div class="swo-field"><label>Make</label><span>{{ "PM" if doc.service_type == "PM Frequency" else doc.service_type }}</span></div>
         </td>
         <td style="width:25%; padding:5px 8px; vertical-align:top;">
-          <div class="swo-field"><label>Model</label><span>{{ doc.service_type }}</span></div>
+          <div class="swo-field"><label>Model</label><span>{{ "PM" if doc.service_type == "PM Frequency" else doc.service_type }}</span></div>
         </td>
         <td style="width:25%; padding:5px 8px; vertical-align:top;">
-          <div class="swo-field"><label>Serial #</label><span>{{ doc.service_type }}</span></div>
+          <div class="swo-field"><label>Serial #</label><span>{{ "PM" if doc.service_type == "PM Frequency" else doc.service_type }}</span></div>
         </td>
         <td style="width:25%; padding:5px 0 5px 8px; vertical-align:top;">
-          <div class="swo-field"><label>Unit #</label><span>{{ doc.service_type }}</span></div>
+          <div class="swo-field"><label>Unit #</label><span>{{ "PM" if doc.service_type == "PM Frequency" else doc.service_type }}</span></div>
         </td>
       </tr>
     </table>
