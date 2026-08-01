@@ -5,7 +5,7 @@ app_publisher = "Edwin Carrillo"
 app_description = "Custom adaptation for Southwest company built on top of ERPNext + HRMS"
 app_email = "edwinalonso162@hotmail.com"
 app_license = "mit"
-app_version = "16.5.16"
+app_version = "16.6.0"
 # Installation hooks
 after_install = "southwest.setup.after_install"
 after_migrate = "southwest.setup.after_install"
