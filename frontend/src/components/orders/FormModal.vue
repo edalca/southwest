@@ -251,6 +251,46 @@
                                         {{ __('Qty') }}: {{ item.qty }}
                                         <span v-if="item.vendor"> · {{ item.vendor }}</span>
                                     </p>
+
+                                    <!-- Attachment -->
+                                    <div v-if="item.attachment" class="mt-2 flex items-center gap-2">
+                                        <a :href="item.attachment" target="_blank" rel="noopener"
+                                            class="flex items-center gap-2 min-w-0">
+                                            <img v-if="isImageAttachment(item.attachment)" :src="item.attachment"
+                                                class="w-10 h-10 rounded-md object-cover border border-slate-200" />
+                                            <span v-else
+                                                class="flex items-center justify-center w-10 h-10 rounded-md border border-slate-200 bg-slate-50">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                    stroke="#475569" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                    <polyline points="14 2 14 8 20 8" />
+                                                </svg>
+                                            </span>
+                                            <span class="text-xs text-blue-900 underline truncate">
+                                                {{ attachmentName(item.attachment) }}
+                                            </span>
+                                        </a>
+                                        <button v-if="isEditable" type="button"
+                                            class="text-xs text-red-500 font-semibold underline flex-shrink-0"
+                                            @click="removeAttachment(idx)">
+                                            {{ __('Remove') }}
+                                        </button>
+                                    </div>
+                                    <button v-else-if="isEditable" type="button"
+                                        :disabled="uploadingAttachment"
+                                        class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-950 underline disabled:opacity-50"
+                                        @click="pickAttachment(idx)">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path
+                                                d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                                        </svg>
+                                        {{ uploadingAttachment && attachTargetIdx === idx
+                                            ? __('Uploading...')
+                                            : __('Attach file') }}
+                                    </button>
                                 </div>
                                 <ion-button v-if="isEditable" fill="clear" color="danger" size="small"
                                     class="remove-btn" @click="removeItem(idx)">
@@ -268,6 +308,11 @@
                         <p v-else-if="isEditable" class="text-sm text-slate-400 text-center py-1">
                             {{ __('No items added yet.') }}
                         </p>
+
+                        <!-- Hidden picker used by the per-row "Attach file" buttons -->
+                        <input ref="rowFileInput" type="file" class="hidden"
+                            accept="image/*,application/pdf"
+                            @change="onAttachmentSelected" />
 
                     </div>
 
@@ -654,6 +699,44 @@
                             class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300" />
                     </div>
 
+                    <!-- Attachment (optional) -->
+                    <div>
+                        <label class="block mb-1.5 text-sm text-slate-600">{{ __('Attachment') }}</label>
+                        <div v-if="partForm.attachment"
+                            class="flex items-center gap-3 bg-white rounded-md border border-slate-200 px-3 py-2 shadow-sm">
+                            <img v-if="isImageAttachment(partForm.attachment)" :src="partForm.attachment"
+                                class="w-10 h-10 rounded-md object-cover border border-slate-200" />
+                            <span v-else
+                                class="flex items-center justify-center w-10 h-10 rounded-md border border-slate-200 bg-slate-50">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                            </span>
+                            <span class="flex-1 min-w-0 text-xs text-slate-600 truncate">
+                                {{ attachmentName(partForm.attachment) }}
+                            </span>
+                            <button type="button" class="text-xs text-red-500 font-semibold underline flex-shrink-0"
+                                @click="removeAttachment(null)">
+                                {{ __('Remove') }}
+                            </button>
+                        </div>
+                        <button v-else type="button" :disabled="uploadingAttachment"
+                            class="w-full flex items-center justify-center gap-2 bg-white text-sm font-medium text-blue-950 border border-dashed border-slate-300 rounded-md px-3 py-2.5 shadow-sm disabled:opacity-50"
+                            @click="pickAttachment(null)">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path
+                                    d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                            </svg>
+                            {{ uploadingAttachment ? __('Uploading...') : __('Take photo or attach file') }}
+                        </button>
+                        <input ref="sheetFileInput" type="file" class="hidden"
+                            accept="image/*,application/pdf"
+                            @change="onAttachmentSelected" />
+                    </div>
+
                     <p v-if="partSheetError" class="text-sm text-red-500 text-center">{{ partSheetError }}</p>
 
                 </div>
@@ -871,7 +954,7 @@ import {
     getCustomers, getCompanies, getCustomerEquipment, createSWO, getSWO,
     updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
     getMiscDefaultDays, getSuggestedPMDate, getMultiEquipSettings, pauseRepair,
-    checkResponsibleUser, getActiveCustomerPO, getSWOWorkOrderNumber,
+    checkResponsibleUser, getActiveCustomerPO, getSWOWorkOrderNumber, uploadFile,
     type Customer, type Equipment, type Company,
     type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
 } from '@/services/api'
@@ -986,6 +1069,13 @@ const sheetItemSearchResults = ref<ItemResult[]>([])
 const partSheetError = ref('')
 const partForm = ref(blankPartForm())
 let _sheetSearchTimer: ReturnType<typeof setTimeout> | null = null
+
+// Part attachments
+const sheetFileInput = ref<HTMLInputElement | null>(null)
+const rowFileInput = ref<HTMLInputElement | null>(null)
+/** Index of the item row whose attachment is being replaced, or null for the sheet. */
+const attachTargetIdx = ref<number | null>(null)
+const uploadingAttachment = ref(false)
 
 // Hours / finish panel
 const showHoursInput = ref(false)
@@ -1597,6 +1687,7 @@ function blankPartForm() {
         description: '',
         qty: '1',
         vendor: '',
+        attachment: '',
     }
 }
 
@@ -1654,12 +1745,75 @@ function confirmAddPart() {
         description: p.description || undefined,
         qty: parsedQty,
         vendor: p.is_non_inventory ? p.vendor || undefined : undefined,
+        attachment: p.attachment || undefined,
     })
     closePartSheet()
 }
 
 function removeItem(idx: number) {
     localItems.value.splice(idx, 1)
+}
+
+// ── Part attachments ──────────────────────────────────────────────────────────
+/**
+ * Opens the native file picker. On a phone this offers the camera as well, so a
+ * technician can photograph the part without leaving the order.
+ *
+ * `idx` targets an existing row; omit it while adding a part from the sheet.
+ */
+function pickAttachment(idx: number | null = null) {
+    attachTargetIdx.value = idx
+    const input = idx === null ? sheetFileInput.value : rowFileInput.value
+    if (input) {
+        input.value = ''
+        input.click()
+    }
+}
+
+async function onAttachmentSelected(event: Event) {
+    const input = event.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (!file || !swoName.value) return
+
+    const idx = attachTargetIdx.value
+    uploadingAttachment.value = true
+    partSheetError.value = ''
+    actionError.value = ''
+    try {
+        const uploaded = await uploadFile(file, 'Service Work Order', swoName.value)
+        if (idx === null) {
+            partForm.value.attachment = uploaded.file_url
+        } else {
+            localItems.value[idx].attachment = uploaded.file_url
+            isDirty.value = true
+        }
+    } catch (err: unknown) {
+        const message = extractError(err)
+        if (idx === null) partSheetError.value = message
+        else actionError.value = message
+    } finally {
+        uploadingAttachment.value = false
+        attachTargetIdx.value = null
+        input.value = ''
+    }
+}
+
+function removeAttachment(idx: number | null = null) {
+    if (idx === null) {
+        partForm.value.attachment = ''
+    } else {
+        localItems.value[idx].attachment = undefined
+        isDirty.value = true
+    }
+}
+
+/** True when the file URL points at something the browser can render inline. */
+function isImageAttachment(url: string): boolean {
+    return /\.(png|jpe?g|gif|webp)$/i.test(url.split('?')[0])
+}
+
+function attachmentName(url: string): string {
+    return decodeURIComponent(url.split('/').pop() ?? url)
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────

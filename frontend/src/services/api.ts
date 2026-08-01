@@ -61,6 +61,59 @@ async function buildError(res: Response): Promise<Error> {
 }
 
 // ---------------------------------------------------------------------------
+// Files
+// ---------------------------------------------------------------------------
+
+export interface UploadedFile {
+  file_url: string
+  file_name: string
+}
+
+/**
+ * Uploads a file through Frappe's `upload_file` endpoint and attaches it to the
+ * given document. Photos taken on a phone are optimized server-side so they do
+ * not blow up the site's disk usage.
+ *
+ * The File record is attached to the parent document rather than to a child row,
+ * which mirrors what the Desk attach control does for fields inside a grid, and
+ * keeps permission checks anchored on a doctype the user can actually read.
+ */
+export async function uploadFile(
+  file: File,
+  doctype: string,
+  docname: string,
+  isPrivate = true,
+): Promise<UploadedFile> {
+  const form = new FormData()
+  form.append('file', file, file.name)
+  form.append('doctype', doctype)
+  form.append('docname', docname)
+  form.append('is_private', isPrivate ? '1' : '0')
+  form.append('optimize', '1')
+  form.append('max_width', '1600')
+  form.append('max_height', '1600')
+
+  // Content-Type is intentionally omitted so the browser sets the multipart boundary.
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+    'X-Frappe-Site-Name': window.location.hostname,
+  }
+  if (w.csrf_token && w.csrf_token !== '{{ csrf_token }}') {
+    headers['X-Frappe-CSRF-Token'] = w.csrf_token
+  }
+
+  const res = await fetch('/api/method/upload_file', {
+    method: 'POST',
+    headers,
+    credentials: 'include',
+    body: form,
+  })
+  if (!res.ok) throw await buildError(res)
+  const data = await res.json()
+  return data.message as UploadedFile
+}
+
+// ---------------------------------------------------------------------------
 // Session / Auth
 // ---------------------------------------------------------------------------
 
@@ -135,6 +188,8 @@ export interface SWOItem {
   description?: string
   qty: number
   vendor?: string
+  /** File URL of the photo or document attached to this part row. */
+  attachment?: string
 }
 
 export interface ServiceWorkOrderDetail extends ServiceWorkOrder {

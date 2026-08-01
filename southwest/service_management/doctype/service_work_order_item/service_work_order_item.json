@@ -11,10 +11,12 @@
   "description",
   "column_break_1",
   "qty",
-  "vendor"
+  "vendor",
+  "attachment"
  ],
  "fields": [
   {
+   "columns": 1,
    "default": "0",
    "fieldname": "is_non_inventory_part",
    "fieldtype": "Check",
@@ -22,6 +24,7 @@
    "label": "Is Non-Inventory Part"
   },
   {
+   "columns": 2,
    "depends_on": "eval:!doc.is_non_inventory_part",
    "fieldname": "item_code",
    "fieldtype": "Link",
@@ -30,12 +33,14 @@
    "options": "Item"
   },
   {
+   "columns": 2,
    "fieldname": "part_number",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Part Number"
   },
   {
+   "columns": 3,
    "fieldname": "description",
    "fieldtype": "Small Text",
    "in_list_view": 1,
@@ -46,6 +51,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "columns": 1,
    "default": "1",
    "fieldname": "qty",
    "fieldtype": "Float",
@@ -56,11 +62,19 @@
    "fieldname": "vendor",
    "fieldtype": "Data",
    "label": "Vendor"
+  },
+  {
+   "columns": 1,
+   "description": "Photo or document for this part. Stored as a private file attached to the Work Order.",
+   "fieldname": "attachment",
+   "fieldtype": "Attach",
+   "in_list_view": 1,
+   "label": "Attachment"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2026-04-02 00:00:00",
+ "modified": "2026-08-01 00:00:00",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Work Order Item",
