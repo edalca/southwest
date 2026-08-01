@@ -133,6 +133,7 @@
 		</tr>
 		{% endfor %}
 		{% for tax in doc.taxes %}
+		{% if tax.tax_amount > 0 %}
 		<tr>
 			<td></td>
 			<td></td>
@@ -140,6 +141,7 @@
 			<td></td>
 			<td style="text-align: right; vertical-align: top">$ {{ "{:,.2f}".format(tax.tax_amount or 0) }}</td>
 		</tr>
+		{% endif %}
 		{% endfor %}
 		{% if _sms.include_remarks_in_print and doc.remarks %}
 		<tr style="height: 22px"><td></td><td></td><td></td><td></td><td></td></tr>

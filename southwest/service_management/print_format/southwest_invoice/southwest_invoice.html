@@ -179,6 +179,7 @@ price_each_threshold = (_sms.invoice_price_each_threshold or 0) %} {% set item_d
 			</td>
 		</tr>
 		{% endfor %} {% for tax in doc.taxes %}
+		{% if tax.tax_amount > 0 %}
 		<tr>
 			<td style="text-align: center; vertical-align: top"></td>
 			<td style="vertical-align: top"></td>
@@ -188,6 +189,7 @@ price_each_threshold = (_sms.invoice_price_each_threshold or 0) %} {% set item_d
 				$ {{ "{:,.2f}".format(tax.tax_amount or 0) }}
 			</td>
 		</tr>
+		{% endif %}
 		{% endfor %}
 		{% if _sms.include_remarks_in_print and doc.remarks %}
 		<tr style="height: 22px"><td></td><td></td><td></td><td></td><td></td></tr>
