@@ -188,8 +188,52 @@ export interface SWOItem {
   description?: string
   qty: number
   vendor?: string
-  /** File URL of the photo or document attached to this part row. */
-  attachment?: string
+  /**
+   * File URLs of the photos or documents attached to this part row.
+   *
+   * The doctype stores this as a JSON string in `attachments`; `getSWO` parses it
+   * on the way in and `serviceItemsPayload` serializes it on the way out, so the
+   * rest of the app only ever sees an array.
+   */
+  attachments?: string[]
+}
+
+/**
+ * Reads the raw `attachments` value of a part row.
+ *
+ * Rows created before multi-file support hold a bare URL rather than a JSON
+ * array, so both shapes are accepted.
+ */
+export function parseRowAttachments(raw: unknown): string[] {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw.filter((u): u is string => Boolean(u))
+  const value = String(raw).trim()
+  if (!value.startsWith('[')) {
+    // Legacy single-file rows held a bare Attach path.
+    return value.startsWith('/') || value.startsWith('http') ? [value] : []
+  }
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed.filter((u): u is string => Boolean(u)) : []
+  } catch {
+    return []
+  }
+}
+
+/** Converts part rows back into the shape the Frappe REST API expects. */
+export function serviceItemsPayload(items: SWOItem[]): Record<string, unknown>[] {
+  return items.map(({ attachments, ...rest }) => ({
+    ...rest,
+    attachments: attachments?.length ? JSON.stringify(attachments) : '',
+  }))
+}
+
+/** Maximum files allowed per part row, from Service Manager Settings. */
+export async function getMaxPartAttachments(): Promise<number> {
+  const res = await getMethod<{ max_part_attachments: number }>(
+    'southwest.api.get_max_part_attachments',
+  )
+  return res?.max_part_attachments || 5
 }
 
 export interface ServiceWorkOrderDetail extends ServiceWorkOrder {
@@ -207,7 +251,14 @@ export interface ServiceWorkOrderDetail extends ServiceWorkOrder {
 }
 
 export async function getSWO(name: string): Promise<ServiceWorkOrderDetail> {
-  return resource<ServiceWorkOrderDetail>('GET', `Service Work Order/${encodeURIComponent(name)}`)
+  const doc = await resource<ServiceWorkOrderDetail>(
+    'GET',
+    `Service Work Order/${encodeURIComponent(name)}`,
+  )
+  for (const item of doc.service_items ?? []) {
+    item.attachments = parseRowAttachments(item.attachments)
+  }
+  return doc
 }
 
 export async function updateSWOStatus(

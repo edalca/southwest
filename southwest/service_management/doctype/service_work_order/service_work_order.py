@@ -20,6 +20,7 @@ class ServiceWorkOrder(Document):
 		self._recalculate_total_repair_time()
 		self._calculate_service_cost()
 		self._validate_equipment_count()
+		self._normalize_part_attachments()
 
 	def on_update(self):
 		self._handle_next_pm_automation()
@@ -50,6 +51,11 @@ class ServiceWorkOrder(Document):
 			"start_time": now_datetime(),
 			"type": "Repair Session",
 		})
+
+	def _normalize_part_attachments(self):
+		"""Child controllers do not get a `validate` hook, so the rows are normalized here."""
+		for row in self.service_items or []:
+			row.normalize_attachments()
 
 	def _validate_equipment_count(self):
 		if not self.service_type or not self.equipment_selection or len(self.equipment_selection) <= 1:

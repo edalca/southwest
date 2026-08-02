@@ -252,67 +252,58 @@
                                         <span v-if="item.vendor"> · {{ item.vendor }}</span>
                                     </p>
 
-                                    <!-- Attachment -->
-                                    <div v-if="item.attachment" class="mt-2 flex items-center gap-2">
-                                        <a :href="item.attachment" target="_blank" rel="noopener"
-                                            class="flex items-center gap-2 min-w-0">
-                                            <img v-if="isImageAttachment(item.attachment)" :src="item.attachment"
-                                                class="w-10 h-10 rounded-md object-cover border border-slate-200" />
-                                            <span v-else
-                                                class="flex items-center justify-center w-10 h-10 rounded-md border border-slate-200 bg-slate-50">
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                                    stroke="#475569" stroke-width="2" stroke-linecap="round"
-                                                    stroke-linejoin="round">
-                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                                    <polyline points="14 2 14 8 20 8" />
-                                                </svg>
-                                            </span>
-                                            <span class="text-xs text-blue-900 underline truncate">
-                                                {{ attachmentName(item.attachment) }}
-                                            </span>
-                                        </a>
-                                        <button v-if="isEditable" type="button"
-                                            class="text-xs text-red-500 font-semibold underline flex-shrink-0"
-                                            @click="removeAttachment(idx)">
-                                            {{ __('Remove') }}
+                                    <!-- Attachments: thumbnails only. Managing them happens in the edit sheet. -->
+                                    <div v-if="item.attachments?.length" class="mt-2 flex flex-wrap gap-1.5">
+                                        <button v-for="url in item.attachments" :key="url" type="button"
+                                            class="attachment-thumb" :title="attachmentName(url)"
+                                            @click="openAttachment(url)">
+                                            <img v-if="isImageAttachment(url)" :src="url" :alt="attachmentName(url)" />
+                                            <svg v-else-if="isPdfAttachment(url)" viewBox="0 0 24 24" width="22"
+                                                height="22" aria-hidden="true">
+                                                <path
+                                                    d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"
+                                                    fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"
+                                                    stroke-linejoin="round" />
+                                                <path d="M14 2v5h5" fill="none" stroke="#dc2626" stroke-width="1.5"
+                                                    stroke-linejoin="round" />
+                                                <text x="12" y="17.5" text-anchor="middle" font-size="6.5"
+                                                    font-weight="700" fill="#dc2626">PDF</text>
+                                            </svg>
+                                            <svg v-else viewBox="0 0 24 24" width="18" height="18" fill="none"
+                                                stroke="#475569" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                                <polyline points="14 2 14 8 20 8" />
+                                            </svg>
                                         </button>
                                     </div>
-                                    <button v-else-if="isEditable" type="button"
-                                        :disabled="uploadingAttachment"
-                                        class="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-blue-950 underline disabled:opacity-50"
-                                        @click="pickAttachment(idx)">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path
-                                                d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-                                        </svg>
-                                        {{ uploadingAttachment && attachTargetIdx === idx
-                                            ? __('Uploading...')
-                                            : __('Attach file') }}
-                                    </button>
                                 </div>
-                                <ion-button v-if="isEditable" fill="clear" color="danger" size="small"
-                                    class="remove-btn" @click="removeItem(idx)">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <polyline points="3 6 5 6 21 6" />
-                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                                        <path d="M10 11v6" />
-                                        <path d="M14 11v6" />
-                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                                    </svg>
-                                </ion-button>
+                                <div v-if="isEditable" class="flex flex-shrink-0">
+                                    <ion-button fill="clear" size="small" class="remove-btn"
+                                        style="--color: #475569;" @click="editItem(idx)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                        </svg>
+                                    </ion-button>
+                                    <ion-button fill="clear" color="danger" size="small"
+                                        class="remove-btn" @click="confirmRemoveItem(idx)">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="3 6 5 6 21 6" />
+                                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                            <path d="M10 11v6" />
+                                            <path d="M14 11v6" />
+                                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                        </svg>
+                                    </ion-button>
+                                </div>
                             </div>
                         </div>
                         <p v-else-if="isEditable" class="text-sm text-slate-400 text-center py-1">
                             {{ __('No items added yet.') }}
                         </p>
-
-                        <!-- Hidden picker used by the per-row "Attach file" buttons -->
-                        <input ref="rowFileInput" type="file" class="hidden"
-                            accept="image/*,application/pdf"
-                            @change="onAttachmentSelected" />
 
                     </div>
 
@@ -583,7 +574,7 @@
             </div>
         </ion-footer>
 
-        <!-- ── Add Part bottom sheet ─────────────────────────────────────────── -->
+        <!-- ── Add / Edit Part bottom sheet ──────────────────────────────────── -->
         <ion-modal :is-open="showPartSheet" :initial-breakpoint="0.85" :breakpoints="[0, 0.85, 1]"
             style="--border-radius: 16px;" @did-dismiss="closePartSheet">
             <!-- Fixed header: Add (left) | Title (center) | Close X (right) -->
@@ -593,12 +584,12 @@
                     <ion-buttons slot="start" style="padding-left: 8px;">
                         <button @click="confirmAddPart"
                             style="background:#172554; color:#fff; border-radius:9999px; padding:6px 16px; font-size:14px; font-weight:700; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:opacity .15s; white-space:nowrap; cursor:pointer;">
-                            {{ __('Add') }}
+                            {{ editingItemIdx === null ? __('Add') : __('Save') }}
                         </button>
                     </ion-buttons>
 
                     <ion-title style="font-size: 15px; font-weight: 700; color: #0f172a; text-align: center;">
-                        {{ __('Add Part') }}
+                        {{ editingItemIdx === null ? __('Add Part') : __('Edit Part') }}
                     </ion-title>
 
                     <!-- Right: dismiss -->
@@ -699,32 +690,50 @@
                             class="w-full bg-white placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 focus:outline-none focus:border-blue-950 hover:border-slate-300 shadow-sm transition duration-300" />
                     </div>
 
-                    <!-- Attachment (optional) -->
+                    <!-- Attachments (optional) -->
                     <div>
-                        <label class="block mb-1.5 text-sm text-slate-600">{{ __('Attachment') }}</label>
-                        <div v-if="partForm.attachment"
-                            class="flex items-center gap-3 bg-white rounded-md border border-slate-200 px-3 py-2 shadow-sm">
-                            <img v-if="isImageAttachment(partForm.attachment)" :src="partForm.attachment"
-                                class="w-10 h-10 rounded-md object-cover border border-slate-200" />
-                            <span v-else
-                                class="flex items-center justify-center w-10 h-10 rounded-md border border-slate-200 bg-slate-50">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569"
-                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                    <polyline points="14 2 14 8 20 8" />
-                                </svg>
+                        <label class="block mb-1.5 text-sm text-slate-600">
+                            {{ __('Attachments') }}
+                            <span class="text-slate-400">
+                                ({{ partForm.attachments.length }}/{{ maxAttachments }})
                             </span>
-                            <span class="flex-1 min-w-0 text-xs text-slate-600 truncate">
-                                {{ attachmentName(partForm.attachment) }}
-                            </span>
-                            <button type="button" class="text-xs text-red-500 font-semibold underline flex-shrink-0"
-                                @click="removeAttachment(null)">
-                                {{ __('Remove') }}
-                            </button>
+                        </label>
+                        <div v-if="partForm.attachments.length" class="flex flex-col gap-2 mb-2">
+                            <div v-for="(url, fileIdx) in partForm.attachments" :key="url"
+                                class="flex items-center gap-3 bg-white rounded-md border border-slate-200 px-3 py-2 shadow-sm">
+                                <button type="button" class="attachment-thumb"
+                                    :title="attachmentName(url)" @click="openAttachment(url)">
+                                    <img v-if="isImageAttachment(url)" :src="url" :alt="attachmentName(url)" />
+                                    <svg v-else-if="isPdfAttachment(url)" viewBox="0 0 24 24" width="22" height="22"
+                                        aria-hidden="true">
+                                        <path d="M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"
+                                            fill="#fee2e2" stroke="#dc2626" stroke-width="1.5"
+                                            stroke-linejoin="round" />
+                                        <path d="M14 2v5h5" fill="none" stroke="#dc2626" stroke-width="1.5"
+                                            stroke-linejoin="round" />
+                                        <text x="12" y="17.5" text-anchor="middle" font-size="6.5" font-weight="700"
+                                            fill="#dc2626">PDF</text>
+                                    </svg>
+                                    <svg v-else viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#475569"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                        aria-hidden="true">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                        <polyline points="14 2 14 8 20 8" />
+                                    </svg>
+                                </button>
+                                <span class="flex-1 min-w-0 text-xs text-slate-600 truncate">
+                                    {{ attachmentName(url) }}
+                                </span>
+                                <button type="button" class="text-xs text-red-500 font-semibold underline flex-shrink-0"
+                                    @click="removeAttachment(fileIdx)">
+                                    {{ __('Remove') }}
+                                </button>
+                            </div>
                         </div>
-                        <button v-else type="button" :disabled="uploadingAttachment"
+                        <button v-if="partForm.attachments.length < maxAttachments" type="button"
+                            :disabled="uploadingAttachment"
                             class="w-full flex items-center justify-center gap-2 bg-white text-sm font-medium text-blue-950 border border-dashed border-slate-300 rounded-md px-3 py-2.5 shadow-sm disabled:opacity-50"
-                            @click="pickAttachment(null)">
+                            @click="pickAttachment()">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path
@@ -732,7 +741,10 @@
                             </svg>
                             {{ uploadingAttachment ? __('Uploading...') : __('Take photo or attach file') }}
                         </button>
-                        <input ref="sheetFileInput" type="file" class="hidden"
+                        <p v-else class="text-xs text-slate-400 text-center">
+                            {{ __('Attachment limit reached ({0} files).', [maxAttachments]) }}
+                        </p>
+                        <input ref="sheetFileInput" type="file" class="hidden" multiple
                             accept="image/*,application/pdf"
                             @change="onAttachmentSelected" />
                     </div>
@@ -933,6 +945,36 @@
             </ion-content>
         </ion-modal>
 
+        <!-- Image viewer — keeps photos inside the app instead of handing them to the browser -->
+        <ion-modal :is-open="viewerUrl !== null" @did-dismiss="viewerUrl = null">
+            <ion-header class="ion-no-border">
+                <ion-toolbar style="--background: #0f172a; --color: #ffffff;">
+                    <ion-title class="text-sm truncate">
+                        {{ viewerUrl ? attachmentName(viewerUrl) : '' }}
+                    </ion-title>
+                    <ion-buttons slot="end">
+                        <ion-button @click="viewerUrl = null" style="--color: #ffffff;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                        </ion-button>
+                    </ion-buttons>
+                </ion-toolbar>
+            </ion-header>
+            <ion-content :scroll-y="false" style="--background: #0f172a;">
+                <!-- pinch-zoom lets a technician inspect a part photo without leaving the modal -->
+                <div class="image-viewer">
+                    <img v-if="viewerUrl" :src="viewerUrl" :alt="attachmentName(viewerUrl)" />
+                </div>
+            </ion-content>
+        </ion-modal>
+
+        <!-- PDF attachments reuse the work order PDF viewer -->
+        <WorkOrderPdfView :is-open="pdfViewerUrl !== null" :file-url="pdfViewerUrl ?? undefined"
+            :title="pdfViewerUrl ? attachmentName(pdfViewerUrl) : ''" @dismiss="pdfViewerUrl = null" />
+
     </ion-modal>
 </template>
 
@@ -955,6 +997,7 @@ import {
     updateSWO, updateSWOStatus, searchItems, generateSignatureLink,
     getMiscDefaultDays, getSuggestedPMDate, getMultiEquipSettings, pauseRepair,
     checkResponsibleUser, getActiveCustomerPO, getSWOWorkOrderNumber, uploadFile,
+    getMaxPartAttachments, serviceItemsPayload,
     type Customer, type Equipment, type Company,
     type ServiceWorkOrderDetail, type SWOItem, type ItemResult,
 } from '@/services/api'
@@ -962,10 +1005,11 @@ import { session } from '@/data/session'
 import { formatDate } from '@/utils/date'
 import { useFormModal } from '@/composables/useFormModal'
 import SwoPdfButton from '@/components/orders/SwoPdfButton.vue'
+import WorkOrderPdfView from '@/components/orders/WorkOrderPdfView.vue'
 
 const { isOpen, swoName, close, notifySaved, notifyStatusUpdated } = useFormModal()
 
-const __ = inject<(t: string) => string>('$translate', (t) => t)
+const __ = inject<(t: string, replace?: (string | number)[]) => string>('$translate', (t) => t)
 
 // ── Mode ───────────────────────────────────────────────────────────────────────
 const isEditMode = computed(() => swoName.value !== null)
@@ -1070,12 +1114,18 @@ const partSheetError = ref('')
 const partForm = ref(blankPartForm())
 let _sheetSearchTimer: ReturnType<typeof setTimeout> | null = null
 
-// Part attachments
+/** Index of the row being edited in the part sheet, or null when adding a new one. */
+const editingItemIdx = ref<number | null>(null)
+
+// Part attachments — managed only from the part sheet, so the row list stays compact.
 const sheetFileInput = ref<HTMLInputElement | null>(null)
-const rowFileInput = ref<HTMLInputElement | null>(null)
-/** Index of the item row whose attachment is being replaced, or null for the sheet. */
-const attachTargetIdx = ref<number | null>(null)
 const uploadingAttachment = ref(false)
+/** Per-row cap from Service Manager Settings; the fallback matches the field default. */
+const maxAttachments = ref(5)
+/** URL shown in the full-screen image viewer, or null when it is closed. */
+const viewerUrl = ref<string | null>(null)
+/** URL shown in the PDF viewer, or null when it is closed. */
+const pdfViewerUrl = ref<string | null>(null)
 
 // Hours / finish panel
 const showHoursInput = ref(false)
@@ -1193,7 +1243,10 @@ watch(swo, async (doc) => {
     }
     editForm.value = { ...snapshot }
     _originalEditForm.value = { ...snapshot }
-    localItems.value = (doc.service_items ?? []).map((i) => ({ ...i }))
+    localItems.value = (doc.service_items ?? []).map((i) => ({
+        ...i,
+        attachments: [...(i.attachments ?? [])],
+    }))
     _originalItemsJSON = JSON.stringify(localItems.value)
     await nextTick()
     isDirty.value = false
@@ -1222,6 +1275,11 @@ watch(isOpen, async (open) => {
     if (!open) return
     isDirty.value = false
     actionError.value = ''
+
+    // Non-blocking: the attach controls stay usable on the default cap if this fails.
+    getMaxPartAttachments()
+        .then((max) => { maxAttachments.value = max })
+        .catch(() => { /* keep the default */ })
 
     if (!isEditMode.value) {
         loading.value = true
@@ -1258,6 +1316,8 @@ function onDismissed() {
     partSheetError.value = ''
     localItems.value = []
     partForm.value = blankPartForm()
+    viewerUrl.value = null
+    pdfViewerUrl.value = null
     showPauseSheet.value = false
     pauseReasonInput.value = ''
     pauseReasonError.value = ''
@@ -1422,7 +1482,7 @@ async function handleSaveAndClose() {
             po_number: editForm.value.po_number,
             problem_with_lift: editForm.value.problem_with_lift,
             repair_description: editForm.value.repair_description,
-            service_items: localItems.value,
+            service_items: serviceItemsPayload(localItems.value),
         })
         isDirty.value = false
         notifyStatusUpdated()
@@ -1511,7 +1571,7 @@ async function onFinishRepair() {
         po_number: editForm.value.po_number,
         problem_with_lift: editForm.value.problem_with_lift,
         repair_description: editForm.value.repair_description,
-        service_items: localItems.value,
+        service_items: serviceItemsPayload(localItems.value),
     }
 
     const needsPanel = ['Labor Rate', 'Misc', 'PM Frequency'].includes(swo.value.service_type)
@@ -1687,12 +1747,31 @@ function blankPartForm() {
         description: '',
         qty: '1',
         vendor: '',
-        attachment: '',
+        attachments: [] as string[],
     }
 }
 
 function openPartSheet() {
+    editingItemIdx.value = null
     partForm.value = blankPartForm()
+    sheetItemSearchResults.value = []
+    partSheetError.value = ''
+    showPartSheet.value = true
+}
+
+/** Reopens the part sheet prefilled, which is also the only place attachments are managed. */
+function editItem(idx: number) {
+    const item = localItems.value[idx]
+    editingItemIdx.value = idx
+    partForm.value = {
+        is_non_inventory: item.is_non_inventory_part === 1,
+        item_code: item.item_code ?? '',
+        part_number: item.part_number ?? '',
+        description: item.description ?? '',
+        qty: String(item.qty ?? '1'),
+        vendor: item.vendor ?? '',
+        attachments: [...(item.attachments ?? [])],
+    }
     sheetItemSearchResults.value = []
     partSheetError.value = ''
     showPartSheet.value = true
@@ -1700,6 +1779,7 @@ function openPartSheet() {
 
 function closePartSheet() {
     showPartSheet.value = false
+    editingItemIdx.value = null
     sheetItemSearchResults.value = []
     partSheetError.value = ''
     partForm.value = blankPartForm()
@@ -1738,78 +1818,124 @@ function confirmAddPart() {
         partSheetError.value = __('Qty must be greater than 0.')
         return
     }
-    localItems.value.push({
+    const row: SWOItem = {
         is_non_inventory_part: p.is_non_inventory ? 1 : 0,
         item_code: p.is_non_inventory ? undefined : p.item_code || undefined,
         part_number: p.part_number || undefined,
         description: p.description || undefined,
         qty: parsedQty,
         vendor: p.is_non_inventory ? p.vendor || undefined : undefined,
-        attachment: p.attachment || undefined,
-    })
+        attachments: [...p.attachments],
+    }
+    const idx = editingItemIdx.value
+    if (idx === null) {
+        localItems.value.push(row)
+    } else {
+        // Preserve `name` so Frappe updates the existing child row instead of recreating it.
+        localItems.value[idx] = { ...row, name: localItems.value[idx].name }
+    }
     closePartSheet()
 }
 
-function removeItem(idx: number) {
-    localItems.value.splice(idx, 1)
+async function confirmRemoveItem(idx: number) {
+    const item = localItems.value[idx]
+    const label = item.item_code || item.part_number || item.description || __('this part')
+    const alert = await alertController.create({
+        header: __('Remove Part'),
+        message: __('Remove {0} from this work order?', [label]),
+        buttons: [
+            { text: __('Cancel'), role: 'cancel' },
+            {
+                text: __('Remove'),
+                role: 'destructive',
+                handler: () => { localItems.value.splice(idx, 1) },
+            },
+        ],
+    })
+    await alert.present()
 }
 
 // ── Part attachments ──────────────────────────────────────────────────────────
 /**
  * Opens the native file picker. On a phone this offers the camera as well, so a
  * technician can photograph the part without leaving the order.
- *
- * `idx` targets an existing row; omit it while adding a part from the sheet.
  */
-function pickAttachment(idx: number | null = null) {
-    attachTargetIdx.value = idx
-    const input = idx === null ? sheetFileInput.value : rowFileInput.value
+function pickAttachment() {
+    const input = sheetFileInput.value
     if (input) {
         input.value = ''
         input.click()
     }
 }
 
+/**
+ * Uploads every picked file, stopping at the per-row limit. Uploads run one at a
+ * time so a technician on a weak connection does not saturate it with parallel
+ * requests, and so a partial batch still keeps whatever already succeeded.
+ */
 async function onAttachmentSelected(event: Event) {
     const input = event.target as HTMLInputElement
-    const file = input.files?.[0]
-    if (!file || !swoName.value) return
+    const files = Array.from(input.files ?? [])
+    if (!files.length || !swoName.value) return
 
-    const idx = attachTargetIdx.value
+    // `accept` is only a picker hint — some file managers ignore it, so filter here too.
+    const accepted = files.filter(isAllowedAttachment)
+    const rejected = files.length - accepted.length
+
+    const current = partForm.value.attachments
     uploadingAttachment.value = true
     partSheetError.value = ''
-    actionError.value = ''
     try {
-        const uploaded = await uploadFile(file, 'Service Work Order', swoName.value)
-        if (idx === null) {
-            partForm.value.attachment = uploaded.file_url
-        } else {
-            localItems.value[idx].attachment = uploaded.file_url
-            isDirty.value = true
+        const room = maxAttachments.value - current.length
+        for (const file of accepted.slice(0, Math.max(room, 0))) {
+            const uploaded = await uploadFile(file, 'Service Work Order', swoName.value)
+            if (!current.includes(uploaded.file_url)) current.push(uploaded.file_url)
+        }
+        if (rejected) {
+            partSheetError.value = __('Only images and PDF files can be attached.')
+        } else if (accepted.length > room) {
+            partSheetError.value = __('Only {0} files can be attached to a part.', [maxAttachments.value])
         }
     } catch (err: unknown) {
-        const message = extractError(err)
-        if (idx === null) partSheetError.value = message
-        else actionError.value = message
+        partSheetError.value = extractError(err)
     } finally {
         uploadingAttachment.value = false
-        attachTargetIdx.value = null
         input.value = ''
     }
 }
 
-function removeAttachment(idx: number | null = null) {
-    if (idx === null) {
-        partForm.value.attachment = ''
-    } else {
-        localItems.value[idx].attachment = undefined
-        isDirty.value = true
-    }
+/** Mirrors the server-side check in ServiceWorkOrderItem.normalize_attachments. */
+function isAllowedAttachment(file: File): boolean {
+    if (file.type) return file.type.startsWith('image/') || file.type === 'application/pdf'
+    // Some Android file managers report an empty MIME type; fall back to the extension.
+    return /\.(png|jpe?g|gif|webp|heic|heif|pdf)$/i.test(file.name)
+}
+
+function removeAttachment(fileIdx: number) {
+    partForm.value.attachments.splice(fileIdx, 1)
+}
+
+function openImageViewer(url: string) {
+    viewerUrl.value = url
+}
+
+/**
+ * Images and PDFs both stay in-app — PDFs reuse the PDF.js viewer already bundled
+ * for the work order print. Anything else falls back to the browser.
+ */
+function openAttachment(url: string) {
+    if (isImageAttachment(url)) openImageViewer(url)
+    else if (isPdfAttachment(url)) pdfViewerUrl.value = url
+    else window.open(url, '_blank', 'noopener')
 }
 
 /** True when the file URL points at something the browser can render inline. */
 function isImageAttachment(url: string): boolean {
     return /\.(png|jpe?g|gif|webp)$/i.test(url.split('?')[0])
+}
+
+function isPdfAttachment(url: string): boolean {
+    return /\.pdf$/i.test(url.split('?')[0])
 }
 
 function attachmentName(url: string): string {
@@ -1885,5 +2011,47 @@ function statusClass(s: string): string {
 .spinner-small {
     width: 18px;
     height: 18px;
+}
+
+/* Attachment thumbnail. Sized in one place with an explicit box-sizing so an image
+   and a file icon always occupy the exact same square. */
+.attachment-thumb {
+    box-sizing: border-box;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+    overflow: hidden;
+}
+
+.attachment-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Full-screen image viewer. `touch-action` hands pinch-zoom to the browser, which
+   is smoother than any JS implementation and needs no extra dependency. */
+.image-viewer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    touch-action: pinch-zoom;
+}
+
+.image-viewer img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
 }
 </style>

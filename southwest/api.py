@@ -423,6 +423,16 @@ def get_multi_equipment_settings():
 
 
 @frappe.whitelist()
+def get_max_part_attachments():
+	"""Returns how many files the mobile app may attach to a single part row."""
+	from southwest.service_management.doctype.service_manager_settings.service_manager_settings import (
+		get_max_part_attachments as _get_max,
+	)
+
+	return {"max_part_attachments": _get_max()}
+
+
+@frappe.whitelist()
 def get_suggested_pm_date(doc_name):
 	"""
 	Returns the suggested next PM date for a given Service Work Order based on

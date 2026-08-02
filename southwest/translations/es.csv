@@ -314,8 +314,20 @@ To install on iPhone:,Para instalar en iPhone:
 "2. Select ""Add to Home Screen""","2. Seleccione ""Agregar a pantalla de inicio"""
 Setting,Ajustes
 Service Manager Settings,Ajustes del Administrador de Servicio
-Attachment,Adjunto
-Attach file,Adjuntar archivo
+Attachments,Adjuntos
 Take photo or attach file,Tomar foto o adjuntar archivo
 Uploading...,Subiendo...
 Remove,Quitar
+Add File,Agregar archivo
+No files attached.,Sin archivos adjuntos.
+Save the work order before attaching files.,Guarde la orden de trabajo antes de adjuntar archivos.
+Attachment limit reached ({0} files).,Límite de adjuntos alcanzado ({0} archivos).
+Only {0} files can be attached to a part.,Solo se pueden adjuntar {0} archivos a una parte.
+Files,Archivos
+Max Attachments Per Part,Máximo de adjuntos por parte
+Part Attachments,Adjuntos de partes
+Edit Part,Editar parte
+Remove Part,Quitar parte
+Remove {0} from this work order?,¿Quitar {0} de esta orden de trabajo?
+this part,esta parte
+Only images and PDF files can be attached.,Solo se pueden adjuntar imágenes y archivos PDF.

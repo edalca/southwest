@@ -94,7 +94,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
 
 const props = defineProps<{
     isOpen: boolean
-    name: string
+    /** Service Work Order whose print PDF is rendered. Ignored when `fileUrl` is given. */
+    name?: string
+    /** Renders an already-stored PDF instead, such as a part attachment. */
+    fileUrl?: string
     workOrderNumber?: string
     title?: string
 }>()
@@ -111,7 +114,7 @@ const viewer = ref<HTMLDivElement | null>(null)
 let pdfViewer: PDFViewer | null = null
 
 watch(() => props.isOpen, (open) => {
-    if (open && props.name) load()
+    if (open && (props.fileUrl || props.name)) load()
     else if (!open) destroyViewer()
 })
 
@@ -123,7 +126,7 @@ async function load() {
     destroyViewer()
 
     try {
-        const url = await getSWOPdfUrl(props.name)
+        const url = props.fileUrl || await getSWOPdfUrl(props.name!)
         const res = await fetch(url, { credentials: 'include' })
         if (!res.ok) throw new Error(`HTTP ${res.status}`)
         pdfBytes.value = await res.arrayBuffer()
@@ -186,7 +189,9 @@ function downloadPdf() {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `Work-Order-${props.workOrderNumber || props.name}.pdf`
+    a.download = props.fileUrl
+        ? decodeURIComponent(props.fileUrl.split('/').pop() ?? 'attachment.pdf')
+        : `Work-Order-${props.workOrderNumber || props.name}.pdf`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)

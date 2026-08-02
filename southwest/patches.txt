@@ -6,3 +6,4 @@
 # Patches added in this section will be executed after doctypes are migrated
 southwest.patches.v16_5_13_backfill_invoice_service_type
 southwest.patches.v16_5_14_fix_cancelled_wo_status
+southwest.patches.v16_7_0_migrate_part_attachments

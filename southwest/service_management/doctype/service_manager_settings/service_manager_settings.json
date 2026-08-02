@@ -15,6 +15,8 @@
   "multi_equip_pm_frequency",
   "multi_equip_misc",
   "multi_equip_labor_rate",
+  "part_attachments_section",
+  "max_part_attachments",
   "print_settings_tab",
   "print_equipment_type_for",
   "invoice_price_each_threshold",
@@ -95,6 +97,19 @@
    "fieldname": "multi_equip_labor_rate",
    "fieldtype": "Check",
    "label": "Labor Rate"
+  },
+  {
+   "fieldname": "part_attachments_section",
+   "fieldtype": "Section Break",
+   "label": "Part Attachments"
+  },
+  {
+   "default": "5",
+   "description": "Maximum number of files a technician can attach to a single part row in a Service Work Order, on Desk and on the mobile app. Minimum 1.",
+   "fieldname": "max_part_attachments",
+   "fieldtype": "Int",
+   "label": "Max Attachments Per Part",
+   "non_negative": 1
   },
   {
    "fieldname": "print_settings_tab",
@@ -208,7 +223,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-05-30 03:34:04.973540",
+ "modified": "2026-08-02 00:00:00",
  "modified_by": "Administrator",
  "module": "Service Management",
  "name": "Service Manager Settings",

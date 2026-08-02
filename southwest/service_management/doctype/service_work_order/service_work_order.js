@@ -10,6 +10,10 @@ frappe.ui.form.on("Service Work Order Item", {
 				frappe.model.set_value(cdt, cdn, "part_number", r.custom_component);
 		});
 	},
+
+	form_render(frm, cdt, cdn) {
+		render_part_attachments(frm, cdt, cdn);
+	},
 });
 
 frappe.ui.form.on("Service Work Order", {
@@ -793,4 +797,165 @@ function cancel_draft_swo(frm) {
 function normalize_signature_link(link) {
 	if (!link) return link;
 	return link.replace(/\/signature\?/, "/signature?");
+}
+
+// ─── Part Attachments ─────────────────────────────────────────────────────────
+// A part row can hold several files. The list lives in the row's `attachments`
+// field as a JSON array of file URLs, while the File records themselves are
+// attached to the parent Work Order — the same anchoring the grid Attach control
+// uses, which keeps File.has_permission resolvable for technicians.
+
+const IMAGE_EXTENSIONS = /\.(png|jpe?g|gif|webp)$/i;
+
+/** Cached so expanding rows does not hit the server for the same setting. */
+let _max_part_attachments = null;
+
+function get_max_part_attachments(callback) {
+	if (_max_part_attachments !== null) {
+		callback(_max_part_attachments);
+		return;
+	}
+	frappe.call({
+		method: "southwest.api.get_max_part_attachments",
+		callback(r) {
+			_max_part_attachments = r.message?.max_part_attachments || 5;
+			callback(_max_part_attachments);
+		},
+	});
+}
+
+/**
+ * Reads a row's attachment list. Rows created before multi-file support hold a
+ * bare URL instead of a JSON array, so both shapes are accepted.
+ */
+function get_row_attachments(row) {
+	const raw = row.attachments;
+	if (!raw) return [];
+	if (Array.isArray(raw)) return raw.filter(Boolean);
+	const value = String(raw).trim();
+	if (!value.startsWith("[")) {
+		// Legacy single-file rows held a bare Attach path.
+		return value.startsWith("/") || value.startsWith("http") ? [value] : [];
+	}
+	try {
+		const parsed = JSON.parse(value);
+		return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+	} catch (e) {
+		return [];
+	}
+}
+
+function set_row_attachments(frm, cdt, cdn, urls) {
+	// Re-render only once both writes settle, so the grid refresh they trigger does
+	// not wipe the freshly rendered control.
+	Promise.all([
+		frappe.model.set_value(cdt, cdn, "attachments", urls.length ? JSON.stringify(urls) : ""),
+		frappe.model.set_value(cdt, cdn, "attachment_count", urls.length),
+	]).then(() => render_part_attachments(frm, cdt, cdn));
+}
+
+/** Attaching stores the File against the saved parent, so a new doc has nowhere to put it. */
+function part_attachments_editable(frm) {
+	if (frm.is_new() || frm.doc.docstatus !== 0) return false;
+	if (!frm.perm?.[0]?.write) return false;
+	const grid_df = frm.get_docfield("service_items");
+	return !(grid_df && grid_df.read_only);
+}
+
+function attachment_label(url) {
+	try {
+		return decodeURIComponent(url.split("/").pop());
+	} catch (e) {
+		return url;
+	}
+}
+
+function render_part_attachments(frm, cdt, cdn) {
+	const grid_row = frm.fields_dict.service_items?.grid?.grid_rows_by_docname?.[cdn];
+	const wrapper = grid_row?.grid_form?.fields_dict?.attachments_html?.$wrapper;
+	if (!wrapper) return;
+
+	const row = locals[cdt][cdn];
+	const urls = get_row_attachments(row);
+	const editable = part_attachments_editable(frm);
+
+	wrapper.empty();
+	const $list = $('<div class="sw-part-attachments"></div>').appendTo(wrapper);
+
+	urls.forEach((url, i) => {
+		// Same 32px box whether it holds a thumbnail or an icon, so the list stays aligned.
+		const box = "width:32px;height:32px;border-radius:4px;border:1px solid var(--border-color)";
+		let preview;
+		if (IMAGE_EXTENSIONS.test(url.split("?")[0])) {
+			preview = `<img src="${frappe.utils.escape_html(url)}" style="${box};object-fit:cover">`;
+		} else {
+			const is_pdf = /\.pdf$/i.test(url.split("?")[0]);
+			preview = `<span class="d-flex align-items-center justify-content-center"
+				style="${box};background:var(--control-bg);font-size:9px;font-weight:600;color:${
+					is_pdf ? "var(--red-500)" : "var(--text-muted)"
+				}">${is_pdf ? "PDF" : frappe.utils.icon("file", "sm")}</span>`;
+		}
+
+		const $item = $(`
+			<div class="d-flex align-items-center" style="gap:8px;padding:4px 0">
+				${preview}
+				<a href="${frappe.utils.escape_html(url)}" target="_blank" rel="noopener"
+					class="text-truncate" style="max-width:280px">${frappe.utils.escape_html(attachment_label(url))}</a>
+			</div>
+		`).appendTo($list);
+
+		if (editable) {
+			$(`<button type="button" class="btn btn-xs btn-link text-danger">${__("Remove")}</button>`)
+				.appendTo($item)
+				.on("click", () => {
+					const next = get_row_attachments(locals[cdt][cdn]).filter((_, j) => j !== i);
+					set_row_attachments(frm, cdt, cdn, next);
+				});
+		}
+	});
+
+	if (!urls.length) {
+		$list.append(`<div class="text-muted small">${__("No files attached.")}</div>`);
+	}
+
+	if (!editable) {
+		if (frm.is_new() && frm.doc.docstatus === 0) {
+			$list.append(
+				`<div class="text-muted small mt-2">${__("Save the work order before attaching files.")}</div>`,
+			);
+		}
+		return;
+	}
+
+	get_max_part_attachments((max_files) => {
+		const remaining = max_files - urls.length;
+		if (remaining <= 0) {
+			$list.append(
+				`<div class="text-muted small mt-2">${__("Attachment limit reached ({0} files).", [max_files])}</div>`,
+			);
+			return;
+		}
+		$(`<button type="button" class="btn btn-xs btn-default mt-2">${__("Add File")}</button>`)
+			.appendTo($list)
+			.on("click", () => upload_part_attachment(frm, cdt, cdn, remaining));
+	});
+}
+
+function upload_part_attachment(frm, cdt, cdn, remaining) {
+	new frappe.ui.FileUploader({
+		doctype: frm.doctype,
+		docname: frm.docname,
+		folder: "Home/Attachments",
+		make_attachments_public: false,
+		restrictions: {
+			max_number_of_files: remaining,
+			allowed_file_types: ["image/*", "application/pdf"],
+		},
+		on_success(file_doc) {
+			const urls = get_row_attachments(locals[cdt][cdn]);
+			if (!urls.includes(file_doc.file_url)) urls.push(file_doc.file_url);
+			set_row_attachments(frm, cdt, cdn, urls);
+			frm.attachments?.update_attachment(file_doc);
+		},
+	});
 }

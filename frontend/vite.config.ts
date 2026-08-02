@@ -90,15 +90,14 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,ico,png,svg}'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         navigateFallback: null,
+        // Applies to globbed files only. The web manifest arrives through
+        // `additionalManifestEntries`, which workbox appends afterwards and this
+        // never touches — scripts/fix-sw-manifest.mjs prefixes that one entry
+        // post-build. A `manifestTransforms` filter cannot do it either: those
+        // run before the entry is appended.
         modifyURLPrefix: {
           '': 'assets/southwest/frontend/'
         },
-        manifestTransforms: [
-          async (manifestEntries) => {
-            const manifest = manifestEntries.filter((entry) => !entry.url.includes('manifest.webmanifest'))
-            return { manifest, warnings: [] }
-          }
-        ]
       },
       manifest: {
         id: '/southwest',
