@@ -188,6 +188,44 @@
           </div>
         </ion-modal>
 
+        <!-- Personalized Agenda -->
+        <div v-if="upcomingAgenda.length">
+          <div class="mb-3 flex items-center justify-between">
+            <span class="text-xs font-semibold uppercase tracking-widest text-slate-400">
+              {{ __('Upcoming Agenda') }}
+            </span>
+            <ion-button
+              size="small"
+              fill="clear"
+              class="text-xs font-semibold"
+              style="--color: #172554; margin: 0; --padding-end: 0;"
+              @click="router.push('/tabs/agenda')"
+            >
+              {{ __('View All') }}
+            </ion-button>
+          </div>
+
+          <div class="space-y-2">
+            <button
+              v-for="entry in upcomingAgenda.slice(0, 4)"
+              :key="entry.name"
+              class="flex w-full items-center gap-3 rounded-xl bg-white p-4 text-left shadow-sm"
+              @click="openAgendaViewer(entry)"
+            >
+              <span
+                class="h-9 w-1 flex-shrink-0 rounded-full"
+                :class="agendaBarClass(entry)"
+              />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-bold text-slate-800">{{ entry.subject }}</p>
+                <p class="mt-1 text-xs text-slate-400">
+                  {{ __(entry.entry_type) }} · {{ formatAgendaDate(entry.starts_on, entry.all_day) }}
+                </p>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <!-- Recent Work Orders -->
         <div>
           <div class="flex items-center justify-between mb-3">
@@ -308,6 +346,14 @@
           </div>
         </div>
       </div>
+
+      <AgendaViewSheet
+        :is-open="agendaViewerOpen"
+        :entry="selectedAgendaEntry"
+        @close="closeAgendaViewer"
+        @updated="loadUpcomingAgenda"
+        @edit="editAgendaEntry"
+      />
     </ion-content>
 
   </ion-page>
@@ -327,9 +373,13 @@ import { createResource } from 'frappe-ui'
 import { useTime } from '@/composables/useTime'
 import { pwaInstallPrompt, iosInstallPrompt } from '@/pwa'
 import { session } from '@/data/session'
-import { getAttendanceStatus, addCheckinLog } from '@/services/api'
+import {
+  getAttendanceStatus, addCheckinLog, getUpcomingAgenda,
+  type AgendaEntry,
+} from '@/services/api'
 import { useAttendanceLocation } from '@/composables/useAttendanceLocation'
 import { open } from '@/components/orders/FormModal.vue'
+import AgendaViewSheet from '@/components/agenda/AgendaViewSheet.vue'
 
 const router = useRouter()
 const __ = inject<(t: string) => string>('$translate', (t) => t)
@@ -460,20 +510,52 @@ watch(hoursLimit, (newVal) => {
   swoList.reload()
 })
 
+// ── Personalized Agenda ───────────────────────────────────────────────────────
+const upcomingAgenda = ref<AgendaEntry[]>([])
+const agendaViewerOpen = ref(false)
+const selectedAgendaEntry = ref<AgendaEntry | null>(null)
+
+function openAgendaViewer(entry: AgendaEntry) {
+  selectedAgendaEntry.value = entry
+  agendaViewerOpen.value = true
+}
+
+function closeAgendaViewer() {
+  agendaViewerOpen.value = false
+  selectedAgendaEntry.value = null
+}
+
+function editAgendaEntry(entry: AgendaEntry) {
+  closeAgendaViewer()
+  router.push({ name: 'Agenda', query: { edit: entry.name } })
+}
+
+async function loadUpcomingAgenda() {
+  try {
+    upcomingAgenda.value = await getUpcomingAgenda(7, 20)
+  } catch {
+    // Users without an agenda role keep the existing home experience.
+    upcomingAgenda.value = []
+  }
+}
+
 // ── Lifecycle ──────────────────────────────────────────────────────────────────
 onMounted(() => {
   loadAttendanceStatus()
+  loadUpcomingAgenda()
   fetchLocation()
 })
 
 onIonViewWillEnter(() => {
   loadAttendanceStatus()
+  loadUpcomingAgenda()
   swoList.reload()
 })
 
 async function onRefresh(event: CustomEvent) {
   await Promise.all([
     loadAttendanceStatus(),
+    loadUpcomingAgenda(),
     appSettings.reload(),
     swoList.reload(),
   ])
@@ -507,6 +589,20 @@ function statusClass(status: string): string {
     Cancelled:       'bg-red-100 text-red-600',
   }
   return map[status] ?? 'bg-slate-100 text-slate-600'
+}
+
+function agendaBarClass(entry: AgendaEntry): string {
+  if (entry.entry_type === 'Event') return 'bg-blue-500'
+  if (entry.entry_type === 'Task') return 'bg-orange-500'
+  return 'bg-purple-500'
+}
+
+function formatAgendaDate(value: string, allDay: number): string {
+  const date = new Date(value.replace(' ', 'T'))
+  const dateText = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  if (allDay) return dateText
+  const timeText = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+  return `${dateText}, ${timeText}`
 }
 
 const { formatTimeAgo } = useTime()

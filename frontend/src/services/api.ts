@@ -303,6 +303,100 @@ export async function checkResponsibleUser(
 }
 
 // ---------------------------------------------------------------------------
+// Shared Agenda
+// ---------------------------------------------------------------------------
+
+export interface AgendaSubscriber {
+  name?: string
+  user: string
+  added_by?: string
+  added_on?: string
+}
+
+export interface AgendaAlert {
+  name?: string
+  remind_before: number
+  remind_before_unit: 'Minutes' | 'Hours' | 'Days'
+  alert_datetime?: string
+  sent?: number
+  sent_on?: string
+}
+
+export interface AgendaEntry {
+  name: string
+  subject: string
+  entry_type: 'Event' | 'Task' | 'Reminder'
+  status: 'Open' | 'Completed' | 'Cancelled'
+  priority: 'Low' | 'Medium' | 'High'
+  starts_on: string
+  ends_on?: string
+  all_day: number
+  customer?: string
+  description?: string
+  owner: string
+  creation?: string
+  modified?: string
+  subscribers: string[] | AgendaSubscriber[]
+  alerts?: AgendaAlert[]
+  is_subscribed: boolean
+  can_edit?: boolean
+}
+
+export interface AgendaUser {
+  name: string
+  full_name: string
+  user_image?: string
+}
+
+const AGENDA_METHOD = 'southwest.service_management.doctype.agenda_entry.agenda_entry'
+
+export async function getAgendaEntries(
+  start?: string,
+  end?: string,
+  subscribedOnly = false,
+): Promise<AgendaEntry[]> {
+  const params: Record<string, string> = { subscribed_only: subscribedOnly ? '1' : '0' }
+  if (start) params.start = start
+  if (end) params.end = end
+  return await getMethod<AgendaEntry[]>(`${AGENDA_METHOD}.get_agenda_entries`, params) ?? []
+}
+
+export async function getAgendaEntry(name: string): Promise<AgendaEntry> {
+  return getMethod<AgendaEntry>(`${AGENDA_METHOD}.get_agenda_entry`, { name })
+}
+
+export async function createAgendaEntry(data: Record<string, unknown>): Promise<string> {
+  const doc = await resource<{ name: string }>('POST', 'Agenda Entry', { body: data })
+  return doc.name
+}
+
+export async function updateAgendaEntry(
+  name: string,
+  data: Record<string, unknown>,
+): Promise<void> {
+  await resource<unknown>('PUT', `Agenda Entry/${encodeURIComponent(name)}`, { body: data })
+}
+
+export async function toggleAgendaSubscription(name: string, subscribe: boolean): Promise<boolean> {
+  const result = await call(`${AGENDA_METHOD}.toggle_agenda_subscription`, {
+    name,
+    subscribe: subscribe ? 1 : 0,
+  }) as { is_subscribed?: boolean } | undefined
+  return result?.is_subscribed ?? subscribe
+}
+
+export async function getAgendaUsers(): Promise<AgendaUser[]> {
+  return await getMethod<AgendaUser[]>(`${AGENDA_METHOD}.get_agenda_users`) ?? []
+}
+
+export async function getUpcomingAgenda(days = 7, limit = 20): Promise<AgendaEntry[]> {
+  return await getMethod<AgendaEntry[]>(`${AGENDA_METHOD}.get_upcoming_agenda`, {
+    days: String(days),
+    limit: String(limit),
+  }) ?? []
+}
+
+// ---------------------------------------------------------------------------
 // Signature flow
 // ---------------------------------------------------------------------------
 

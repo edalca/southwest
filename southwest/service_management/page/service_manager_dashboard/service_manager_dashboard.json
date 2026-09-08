@@ -9,6 +9,9 @@
  "page_name": "service-manager-dashboard",
  "roles": [
   {
+   "role": "Agenda Manager"
+  },
+  {
    "role": "System Manager"
   }
  ],

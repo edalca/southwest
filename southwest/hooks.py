@@ -5,9 +5,10 @@ app_publisher = "Edwin Carrillo"
 app_description = "Custom adaptation for Southwest company built on top of ERPNext + HRMS"
 app_email = "edwinalonso162@hotmail.com"
 app_license = "mit"
-app_version = "16.7.0"
+app_version = "16.8.0"
 # Installation hooks
 after_install = "southwest.setup.after_install"
+before_migrate = "southwest.setup.before_migrate"
 after_migrate = "southwest.setup.after_install"
 before_uninstall = "southwest.setup.before_uninstall"
 
@@ -170,6 +171,14 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
+scheduler_events = {
+	"cron": {
+		"* * * * *": [
+			"southwest.service_management.doctype.agenda_entry.agenda_entry.process_agenda_alerts"
+		]
+	}
+}
+
 # scheduler_events = {
 # 	"all": [
 # 		"southwest.tasks.all"
@@ -276,4 +285,3 @@ doctype_dashboards = {
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

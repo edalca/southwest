@@ -154,6 +154,7 @@ function refresh_smd(wrapper) {
 			var data = r.message || {};
 			render_smd_kpis(wrapper, data.kpis || {});
 			render_smd_calendar(wrapper, data.calendar_events || []);
+			render_smd_agenda_calendar(wrapper);
 			render_smd_table(wrapper, data.pending_rows || []);
 			render_invoice_table(wrapper, data.ready_to_invoice_rows || []);
 			render_smd_signature_table(wrapper, data.waiting_signature_rows || []);
@@ -692,6 +693,11 @@ function switch_tab(wrapper, tab_name) {
 		if (wrapper.calendar) {
 			wrapper.calendar.render();
 		}
+	} else if (tab_name === "agenda") {
+		$(wrapper.page.body).find("#smd-agenda-section").show();
+		if (wrapper.agenda_calendar) {
+			wrapper.agenda_calendar.render();
+		}
 	} else if (tab_name === "assignments") {
 		$(wrapper.page.body).find("#smd-assignments-section").show();
 	} else if (tab_name === "billing") {
@@ -714,6 +720,11 @@ function build_smd_html(wrapper) {
 			'<li class="nav-item show">',
 			'<button class="nav-link active" data-tab="calendar" type="button" role="tab">' +
 				__("Calendar") +
+				"</button>",
+			"</li>",
+			'<li class="nav-item show">',
+			'<button class="nav-link" data-tab="agenda" type="button" role="tab">' +
+				__("Agenda") +
 				"</button>",
 			"</li>",
 			'<li class="nav-item show">',
@@ -742,6 +753,11 @@ function build_smd_html(wrapper) {
 			'<div id="smd-calendar-section" class="smd-tab-content">',
 			get_smd_calendar_legend(),
 			'<div id="smd-calendar-wrapper"></div>',
+			"</div>",
+
+			'<div id="smd-agenda-section" class="smd-tab-content" style="display:none;">',
+			get_smd_agenda_legend(),
+			'<div id="smd-agenda-calendar-wrapper"></div>',
 			"</div>",
 
 			'<div id="smd-assignments-section" class="smd-tab-content" style="display:none;">',
@@ -802,6 +818,10 @@ function inject_smd_styles() {
 		"#smd-calendar-wrapper { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 20px; }",
 		"#smd-calendar-wrapper .fc { flex: 1; overflow: hidden; }",
 		"#smd-calendar-wrapper .fc-view-harness { background: var(--bg-color); }",
+		"#smd-agenda-section { height: calc(100vh - 270px); min-height: 500px; overflow: hidden; display: flex; flex-direction: column; background: var(--bg-color); }",
+		"#smd-agenda-calendar-wrapper { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 20px; }",
+		"#smd-agenda-calendar-wrapper .fc { flex: 1; overflow: hidden; }",
+		"#smd-agenda-calendar-wrapper .fc-view-harness { background: var(--bg-color); }",
 		".fc-scroller-harness { background: var(--bg-color); }",
 
 		/* Event Popover */
@@ -821,6 +841,7 @@ function inject_smd_styles() {
 		".smd-ep-equip-section{padding:8px 16px 10px;border-top:1px solid var(--border-color);}",
 		".smd-ep-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;max-height:108px;overflow-y:auto;padding:2px 1px 4px;}",
 		".smd-ep-tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:999px;background:var(--blue-100,#dbeafe);color:var(--blue-800,#1e3a8a);border:1px solid var(--blue-200,#bfdbfe);}",
+		".smd-ep-description{margin-top:5px;max-height:90px;overflow-y:auto;white-space:pre-wrap;font-size:12px;line-height:1.45;color:var(--text-color);}",
 		".smd-ep-footer{padding:10px 16px 14px;border-top:1px solid var(--border-color);}",
 		".smd-ep-goto{width:100%;font-size:13px !important;}",
 	].join("\n");
@@ -839,6 +860,31 @@ function get_smd_calendar_legend() {
 		{ color: "var(--blue-600)", label: __("Issued") },
 		{ color: "var(--gray-700)", label: __("Closed") },
 		{ color: "var(--red-500)", label: __("Cancelled") },
+	];
+
+	var html = '<div class="smd-calendar-legend">';
+	items.forEach(function (item) {
+		html +=
+			'<div class="legend-item">' +
+			'<span class="legend-dot" style="background-color:' +
+			item.color +
+			'"></span>' +
+			"<span>" +
+			item.label +
+			"</span>" +
+			"</div>";
+	});
+	html += "</div>";
+	return html;
+}
+
+function get_smd_agenda_legend() {
+	var items = [
+		{ color: "var(--blue-500)", label: __("Event") },
+		{ color: "var(--orange-500)", label: __("Task") },
+		{ color: "var(--purple-500)", label: __("Reminder") },
+		{ color: "var(--green-500)", label: __("Completed") },
+		{ color: "var(--gray-500)", label: __("Cancelled") },
 	];
 
 	var html = '<div class="smd-calendar-legend">';
@@ -920,6 +966,83 @@ function get_status_color(status) {
 		Cancelled: "var(--red-500)",
 	};
 	return map[status] || "var(--gray-500)";
+}
+
+// ---------------------------------------------------------------------------
+// Shared agenda calendar
+// ---------------------------------------------------------------------------
+function render_smd_agenda_calendar(wrapper) {
+	var $container = $(wrapper.page.body).find("#smd-agenda-calendar-wrapper");
+	if (!$container.length) return;
+
+	frappe.require(["calendar.bundle.js"], function () {
+		if (wrapper.agenda_calendar) {
+			wrapper.agenda_calendar.refetchEvents();
+			return;
+		}
+
+		wrapper.agenda_calendar = new frappe.FullCalendar($container[0], {
+			plugins: frappe.FullCalendar.Plugins,
+			initialView: "dayGridMonth",
+			headerToolbar: {
+				left: "prev,next today",
+				center: "title",
+				right: "dayGridMonth,timeGridWeek,timeGridDay",
+			},
+			events: function (fetchInfo, successCallback, failureCallback) {
+				frappe.call({
+					method: "southwest.service_management.doctype.agenda_entry.agenda_entry.get_agenda_entries",
+					args: {
+						start: fetchInfo.startStr,
+						end: fetchInfo.endStr,
+					},
+					callback: function (r) {
+						successCallback(format_agenda_events(r.message || []));
+					},
+					error: failureCallback,
+				});
+			},
+			eventClick: function (info) {
+				show_agenda_event_popover(info.event.id, info.jsEvent);
+			},
+			dateClick: function (info) {
+				var startsOn = info.allDay ? info.dateStr + " 09:00:00" : info.dateStr;
+				frappe.new_doc("Agenda Entry", { starts_on: startsOn });
+			},
+			height: "100%",
+			stickyHeaderDates: true,
+			locale: frappe.boot.lang || "en",
+		});
+
+		wrapper.agenda_calendar.render();
+	});
+}
+
+function format_agenda_events(entries) {
+	return entries.map(function (entry) {
+		var color = get_agenda_color(entry.entry_type, entry.status);
+		return {
+			id: entry.name,
+			title: entry.subject,
+			start: entry.starts_on,
+			end: entry.ends_on || null,
+			allDay: Boolean(entry.all_day),
+			backgroundColor: color,
+			borderColor: color,
+			textColor: "#ffffff",
+		};
+	});
+}
+
+function get_agenda_color(entryType, status) {
+	if (status === "Completed") return "var(--green-500)";
+	if (status === "Cancelled") return "var(--gray-500)";
+	var map = {
+		Event: "var(--blue-500)",
+		Task: "var(--orange-500)",
+		Reminder: "var(--purple-500)",
+	};
+	return map[entryType] || "var(--gray-500)";
 }
 
 // ---------------------------------------------------------------------------
@@ -1014,6 +1137,106 @@ function show_event_popover(swo_name, jsEvent) {
 			$(document).off("mousedown.smd_popover");
 		}
 	});
+}
+
+function show_agenda_event_popover(entry_name, jsEvent) {
+	$(".smd-event-popover").remove();
+
+	var $pop = $([
+		'<div class="smd-event-popover">',
+		'  <div class="smd-ep-loading">',
+		'    <div class="smd-ep-spinner"></div>',
+		'  </div>',
+		"</div>",
+	].join(""));
+
+	$("body").append($pop);
+	_position_popover($pop, jsEvent);
+
+	frappe.call({
+		method: "southwest.service_management.doctype.agenda_entry.agenda_entry.get_agenda_entry",
+		args: { name: entry_name },
+		callback: function (r) {
+			var d = r.message || {};
+			var statusColor = get_agenda_color(d.entry_type, d.status);
+			var rows = [
+				[__("Entry Type"), d.entry_type ? __(d.entry_type) : "—"],
+				[__("Priority"), d.priority ? __(d.priority) : "—"],
+				[__("Starts On"), format_agenda_datetime(d.starts_on, d.all_day)],
+				[__("Ends On"), format_agenda_datetime(d.ends_on, d.all_day)],
+				[__("Customer"), d.customer || "—"],
+				[__("Created By"), d.owner || "—"],
+			];
+
+			var rowsHtml = rows.map(function (row) {
+				return (
+					'<div class="smd-ep-row">' +
+					'<span class="smd-ep-label">' + frappe.utils.escape_html(String(row[0])) + "</span>" +
+					'<span class="smd-ep-value">' + frappe.utils.escape_html(String(row[1])) + "</span>" +
+					"</div>"
+				);
+			}).join("");
+
+			var subscribers = Array.isArray(d.subscribers) ? d.subscribers : [];
+			var subscribersHtml = subscribers.length
+				? subscribers.map(function (subscriber) {
+					return '<span class="smd-ep-tag">' + frappe.utils.escape_html(subscriber.user || "") + "</span>";
+				}).join("")
+				: '<span class="smd-ep-value">—</span>';
+
+			var descriptionSection = d.description
+				? [
+					'<div class="smd-ep-equip-section">',
+					'<span class="smd-ep-label">' + __("Description") + "</span>",
+					'<div class="smd-ep-description">' + frappe.utils.escape_html(d.description) + "</div>",
+					"</div>",
+				].join("")
+				: "";
+
+			$pop.html([
+				'<div class="smd-ep-header">',
+				'<div>',
+				'<div class="smd-ep-title">' + frappe.utils.escape_html(d.subject || entry_name) + "</div>",
+				'<span class="smd-ep-badge" style="background:' + statusColor + '">' + frappe.utils.escape_html(__(d.status || "")) + "</span>",
+				"</div>",
+				'<button class="smd-ep-close" onclick="$(\'.smd-event-popover\').remove()">×</button>',
+				"</div>",
+				'<div class="smd-ep-body">',
+				rowsHtml,
+				"</div>",
+				descriptionSection,
+				'<div class="smd-ep-equip-section">',
+				'<span class="smd-ep-label">' + __("Subscribers") + "</span>",
+				'<div class="smd-ep-tags">' + subscribersHtml + "</div>",
+				"</div>",
+				'<div class="smd-ep-footer">',
+				'<button class="btn btn-primary btn-sm smd-ep-goto" data-name="' + frappe.utils.escape_html(entry_name) + '">' +
+				__("Go to Record") + " →" +
+				"</button>",
+				"</div>",
+			].join(""));
+
+			$pop.find(".smd-ep-goto").on("click", function () {
+				frappe.set_route("Form", "Agenda Entry", $(this).data("name"));
+				$(".smd-event-popover").remove();
+			});
+
+			_position_popover($pop, jsEvent);
+		},
+	});
+
+	$(document).off("mousedown.smd_popover").on("mousedown.smd_popover", function (e) {
+		if (!$(e.target).closest(".smd-event-popover").length) {
+			$(".smd-event-popover").remove();
+			$(document).off("mousedown.smd_popover");
+		}
+	});
+}
+
+function format_agenda_datetime(value, all_day) {
+	if (!value) return "—";
+	if (all_day) return frappe.datetime.str_to_user(String(value).slice(0, 10));
+	return frappe.datetime.str_to_user(value);
 }
 
 function format_currency(value) {

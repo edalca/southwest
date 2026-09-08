@@ -331,3 +331,74 @@ Remove Part,Quitar parte
 Remove {0} from this work order?,¿Quitar {0} de esta orden de trabajo?
 this part,esta parte
 Only images and PDF files can be attached.,Solo se pueden adjuntar imágenes y archivos PDF.
+Agenda,Agenda
+Agenda Entry,Entrada de agenda
+Agenda Entry Alert,Alerta de entrada de agenda
+Agenda Entry Subscriber,Suscriptor de entrada de agenda
+Agenda Manager,Administrador de agenda
+Agenda User,Usuario de agenda
+New Agenda Entry,Nueva entrada de agenda
+Entry Type,Tipo de entrada
+Event,Evento
+Task,Tarea
+Reminder,Recordatorio
+Open,Abierto
+Low,Baja
+Medium,Media
+High,Alta
+Starts On,Comienza el
+Ends On,Termina el
+All Day,Todo el día
+Context,Contexto
+Subscribers,Suscriptores
+Subscriber,Suscriptor
+Alerts,Alertas
+Remind Before,Recordar antes
+Unit,Unidad
+Alert Datetime,Fecha y hora de alerta
+Notify Me,Notificarme
+Stop Notifications,Dejar de notificarme
+Upcoming Agenda,Próximos en la agenda
+Overdue,Vencido
+FOLLOWING,SIGUIENDO
+Previous month,Mes anterior
+Next month,Mes siguiente
+No agenda entries for this day.,No hay entradas de agenda para este día.
+No agenda entries for this month.,No hay entradas de agenda para este mes.
+At start time,Al comenzar
+30 minutes before,30 minutos antes
+1 hour before,1 hora antes
+1 day before,1 día antes
+1 week before,1 semana antes
+End Date,Fecha final
+End Time,Hora final
+Subject and date are required.,El asunto y la fecha son obligatorios.
+Could not load agenda.,No se pudo cargar la agenda.
+Could not open agenda entry.,No se pudo abrir la entrada de agenda.
+Could not save agenda entry.,No se pudo guardar la entrada de agenda.
+Could not update notifications.,No se pudieron actualizar las notificaciones.
+Ends On cannot be before Starts On.,La fecha final no puede ser anterior a la fecha inicial.
+Remind Before cannot be negative.,El tiempo de anticipación no puede ser negativo.
+Invalid reminder unit.,La unidad del recordatorio no es válida.
+You do not have access to the agenda.,No tienes acceso a la agenda.
+Agenda reminder: {0},Recordatorio de agenda: {0}
+Basic Information,Información básica
+Date & Time,Fecha y hora
+Related Context,Contexto relacionado
+Notification Settings,Configuración de notificaciones
+Create Agenda Entry,Crear entrada de agenda
+This agenda entry is read-only.,Esta entrada de agenda es de solo lectura.
+Created By,Creado por
+Due On,Vence el
+Remind On,Recordar el
+No Specific Time,Sin hora específica
+Start Date,Fecha de inicio
+Start Time,Hora de inicio
+Due Date,Fecha límite
+Due Time,Hora límite
+Reminder Date,Fecha del recordatorio
+Reminder Time,Hora del recordatorio
+Details,Detalles
+Schedule a block of time with a beginning and an end.,Reserva un bloque de tiempo con inicio y fin.
+"Add a to-do with a due date, priority, and completion status.","Agrega una tarea con fecha límite, prioridad y estado de finalización."
+Receive a notice at a specific date and time.,Recibe un aviso en una fecha y hora específicas.
