@@ -358,6 +358,8 @@ Unit,Unidad
 Alert Datetime,Fecha y hora de alerta
 Notify Me,Notificarme
 Stop Notifications,Dejar de notificarme
+Notifications Enabled,Notificaciones activadas
+The creator cannot disable notifications for their own agenda entry.,El creador no puede desactivar las notificaciones de su propia entrada de agenda.
 Upcoming Agenda,Próximos en la agenda
 Overdue,Vencido
 FOLLOWING,SIGUIENDO
@@ -402,3 +404,8 @@ Details,Detalles
 Schedule a block of time with a beginning and an end.,Reserva un bloque de tiempo con inicio y fin.
 "Add a to-do with a due date, priority, and completion status.","Agrega una tarea con fecha límite, prioridad y estado de finalización."
 Receive a notice at a specific date and time.,Recibe un aviso en una fecha y hora específicas.
+Finished,Finalizada
+An alert cannot be scheduled in the past. Choose a shorter notice period.,No se puede programar una alerta en el pasado. Selecciona un período de anticipación menor.
+Only alerts that can still be sent are available.,Solo están disponibles las alertas que todavía pueden enviarse.
+Check the information,Revisa la información
+OK,Aceptar

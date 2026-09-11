@@ -10,12 +10,14 @@ ALERT_UNIT_MINUTES = {"Minutes": 1, "Hours": 60, "Days": 1440}
 
 class AgendaEntry(Document):
 	def before_insert(self):
+		self._subscribe_default_users()
 		self._subscribe_creator()
 		self._add_default_alert()
 
 	def validate(self):
 		self._normalize_type_fields()
 		self._validate_dates()
+		self._subscribe_creator()
 		self._normalize_subscribers()
 		self._prepare_alerts()
 		self._set_completion_time()
@@ -25,15 +27,25 @@ class AgendaEntry(Document):
 			self.ends_on = None
 
 	def _subscribe_creator(self):
-		creator = frappe.session.user
+		creator = self.owner or frappe.session.user
 		if creator and creator != "Guest" and not any(row.user == creator for row in self.subscribers):
 			self.append(
 				"subscribers",
 				{"user": creator, "added_by": creator, "added_on": now_datetime()},
 			)
 
+	def _subscribe_default_users(self):
+		"""Default new entries to every enabled user who can access the agenda."""
+		if self.subscribers:
+			return
+		for user in _get_active_agenda_users():
+			self.append(
+				"subscribers",
+				{"user": user.name, "added_by": frappe.session.user, "added_on": now_datetime()},
+			)
+
 	def _add_default_alert(self):
-		if not self.alerts:
+		if not self.alerts and self.starts_on and get_datetime(self.starts_on) >= now_datetime():
 			self.append("alerts", {"remind_before": 0, "remind_before_unit": "Minutes"})
 
 	def _validate_dates(self):
@@ -74,11 +86,17 @@ class AgendaEntry(Document):
 				get_datetime(self.starts_on),
 				minutes=-(amount * ALERT_UNIT_MINUTES[row.remind_before_unit]),
 			)
+			alert_changed = True
 			if row.name and not row.is_new():
 				previous = frappe.db.get_value("Agenda Entry Alert", row.name, "alert_datetime")
-				if previous and get_datetime(previous) != get_datetime(alert_datetime):
+				alert_changed = not previous or get_datetime(previous) != get_datetime(alert_datetime)
+				if alert_changed:
 					row.sent = 0
 					row.sent_on = None
+			if alert_changed and get_datetime(alert_datetime) < add_to_date(now_datetime(), minutes=-1):
+				frappe.throw(
+					_("An alert cannot be scheduled in the past. Choose a shorter notice period.")
+				)
 			row.alert_datetime = alert_datetime
 
 	def _set_completion_time(self):
@@ -93,6 +111,23 @@ def _require_agenda_role():
 		return
 	if not AGENDA_ROLES.intersection(frappe.get_roles()):
 		frappe.throw(_("You do not have access to the agenda."), frappe.PermissionError)
+
+
+def _get_active_agenda_users():
+	user_names = frappe.get_all(
+		"Has Role",
+		filters={"role": ["in", sorted(AGENDA_ROLES)]},
+		pluck="parent",
+	)
+	user_names = set(user_names)
+	if not user_names:
+		return []
+	return frappe.get_all(
+		"User",
+		filters={"name": ["in", list(user_names)], "enabled": 1},
+		fields=["name", "full_name", "user_image"],
+		order_by="full_name asc",
+	)
 
 
 @frappe.whitelist()
@@ -181,6 +216,8 @@ def toggle_agenda_subscription(name, subscribe=1):
 	doc.check_permission("read")
 	user = frappe.session.user
 	is_subscribed = any(row.user == user for row in doc.subscribers)
+	if not cint(subscribe) and doc.owner == user:
+		frappe.throw(_("The creator cannot disable notifications for their own agenda entry."))
 
 	if cint(subscribe) and not is_subscribed:
 		doc.append(
@@ -198,19 +235,7 @@ def toggle_agenda_subscription(name, subscribe=1):
 def get_agenda_users():
 	"""Return enabled users who have a role with agenda access."""
 	_require_agenda_role()
-	user_names = frappe.get_all(
-		"Has Role",
-		filters={"role": ["in", sorted(AGENDA_ROLES)]},
-		pluck="parent",
-	)
-	if not user_names:
-		return []
-	return frappe.get_all(
-		"User",
-		filters={"name": ["in", list(set(user_names))], "enabled": 1},
-		fields=["name", "full_name", "user_image"],
-		order_by="full_name asc",
-	)
+	return _get_active_agenda_users()
 
 
 @frappe.whitelist()

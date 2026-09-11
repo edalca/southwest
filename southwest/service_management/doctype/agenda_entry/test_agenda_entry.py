@@ -6,6 +6,7 @@ from southwest.service_management.doctype.agenda_entry.agenda_entry import (
 	get_agenda_entry,
 	get_upcoming_agenda,
 	process_agenda_alerts,
+	toggle_agenda_subscription,
 )
 
 
@@ -98,11 +99,54 @@ class IntegrationTestAgendaEntry(IntegrationTestCase):
 			}
 		).insert(ignore_permissions=True)
 
-		self.assertEqual([row.user for row in doc.subscribers], [frappe.session.user])
+		self.assertIn(frappe.session.user, [row.user for row in doc.subscribers])
 		self.assertEqual(
 			doc.alerts[0].alert_datetime,
 			add_to_date(starts_on, hours=-2),
 		)
+
+	def test_new_entry_subscribes_all_active_agenda_users(self):
+		owner = self._create_agenda_user("agenda.default.owner@example.com")
+		colleague = self._create_agenda_user("agenda.default.colleague@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		frappe.set_user(owner)
+		doc = frappe.get_doc(
+			{
+				"doctype": "Agenda Entry",
+				"subject": "Default subscribers test",
+				"entry_type": "Reminder",
+				"starts_on": add_days(now_datetime(), 1),
+			}
+		).insert()
+
+		subscribers = {row.user for row in doc.subscribers}
+		self.assertIn(owner, subscribers)
+		self.assertIn(colleague, subscribers)
+
+	def test_creator_cannot_remove_own_subscription(self):
+		owner = self._create_agenda_user("agenda.required.owner@example.com")
+		colleague = self._create_agenda_user("agenda.required.colleague@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		frappe.set_user(owner)
+		doc = frappe.get_doc(
+			{
+				"doctype": "Agenda Entry",
+				"subject": "Required creator subscription",
+				"entry_type": "Task",
+				"starts_on": add_days(now_datetime(), 1),
+				"subscribers": [{"user": owner}, {"user": colleague}],
+			}
+		).insert()
+
+		with self.assertRaises(frappe.ValidationError):
+			toggle_agenda_subscription(doc.name, subscribe=0)
+
+		doc.reload()
+		doc.set("subscribers", [row for row in doc.subscribers if row.user != owner])
+		doc.save()
+		self.assertIn(owner, [row.user for row in doc.subscribers])
 
 	def test_duplicate_subscribers_and_alerts_are_removed(self):
 		doc = frappe.get_doc(
@@ -139,6 +183,19 @@ class IntegrationTestAgendaEntry(IntegrationTestCase):
 		with self.assertRaises(frappe.ValidationError):
 			doc.insert(ignore_permissions=True)
 
+	def test_alert_cannot_be_scheduled_in_the_past(self):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Agenda Entry",
+				"subject": "Invalid alert lead time",
+				"entry_type": "Event",
+				"starts_on": add_days(now_datetime(), 2),
+				"alerts": [{"remind_before": 7, "remind_before_unit": "Days"}],
+			}
+		)
+		with self.assertRaises(frappe.ValidationError):
+			doc.insert(ignore_permissions=True)
+
 	def test_task_does_not_keep_an_event_end(self):
 		starts_on = add_days(now_datetime(), 2)
 		doc = frappe.get_doc(
@@ -159,12 +216,18 @@ class IntegrationTestAgendaEntry(IntegrationTestCase):
 				"doctype": "Agenda Entry",
 				"subject": "Due reminder",
 				"entry_type": "Reminder",
-				"starts_on": add_to_date(now_datetime(), minutes=-1),
+				"starts_on": add_to_date(now_datetime(), minutes=5),
 			}
 		).insert(ignore_permissions=True)
 
 		self.assertEqual(len(doc.alerts), 1)
 		self.assertEqual(doc.alerts[0].remind_before, 0)
+		frappe.db.set_value(
+			"Agenda Entry Alert",
+			doc.alerts[0].name,
+			"alert_datetime",
+			add_to_date(now_datetime(), minutes=-1),
+		)
 		process_agenda_alerts()
 
 		self.assertEqual(

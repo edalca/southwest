@@ -118,8 +118,8 @@
                     </p>
                   </div>
                   <div class="flex flex-shrink-0 flex-col items-end gap-1.5">
-                    <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold" :class="statusClass(entry.status)">
-                      {{ __(entry.status) }}
+                    <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold" :class="statusClass(displayStatus(entry))">
+                      {{ __(displayStatus(entry)) }}
                     </span>
                     <button
                       v-if="entry.can_edit"
@@ -196,16 +196,16 @@
                   </h3>
                 </div>
                 <div class="flex flex-shrink-0 flex-col items-end gap-2">
-                  <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" :class="statusClass(viewerEntry.status)">
-                    {{ __(viewerEntry.status) }}
+                  <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" :class="statusClass(displayStatus(viewerEntry))">
+                    {{ __(displayStatus(viewerEntry)) }}
                   </span>
                   <div class="flex items-center gap-1">
                     <button
                       class="viewer-icon-button"
                       :class="viewerEntry.is_subscribed ? 'viewer-icon-button-active' : ''"
                       type="button"
-                      :aria-label="viewerEntry.is_subscribed ? __('Stop Notifications') : __('Notify Me')"
-                      :disabled="viewerSubscriptionSaving"
+                      :aria-label="viewerEntry.can_edit ? __('Notifications Enabled') : viewerEntry.is_subscribed ? __('Stop Notifications') : __('Notify Me')"
+                      :disabled="viewerSubscriptionSaving || viewerEntry.can_edit"
                       @click="toggleViewerSubscription"
                     >
                       <ion-spinner v-if="viewerSubscriptionSaving" name="crescent" class="viewer-icon-spinner" />
@@ -215,7 +215,7 @@
                         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                       </svg>
                       <span class="text-[11px] font-semibold">
-                        {{ viewerEntry.is_subscribed ? __('Stop Notifications') : __('Notify Me') }}
+                        {{ viewerEntry.can_edit ? __('Notifications Enabled') : viewerEntry.is_subscribed ? __('Stop Notifications') : __('Notify Me') }}
                       </span>
                     </button>
                     <button
@@ -350,10 +350,6 @@
 
         <ion-content style="--background: #f8fafc;">
           <div class="mx-auto max-w-lg space-y-5 px-4 py-5 pb-10">
-            <div v-if="formError" class="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
-              {{ formError }}
-            </div>
-
             <section>
               <p class="section-label">{{ __('Basic Information') }}</p>
               <ion-segment v-model="form.entry_type" mode="ios" class="entry-type-segment" :disabled="!canEdit">
@@ -443,7 +439,12 @@
                   :multiple="true"
                   :disabled="!canEdit"
                 >
-                  <ion-select-option v-for="user in agendaUsers" :key="user.name" :value="user.name">
+                  <ion-select-option
+                    v-for="user in agendaUsers"
+                    :key="user.name"
+                    :value="user.name"
+                    :disabled="user.name === entryOwner"
+                  >
                     {{ user.full_name || user.name }}
                   </ion-select-option>
                 </ion-select>
@@ -456,11 +457,19 @@
                   :multiple="true"
                   :disabled="!canEdit"
                 >
-                  <ion-select-option v-for="option in alertOptions" :key="option.key" :value="option.key">
+                  <ion-select-option
+                    v-for="option in alertOptions"
+                    :key="option.key"
+                    :value="option.key"
+                    :disabled="!isAlertOptionAvailable(option.key) && !isHistoricalAlertAllowed(option.key) && !form.alert_keys.includes(option.key)"
+                  >
                     {{ __(option.label) }}
                   </ion-select-option>
                 </ion-select>
               </ion-item>
+              <p class="mt-1 px-1 text-xs text-slate-400">
+                {{ __('Only alerts that can still be sent are available.') }}
+              </p>
             </section>
 
             <div v-if="!canEdit" class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-500">
@@ -490,8 +499,8 @@
               v-if="editingName"
               class="notification-action"
               :class="form.is_subscribed ? 'notification-action-active' : ''"
-              :disabled="subscriptionSaving"
-              :style="subscriptionSaving ? 'opacity:.5;cursor:not-allowed;' : ''"
+              :disabled="subscriptionSaving || canEdit"
+              :style="subscriptionSaving || canEdit ? 'opacity:.5;cursor:not-allowed;' : ''"
               @click="toggleSubscription"
             >
               <ion-spinner v-if="subscriptionSaving" name="crescent" class="notification-spinner" />
@@ -500,7 +509,7 @@
                 <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
                 <path d="M13.73 21a2 2 0 0 1-3.46 0" />
               </svg>
-              {{ form.is_subscribed ? __('Stop Notifications') : __('Notify Me') }}
+              {{ canEdit ? __('Notifications Enabled') : form.is_subscribed ? __('Stop Notifications') : __('Notify Me') }}
             </button>
           </div>
         </ion-footer>
@@ -510,14 +519,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, reactive, ref, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   IonButton, IonButtons, IonContent, IonFab, IonFabButton, IonFooter, IonHeader,
   IonInput, IonItem, IonLabel, IonModal, IonPage, IonSegment, IonSegmentButton, IonSelect, IonSelectOption,
-  IonSpinner, IonTextarea, IonTitle, IonToggle, IonToolbar, onIonViewWillEnter,
+  IonSpinner, IonTextarea, IonTitle, IonToggle, IonToolbar, alertController, onIonViewWillEnter,
 } from '@ionic/vue'
 import { session } from '@/data/session'
+import { userErrorMessage as errorMessage } from '@/utils/errors'
 import {
   createAgendaEntry, getAgendaEntries, getAgendaEntry, getAgendaUsers,
   getCustomers, toggleAgendaSubscription, updateAgendaEntry,
@@ -551,16 +561,19 @@ const scope = ref<Scope>('following')
 const entries = ref<AgendaEntry[]>([])
 const loading = ref(false)
 const error = ref('')
+const currentTime = ref(Date.now())
 const visibleMonth = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+let clockInterval: number | undefined
 
 const editorOpen = ref(false)
 const editingName = ref<string | null>(null)
+const entryOwner = ref(session.user || '')
 const canEdit = ref(true)
 const saving = ref(false)
 const subscriptionSaving = ref(false)
-const formError = ref('')
 const originalSubscribers = ref<AgendaSubscriber[]>([])
 const originalAlerts = ref<AgendaAlert[]>([])
+const originalStartsOn = ref('')
 
 const viewerOpen = ref(false)
 const viewerLoading = ref(false)
@@ -603,7 +616,9 @@ const viewerAlerts = computed(() => {
 
 const filteredEntries = computed(() =>
   scope.value === 'following'
-    ? entries.value.filter((entry) => entry.owner === session.user || entry.is_subscribed)
+    ? entries.value.filter(
+        (entry) => (entry.owner === session.user || entry.is_subscribed) && isEntryActive(entry),
+      )
     : entries.value,
 )
 
@@ -635,7 +650,17 @@ const calendarCells = computed(() => {
   })
 })
 
-const monthEntries = computed(() => filteredEntries.value)
+const monthEntries = computed(() => {
+  const rows = [...filteredEntries.value]
+  if (scope.value === 'following') {
+    return rows.sort((first, second) => entryStartTimestamp(first) - entryStartTimestamp(second))
+  }
+  return rows.sort((first, second) => {
+    const activeOrder = Number(isEntryActive(second)) - Number(isEntryActive(first))
+    if (activeOrder !== 0) return activeOrder
+    return entryStartTimestamp(second) - entryStartTimestamp(first)
+  })
+})
 
 const entryTypeHelp = computed(() => {
   if (form.entry_type === 'Event') return 'Schedule a block of time with a beginning and an end.'
@@ -656,21 +681,43 @@ const descriptionLabel = computed(() => form.entry_type === 'Task' ? 'Details' :
 
 function blankForm(): FormState {
   const now = new Date()
-  const visibleYear = visibleMonth.value.getFullYear()
-  const visibleMonthIndex = visibleMonth.value.getMonth()
-  const startDate = now.getFullYear() === visibleYear && now.getMonth() === visibleMonthIndex
-    ? dateKey(now)
-    : dateKey(visibleMonth.value)
-  const defaultEnd = localDate(startDate)
-  defaultEnd.setHours(now.getHours() + 1, now.getMinutes(), 0, 0)
+  const defaultStart = new Date(now)
+  defaultStart.setDate(defaultStart.getDate() + 1)
+  defaultStart.setSeconds(0, 0)
+  const defaultEnd = new Date(defaultStart)
+  defaultEnd.setHours(defaultEnd.getHours() + 1)
+  const subscriberUsers = agendaUsers.value.map((user) => user.name)
+  if (session.user && !subscriberUsers.includes(session.user)) subscriberUsers.unshift(session.user)
   return {
     subject: '', entry_type: 'Event', status: 'Open', priority: 'Medium',
-    start_date: startDate, start_time: timeKey(now),
+    start_date: dateKey(defaultStart), start_time: timeKey(defaultStart),
     end_date: dateKey(defaultEnd), end_time: timeKey(defaultEnd), all_day: false,
     customer: '', description: '',
-    subscriber_users: session.user ? [session.user] : [],
-    alert_keys: ['1:Days'], is_subscribed: true,
+    subscriber_users: subscriberUsers,
+    alert_keys: ['0:Minutes'], is_subscribed: true,
   }
+}
+
+function alertKey(alert: AgendaAlert) {
+  return `${alert.remind_before}:${alert.remind_before_unit}`
+}
+
+function isAlertOptionAvailable(key: string) {
+  if (!form.start_date) return false
+  const [amountText, unit] = key.split(':')
+  const unitMinutes: Record<string, number> = { Minutes: 1, Hours: 60, Days: 1440 }
+  const amount = Number(amountText)
+  const start = new Date(
+    serverDateTime(form.start_date, form.all_day ? '09:00' : form.start_time).replace(' ', 'T'),
+  )
+  const alertTime = start.getTime() - amount * (unitMinutes[unit] || 0) * 60_000
+  return Number.isFinite(alertTime) && alertTime >= currentTime.value - 60_000
+}
+
+function isHistoricalAlertAllowed(key: string) {
+  if (!editingName.value || !originalAlerts.value.some((alert) => alertKey(alert) === key)) return false
+  const currentStartsOn = serverDateTime(form.start_date, form.all_day ? '09:00' : form.start_time)
+  return currentStartsOn.replace('T', ' ').slice(0, 16) === originalStartsOn.value.replace('T', ' ').slice(0, 16)
 }
 
 async function loadEntries() {
@@ -688,13 +735,9 @@ async function loadEntries() {
 }
 
 async function loadOptions() {
-  try {
-    const [customerRows, userRows] = await Promise.all([getCustomers(), getAgendaUsers()])
-    customers.value = customerRows
-    agendaUsers.value = userRows
-  } catch {
-    // The agenda remains usable even if optional context lists are unavailable.
-  }
+  const [customerResult, userResult] = await Promise.allSettled([getCustomers(), getAgendaUsers()])
+  if (customerResult.status === 'fulfilled') customers.value = customerResult.value
+  if (userResult.status === 'fulfilled') agendaUsers.value = userResult.value
 }
 
 async function openViewer(entry: AgendaEntry) {
@@ -730,7 +773,7 @@ function editFromViewer() {
 }
 
 async function toggleViewerSubscription() {
-  if (!viewerEntry.value) return
+  if (!viewerEntry.value || viewerEntry.value.can_edit) return
   const entryName = viewerEntry.value.name
   const subscribe = !viewerEntry.value.is_subscribed
   viewerSubscriptionSaving.value = true
@@ -752,12 +795,14 @@ function changeMonth(offset: number) {
 }
 
 async function openEditor(entry?: Pick<AgendaEntry, 'name'>) {
-  formError.value = ''
   if (!entry) {
+    await loadOptions()
     editingName.value = null
+    entryOwner.value = session.user || ''
     canEdit.value = true
     originalSubscribers.value = []
     originalAlerts.value = []
+    originalStartsOn.value = ''
     Object.assign(form, blankForm())
     editorOpen.value = true
     return
@@ -766,10 +811,12 @@ async function openEditor(entry?: Pick<AgendaEntry, 'name'>) {
   try {
     const detail = await getAgendaEntry(entry.name)
     editingName.value = detail.name
+    entryOwner.value = detail.owner
     canEdit.value = detail.can_edit !== false
     const subscribers = (detail.subscribers || []) as AgendaSubscriber[]
     originalSubscribers.value = subscribers
     originalAlerts.value = detail.alerts || []
+    originalStartsOn.value = detail.starts_on
     const start = splitServerDateTime(detail.starts_on)
     const end = detail.ends_on ? splitServerDateTime(detail.ends_on) : { date: '', time: '' }
     Object.assign(form, {
@@ -790,38 +837,54 @@ async function openEditor(entry?: Pick<AgendaEntry, 'name'>) {
     })
     editorOpen.value = true
   } catch (err: unknown) {
-    error.value = errorMessage(err, __('Could not open agenda entry.'))
+    await presentAgendaDialog(errorMessage(err, __('Could not open agenda entry.')))
   }
 }
 
 function closeEditor() {
   editorOpen.value = false
   editingName.value = null
-  formError.value = ''
 }
 
 async function saveEntry() {
   if (!form.subject.trim() || !form.start_date) {
-    formError.value = __('Subject and date are required.')
+    await presentAgendaDialog(__('Subject and date are required.'))
+    return
+  }
+  const startsOn = serverDateTime(form.start_date, form.all_day ? '09:00' : form.start_time)
+  const endsOn = form.entry_type === 'Event' && form.end_date
+    ? serverDateTime(form.end_date, form.all_day ? '17:00' : form.end_time)
+    : null
+  if (endsOn && new Date(endsOn.replace(' ', 'T')) < new Date(startsOn.replace(' ', 'T'))) {
+    await presentAgendaDialog(__('Ends On cannot be before Starts On.'))
+    return
+  }
+  const invalidAlert = form.alert_keys.find(
+    (key) => !isAlertOptionAvailable(key) && !isHistoricalAlertAllowed(key),
+  )
+  if (invalidAlert) {
+    await presentAgendaDialog(__('An alert cannot be scheduled in the past. Choose a shorter notice period.'))
     return
   }
   saving.value = true
-  formError.value = ''
   try {
     const isEvent = form.entry_type === 'Event'
+    const requiredOwner = entryOwner.value || session.user || ''
+    const subscriberUsers = Array.from(new Set([
+      ...form.subscriber_users,
+      requiredOwner,
+    ].filter((user): user is string => Boolean(user))))
     const payload: Record<string, unknown> = {
       subject: form.subject.trim(),
       entry_type: form.entry_type,
       status: form.status,
       priority: form.priority,
-      starts_on: serverDateTime(form.start_date, form.all_day ? '09:00' : form.start_time),
-      ends_on: isEvent && form.end_date
-        ? serverDateTime(form.end_date, form.all_day ? '17:00' : form.end_time)
-        : null,
+      starts_on: startsOn,
+      ends_on: isEvent ? endsOn : null,
       all_day: form.all_day ? 1 : 0,
       customer: form.customer || null,
       description: form.description,
-      subscribers: form.subscriber_users.map((user) => {
+      subscribers: (!editingName.value && agendaUsers.value.length === 0 ? [] : subscriberUsers).map((user) => {
         const existing = originalSubscribers.value.find((row) => row.user === user)
         return existing?.name ? { name: existing.name, user } : { user }
       }),
@@ -840,14 +903,14 @@ async function saveEntry() {
     closeEditor()
     await loadEntries()
   } catch (err: unknown) {
-    formError.value = errorMessage(err, __('Could not save agenda entry.'))
+    await presentAgendaDialog(errorMessage(err, __('Could not save agenda entry.')))
   } finally {
     saving.value = false
   }
 }
 
 async function toggleSubscription() {
-  if (!editingName.value) return
+  if (!editingName.value || canEdit.value) return
   subscriptionSaving.value = true
   try {
     form.is_subscribed = await toggleAgendaSubscription(editingName.value, !form.is_subscribed)
@@ -860,7 +923,7 @@ async function toggleSubscription() {
     }
     await loadEntries()
   } catch (err: unknown) {
-    formError.value = errorMessage(err, __('Could not update notifications.'))
+    await presentAgendaDialog(errorMessage(err, __('Could not update notifications.')))
   } finally {
     subscriptionSaving.value = false
   }
@@ -876,6 +939,7 @@ watch(() => form.entry_type, (entryType) => {
 function entryDotClass(entry: AgendaEntry) {
   if (entry.status === 'Completed') return 'bg-green-500'
   if (entry.status === 'Cancelled') return 'bg-slate-400'
+  if (!isEntryActive(entry)) return 'bg-slate-300'
   return entry.entry_type === 'Event' ? 'bg-blue-500' : entry.entry_type === 'Task' ? 'bg-orange-500' : 'bg-purple-500'
 }
 
@@ -883,10 +947,30 @@ function entryBarClass(entry: AgendaEntry) {
   return entryDotClass(entry)
 }
 
-function statusClass(status: AgendaEntry['status']) {
+function displayStatus(entry: AgendaEntry): AgendaEntry['status'] | 'Finished' {
+  if (entry.status !== 'Open') return entry.status
+  return isEntryActive(entry) ? 'Open' : 'Finished'
+}
+
+function isEntryActive(entry: AgendaEntry) {
+  if (entry.status !== 'Open') return false
+  const endValue = entry.entry_type === 'Event' && entry.ends_on ? entry.ends_on : entry.starts_on
+  if (entry.all_day) {
+    const endOfEntryDay = localDate(serverDateKey(endValue))
+    endOfEntryDay.setDate(endOfEntryDay.getDate() + 1)
+    return endOfEntryDay.getTime() > currentTime.value
+  }
+  return new Date(endValue.replace(' ', 'T')).getTime() > currentTime.value
+}
+
+function entryStartTimestamp(entry: AgendaEntry) {
+  return new Date(entry.starts_on.replace(' ', 'T')).getTime()
+}
+
+function statusClass(status: AgendaEntry['status'] | 'Finished') {
   return status === 'Completed'
     ? 'bg-green-100 text-green-700'
-    : status === 'Cancelled'
+    : status === 'Cancelled' || status === 'Finished'
       ? 'bg-slate-100 text-slate-500'
       : 'bg-amber-100 text-amber-700'
 }
@@ -948,12 +1032,24 @@ function serverDateTime(date: string, time: string) {
   return `${date} ${time || '09:00'}:00`
 }
 
-function errorMessage(error: unknown, fallback: string) {
-  const err = error as { _error_message?: string; message?: string }
-  return err?._error_message || err?.message || fallback
+async function presentAgendaDialog(message: string) {
+  const alert = await alertController.create({
+    header: __('Check the information'),
+    message,
+    buttons: [__('OK')],
+  })
+  await alert.present()
 }
 
-onMounted(loadOptions)
+onMounted(() => {
+  loadOptions()
+  clockInterval = window.setInterval(() => {
+    currentTime.value = Date.now()
+  }, 60_000)
+})
+onUnmounted(() => {
+  if (clockInterval) window.clearInterval(clockInterval)
+})
 onIonViewWillEnter(() => {
   loadEntries()
   const requestedEntry = route.query.edit

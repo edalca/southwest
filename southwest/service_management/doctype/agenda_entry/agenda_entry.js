@@ -5,9 +5,15 @@ frappe.ui.form.on("Agenda Entry", {
 		}));
 	},
 
+	onload(frm) {
+		set_default_schedule_and_alert(frm);
+		set_default_subscribers(frm);
+	},
+
 	refresh(frm) {
 		apply_entry_type_layout(frm);
 		if (frm.is_new()) return;
+		if (frm.doc.owner === frappe.session.user) return;
 		const subscribed = (frm.doc.subscribers || []).some(
 			(row) => row.user === frappe.session.user,
 		);
@@ -27,6 +33,35 @@ frappe.ui.form.on("Agenda Entry", {
 		}
 	},
 });
+
+function set_default_schedule_and_alert(frm) {
+	if (!frm.is_new()) return;
+	const starts_on = moment().add(1, "day").seconds(0).milliseconds(0);
+	if (!frm.doc.starts_on) frm.set_value("starts_on", starts_on.format("YYYY-MM-DD HH:mm:ss"));
+	if (!frm.doc.ends_on) frm.set_value("ends_on", starts_on.clone().add(1, "hour").format("YYYY-MM-DD HH:mm:ss"));
+	if (!(frm.doc.alerts || []).length) {
+		frm.add_child("alerts", { remind_before: 0, remind_before_unit: "Minutes" });
+		frm.refresh_field("alerts");
+	}
+}
+
+async function set_default_subscribers(frm) {
+	if (!frm.is_new() || frm.__agenda_subscribers_initialized) return;
+	frm.__agenda_subscribers_initialized = true;
+
+	const response = await frappe.call({
+		method: "southwest.service_management.doctype.agenda_entry.agenda_entry.get_agenda_users",
+	});
+	if (!frm.is_new()) return;
+
+	const users = (response.message || []).map((user) => user.name);
+	if (!users.includes(frappe.session.user)) users.push(frappe.session.user);
+	const selected = new Set((frm.doc.subscribers || []).map((row) => row.user));
+	for (const user of users) {
+		if (!selected.has(user)) frm.add_child("subscribers", { user });
+	}
+	frm.refresh_field("subscribers");
+}
 
 function apply_entry_type_layout(frm) {
 	const is_event = frm.doc.entry_type === "Event";

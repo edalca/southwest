@@ -43,16 +43,16 @@
               </h3>
             </div>
             <div class="flex flex-shrink-0 flex-col items-end gap-2">
-              <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" :class="statusClass(detail.status)">
-                {{ __(detail.status) }}
+              <span class="rounded-full px-2.5 py-1 text-[11px] font-semibold" :class="statusClass(displayStatus(detail))">
+                {{ __(displayStatus(detail)) }}
               </span>
               <div class="flex items-center gap-1">
                 <button
                   class="icon-button"
                   :class="detail.is_subscribed ? 'icon-button-active' : ''"
                   type="button"
-                  :aria-label="detail.is_subscribed ? __('Stop Notifications') : __('Notify Me')"
-                  :disabled="subscriptionSaving"
+                  :aria-label="detail.can_edit ? __('Notifications Enabled') : detail.is_subscribed ? __('Stop Notifications') : __('Notify Me')"
+                  :disabled="subscriptionSaving || detail.can_edit"
                   @click="toggleSubscription"
                 >
                   <ion-spinner v-if="subscriptionSaving" name="crescent" class="icon-spinner" />
@@ -62,7 +62,7 @@
                     <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                   </svg>
                   <span class="text-[11px] font-semibold">
-                    {{ detail.is_subscribed ? __('Stop Notifications') : __('Notify Me') }}
+                    {{ detail.can_edit ? __('Notifications Enabled') : detail.is_subscribed ? __('Stop Notifications') : __('Notify Me') }}
                   </span>
                 </button>
                 <button
@@ -174,6 +174,7 @@ import {
 import {
   getAgendaEntry, toggleAgendaSubscription, type AgendaEntry,
 } from '@/services/api'
+import { userErrorMessage as errorMessage } from '@/utils/errors'
 
 const props = defineProps<{
   isOpen: boolean
@@ -234,7 +235,7 @@ watch(
 )
 
 async function toggleSubscription() {
-  if (!detail.value) return
+  if (!detail.value || detail.value.can_edit) return
   subscriptionSaving.value = true
   error.value = ''
   try {
@@ -249,10 +250,21 @@ async function toggleSubscription() {
   }
 }
 
-function statusClass(status: AgendaEntry['status']) {
+function displayStatus(entry: AgendaEntry): AgendaEntry['status'] | 'Finished' {
+  if (entry.status !== 'Open') return entry.status
+  const endValue = entry.entry_type === 'Event' && entry.ends_on ? entry.ends_on : entry.starts_on
+  if (entry.all_day) {
+    const [year, month, day] = endValue.slice(0, 10).split('-').map(Number)
+    const endOfEntryDay = new Date(year, month - 1, day + 1)
+    return endOfEntryDay.getTime() > Date.now() ? 'Open' : 'Finished'
+  }
+  return new Date(endValue.replace(' ', 'T')).getTime() > Date.now() ? 'Open' : 'Finished'
+}
+
+function statusClass(status: AgendaEntry['status'] | 'Finished') {
   return status === 'Completed'
     ? 'bg-green-100 text-green-700'
-    : status === 'Cancelled'
+    : status === 'Cancelled' || status === 'Finished'
       ? 'bg-slate-100 text-slate-500'
       : 'bg-amber-100 text-amber-700'
 }
@@ -273,10 +285,6 @@ function formatDateTime(value: string, withoutTime: boolean) {
   return `${dateText}, ${timeText}`
 }
 
-function errorMessage(err: unknown, fallback: string) {
-  const errorValue = err as { _error_message?: string; message?: string }
-  return errorValue?._error_message || errorValue?.message || fallback
-}
 </script>
 
 <style scoped>

@@ -7,3 +7,4 @@
 southwest.patches.v16_5_13_backfill_invoice_service_type
 southwest.patches.v16_5_14_fix_cancelled_wo_status
 southwest.patches.v16_7_0_migrate_part_attachments
+southwest.patches.v16_8_1_restore_agenda_creator_subscriptions

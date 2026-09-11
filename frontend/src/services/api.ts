@@ -57,6 +57,7 @@ async function buildError(res: Response): Promise<Error> {
   const msg = (body._error_message ?? body.exception ?? `HTTP ${res.status}`) as string
   const e = new Error(msg) as Error & { _error_message?: string; _server_messages?: unknown }
   e._error_message = body._error_message as string | undefined
+  e._server_messages = body._server_messages
   return e
 }
 
